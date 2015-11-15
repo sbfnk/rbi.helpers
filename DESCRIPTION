@@ -1,0 +1,12 @@
+Package: bi.helper
+Version: 0.0-1
+Date: 2015-11-15
+Title: bi
+Author: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
+Maintainer: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
+Depends: R, bi
+Suggests: 
+Description: R helper functions for inference with libbi
+License: GPL (>= 3)
+BugReports: 
+LazyLoad: no
