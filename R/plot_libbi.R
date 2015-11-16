@@ -22,7 +22,8 @@
 ##' @param base.alpha base alpha value for credible intervals
 ##' @param ... options for geom_step / geom_line
 ##' @return list of results
-##' @import data.table ggthemr ggplot2 lubridate scales reshape2
+##' @import ggplot2 scales reshape2
+##' @importFrom lubridate wday
 ##' @export
 ##' @author Sebastian Funk
 plot_libbi <- function(read, states = "all", params = "all", noises = "all",
