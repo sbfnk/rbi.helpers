@@ -15,6 +15,10 @@ sample_observations <- function(wrapper, output_file_name){
   end_time <- max(times)
   start_time <- min(times)
 
+  model <- wrapper$model
+  model$remove_block("transition")
+  wrapper$model <- model
+
   wrapper$run(add_options = list("start-time" = start_time, 
                                  "end-time" = end_time, 
                                  "noutputs" = start_time - end_time, 
