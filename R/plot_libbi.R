@@ -44,9 +44,12 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
             stop("The model should be run first")
         }
         read <- bi_read(read)
+    } else if (is.data.frame(read))
+    {
+        read <- list(dummy = read)
     } else if (!is.list(read))
     {
-        stop("'read' must be a 'libbi' object or a list of data frames.")
+        stop("'read' must be a 'libbi' object or a list of data frames or a data frame.")
     }
     res <- lapply(read, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
     res <- lapply(res, copy)
@@ -127,12 +130,11 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
 
     plot_states <- c()
     p <- NULL
-    ip <- NULL
     if (!("none" %in% states))
     {
         if (length(states) == 1 && states == "all")
         {
-            all_states <- grep("^[A-Z]", names(res), value = TRUE)
+            all_states <- c(grep("^[A-Z]", names(res), value = TRUE), "dummy")
             plot_states <- all_states
         } else
         {
@@ -319,10 +321,25 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
 
             if (!missing(hline))
             {
-                for (hline_state in names(hline))
+                named <- which(names(hline) != "")
+                if (is.null(names(hline)))
                 {
-                    p <- p + geom_hline(data = data.frame(state = hline_state,
-                                                          yintercept = hline[hline_state]),
+                    unnamed <- seq_along(hline)
+                } else
+                {
+                    unnamed <- which(names(hline) == "")
+                }
+                for (hline_state_id in named)
+                {
+                    hline_data <- data.frame(state = names(hline)[hline_state_id],
+                                             yintercept = hline[hline_state_id])
+                    p <- p + geom_hline(data = hline_data,
+                                        aes(yintercept = yintercept), color = "black")
+                }
+                for (hline_state_id in unnamed)
+                {
+                    hline_data <- data.frame(yintercept = hline[hline_state_id])
+                    p <- p + geom_hline(data = hline_data,
                                         aes(yintercept = yintercept), color = "black")
                 }
             }
@@ -417,92 +434,95 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                          data.table(parameter = rep(sub("^p_", "", param),
                                                     nrow(values)), values))
         }
-        pdt[, parameter := factor(parameter, levels = unique(parameter))]
-
-        by.varying <- "parameter"
-        if (!missing(extra.aes))
+        if (nrow(pdt) > 0)
         {
-            by.varying <- c(by.varying, unique(unname(extra.aes)))
-        }
-        pdt[, varying := (length(unique(value)) > 1), by = by.varying]
+            pdt[, parameter := factor(parameter, levels = unique(parameter))]
 
-        ret_data <- c(ret_data, list(params = pdt))
-
-        aesthetic <- list(x = "value", y = "..count../sum(..count..)")
-        if (length(extra.aes) > 0)
-        {
-            aesthetic <- c(aesthetic, extra.aes)
-        }
-
-        if (nrow(pdt) > 0 && nrow(pdt[varying == TRUE]) > 0)
-        {
-            if (missing(id))
+            by.varying <- "parameter"
+            if (!missing(extra.aes))
             {
-                break_dist <- 0.4
-                extra_cols <- setdiff(colnames(pdt),
-                                      c("parameter", "np", "varying", "value"))
-                if (length(extra_cols) > 0)
-                {
-                    cast_formula <-
-                        as.formula(paste(paste("np", extra_cols, sep = "+"),
-                                         "parameter", sep = "~"))
-                } else
-                {
-                    cast_formula <- as.formula("np~parameter")
-                }
-                wpdt <- data.table(dcast(pdt[varying == TRUE], cast_formula,
-                                         value.var = "value"))
-                wpdt[, np := NULL]
-                if (length(extra_cols) > 0)
-                {
-                    wpdt[, paste(extra_cols) := NULL]
-                }
-                correlations <- data.table(melt(cor(wpdt)))
-                correlations[, correlation := cut(value,
-                                                  breaks = c(seq(-1, 1, by = break_dist)))]
-                ret_data <- c(ret_data, list(correlations = correlations))
-
-                color_palette <-
-                    colorRampPalette(c("#3794bf", "#FFFFFF", "#df8640"))(2 / break_dist)
-
-                cp <- ggplot(correlations, aes(x = Var1, y = Var2,
-                                               fill = correlation))
-                cp <- cp + geom_tile()
-                cp <- cp + scale_fill_manual("Correlation", values = color_palette,
-                                             limits = levels(correlations[, correlation]))
-                cp <- cp + scale_x_discrete("")
-                cp <- cp + scale_y_discrete("")
-            } else {
-                cp <- NULL
+                by.varying <- c(by.varying, unique(unname(extra.aes)))
             }
+            pdt[, varying := (length(unique(value)) > 1), by = by.varying]
 
-            dp <- ggplot(pdt[varying == TRUE], do.call(aes_string, aesthetic))
-            dp <- dp + facet_wrap(~ parameter, scales = "free")
-            dp <- dp + geom_density()
-            dp <- dp + scale_y_continuous("Frequency")
-            dp <- dp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
-                             legend.position = "top")
-            if (!missing(id))
-            {
-                dp <- dp + geom_vline(data = pdt[np %in% id],
-                                      aes(xintercept = value))
-            }
+            ret_data <- c(ret_data, list(params = pdt))
 
-            aesthetic <- list(x = "np", y = "value")
-
+            aesthetic <- list(x = "value", y = "..count../sum(..count..)")
             if (length(extra.aes) > 0)
             {
                 aesthetic <- c(aesthetic, extra.aes)
             }
 
-            tp <- ggplot(pdt[varying == TRUE], do.call(aes_string, aesthetic))
-            tp <- tp + geom_line()
-            tp <- tp + facet_wrap(~ parameter, scales = "free_y")
-            tp <- tp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
-                             legend.position = "top")
-            if (!missing(id))
+            if (nrow(pdt[varying == TRUE]) > 0)
             {
-                tp <- tp + geom_vline(xintercept = id)
+                if (missing(id))
+                {
+                    break_dist <- 0.4
+                    extra_cols <- setdiff(colnames(pdt),
+                                          c("parameter", "np", "varying", "value"))
+                    if (length(extra_cols) > 0)
+                    {
+                        cast_formula <-
+                            as.formula(paste(paste("np", extra_cols, sep = "+"),
+                                             "parameter", sep = "~"))
+                    } else
+                    {
+                        cast_formula <- as.formula("np~parameter")
+                    }
+                    wpdt <- data.table(dcast(pdt[varying == TRUE], cast_formula,
+                                             value.var = "value"))
+                    wpdt[, np := NULL]
+                    if (length(extra_cols) > 0)
+                    {
+                        wpdt[, paste(extra_cols) := NULL]
+                    }
+                    correlations <- data.table(melt(cor(wpdt)))
+                    correlations[, correlation := cut(value,
+                                                      breaks = c(seq(-1, 1, by = break_dist)))]
+                    ret_data <- c(ret_data, list(correlations = correlations))
+
+                    color_palette <-
+                        colorRampPalette(c("#3794bf", "#FFFFFF", "#df8640"))(2 / break_dist)
+
+                    cp <- ggplot(correlations, aes(x = Var1, y = Var2,
+                                                   fill = correlation))
+                    cp <- cp + geom_tile()
+                    cp <- cp + scale_fill_manual("Correlation", values = color_palette,
+                                                 limits = levels(correlations[, correlation]))
+                    cp <- cp + scale_x_discrete("")
+                    cp <- cp + scale_y_discrete("")
+                } else {
+                    cp <- NULL
+                }
+
+                dp <- ggplot(pdt[varying == TRUE], do.call(aes_string, aesthetic))
+                dp <- dp + facet_wrap(~ parameter, scales = "free")
+                dp <- dp + geom_density()
+                dp <- dp + scale_y_continuous("Frequency")
+                dp <- dp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                                 legend.position = "top")
+                if (!missing(id))
+                {
+                    dp <- dp + geom_vline(data = pdt[np %in% id],
+                                          aes(xintercept = value))
+                }
+
+                aesthetic <- list(x = "np", y = "value")
+
+                if (length(extra.aes) > 0)
+                {
+                    aesthetic <- c(aesthetic, extra.aes)
+                }
+
+                tp <- ggplot(pdt[varying == TRUE], do.call(aes_string, aesthetic))
+                tp <- tp + geom_line()
+                tp <- tp + facet_wrap(~ parameter, scales = "free_y")
+                tp <- tp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                                 legend.position = "top")
+                if (!missing(id))
+                {
+                    tp <- tp + geom_vline(xintercept = id)
+                }
             }
         } else
         {
