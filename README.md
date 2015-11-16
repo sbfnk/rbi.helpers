@@ -9,6 +9,7 @@ It contains:
 - `sample_observations`, to sample observations from trajectories
 - `adapt_mcmc`, to adapt the proposal distribution of a model according to the empirical standard deviations of accepted parameters
 - `adapt_particles`, to adapt the number of particles at a given point in parameter space.
+- `plot_libbi`, to plot libbi output
 
 Installation
 =============

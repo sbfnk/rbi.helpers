@@ -4,7 +4,8 @@ Date: 2015-11-15
 Title: bi
 Author: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
 Maintainer: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
-Depends: R, bi
+Depends: R, RBi
+Imports: data.table
 Suggests: 
 Description: R helper functions for inference with libbi
 License: GPL (>= 3)

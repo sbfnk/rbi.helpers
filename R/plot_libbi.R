@@ -1,0 +1,760 @@
+##' Plot results from libbi
+##'
+##' @param read either a \code{libbi} or a list of data frames, as returned by \code{bi_read}
+##' @param states states to plot ("all" if all")
+##' @param params parameters to plot ("all" if all")
+##' @param noises noises to plot ("all" if all")
+##' @param quantile.span if plots are produced, which quantile to use for confidence intervals
+##' @param date.origin date of origin (if dates are to be calculated)
+##' @param date.unit unit of date
+##' @param time.dim time dimension ("nr" by default)
+##' @param data data (with a "time" and "value" column)
+##' @param id one or more run ids to plot
+##' @param extra.aes extra aesthetics (for ggplot)
+##' @param all.times whether to plot all times (not only ones with data)
+##' @param hline horizontal marker lines, named vector in format (state = value)
+##' @param burn How many runs to burn
+##' @param thin How many runs to thin per run kept
+##' @param steps whether to plot lines as stepped lines
+##' @param select list of selection criteria
+##' @param shift list of dimensions to be shifted, and by how much
+##' @param data.colour colour for plotting the data
+##' @param base.alpha base alpha value for credible intervals
+##' @param ... options for geom_step / geom_line
+##' @return list of results
+##' @import data.table ggthemr ggplot2 lubridate scales reshape2
+##' @export
+##' @author Sebastian Funk
+plot_libbi <- function(read, states = "all", params = "all", noises = "all",
+                       quantile.span = c(0.5, 0.95),
+                       date.origin, date.unit = "day", time.dim = "nr",
+                       data, id, extra.aes = c(),
+                       all.times = FALSE, hline,
+                       burn, thin, steps = FALSE, select,
+                       shift, data.colour = "red", base.alpha = 0.5, ...)
+{
+    ret_data <- list()
+    ## copy data table
+
+    if (class(read) == "libbi")
+    {
+        if (!read$run_flag)
+        {
+            stop("The model should be run first")
+        }
+        read <- bi_read(read)
+    } else if (!is.list(read))
+    {
+        stop("'read' must be a 'libbi' object or a list of data frames.")
+    }
+    res <- lapply(read, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
+    res <- lapply(res, copy)
+
+    if (steps)
+    {
+        ribbon_func <- function(mapping, ...)
+        {
+            if (missing(mapping)) mapping <- list()
+            mapping <- modifyList(mapping, aes_string(xmin = "time"))
+            mapping <- modifyList(mapping, aes_string(xmax = "time_next"))
+            geom_rect(mapping, ...)
+        }
+        line_func <- geom_step
+    } else
+    {
+        ribbon_func <- geom_ribbon
+        line_func <- geom_line
+    }
+
+    if ("color" %in% names(extra.aes) & !("fill" %in% names(extra.aes)))
+    {
+        extra.aes["fill"] <- extra.aes["color"]
+    } else if ("fill" %in% names(extra.aes) & !("color" %in% names(extra.aes)))
+    {
+        extra.aes["color"] <- extra.aes["fill"]
+    }
+
+    if (!missing(burn) || !missing(thin))
+    {
+        for (var in names(res))
+        {
+            if ("np" %in% colnames(res[[var]]))
+            {
+                if (!missing(burn))
+                {
+                    res[[var]] <- res[[var]][np >= burn]
+                }
+                if (!missing(thin))
+                {
+                    res[[var]] <- res[[var]][np %% (thin + 1) == 0]
+                }
+                recount_np <- data.table(np = unique(res[[var]][, np]))
+                recount_np[, new_np := seq_len(nrow(recount_np)) - 1]
+                res[[var]] <- merge(res[[var]], recount_np, by = "np")
+                res[[var]][, np := NULL]
+                setnames(res[[var]], "new_np", "np")
+            }
+        }
+    }
+
+    sdt <- data.table(state = character(0))
+    if (missing(date.origin))
+    {
+        sdt[, time := numeric(0)]
+        sdt[, time_next := numeric(0)]
+    } else
+    {
+        sdt[, time := as.Date(character(0))]
+        sdt[, time_next := as.Date(character(0))]
+    }
+    sdt[, value := numeric(0)]
+    if (missing(id))
+    {
+        for (i in seq_along(quantile.span))
+        {
+            sdt[, paste("min", i, sep = ".") := numeric(0)]
+            sdt[, paste("max", i, sep = ".") := numeric(0)]
+        }
+    } else
+    {
+        sdt[, np := numeric(0)]
+    }
+    for (extra in unique(unname(extra.aes)))
+    {
+        sdt[, paste(extra) := character(0)]
+    }
+
+    plot_states <- c()
+    p <- NULL
+    ip <- NULL
+    if (!("none" %in% states))
+    {
+        if (length(states) == 1 && states == "all")
+        {
+            all_states <- grep("^[A-Z]", names(res), value = TRUE)
+            plot_states <- all_states
+        } else
+        {
+            plot_states <- states
+        }
+
+        if (!missing(data))
+        {
+            if (length(setdiff(c("time", "value"), colnames(data))) > 0) {
+                stop("'data' does not have a 'time' and 'value' column.")
+            } else {
+                dataset <- data.table(data)
+            }
+        }
+
+        for (state in plot_states)
+        {
+            values <- copy(res[[state]])
+
+            if (!is.null(values))
+            {
+                if (time.dim %in% colnames(values))
+                {
+                    if (!missing(date.origin))
+                    {
+                        if (date.unit == "day")
+                        {
+                            values[, time := date.origin + get(time.dim)]
+                            values[, time_next := time + 1]
+                        } else if (date.unit == "week")
+                        {
+                            values[, time := date.origin + get(time.dim) * 7]
+                            values[, time_next := time + 7]
+                        } else if (date.unit == "month")
+                        {
+                            values[, time := date.origin %m+% months(as.integer(get(time.dim)))]
+                            values[, time_next := time %m+% months(1)]
+                        } else if (date.unit == "year")
+                        {
+                            values[, time := date.origin + years(as.integer(get(time.dim)))]
+                            values[, time_next := time %m+% months(12)]
+                        }
+                    } else {
+                        values[, time := get(time.dim)]
+                        values[, time_next := time + 1]
+                    }
+                }
+
+                if (!missing(select))
+                {
+                    for (var_name in names(select))
+                    {
+                        if (var_name %in% colnames(values))
+                        {
+                            values <- values[get(var_name) %in% select[[var_name]]]
+                            if (class(values[, get(var_name)]) == "factor")
+                            {
+                                values[, paste(var_name) := factor(get(var_name))]
+                            }
+                        }
+                    }
+                }
+
+                if (!missing(shift))
+                {
+                    for (var_name in names(shift))
+                    {
+                        if (var_name %in% colnames(values))
+                        {
+                            values <- values[get(var_name) >= shift[[var_name]]]
+                            values[, paste(var_name) := get(var_name) - shift[[var_name]]]
+                        }
+                    }
+                }
+
+                summarise_columns <- c("nr", "np", "time", "time_next")
+
+                if (!missing(extra.aes))
+                {
+                    summarise_columns <- c(summarise_columns, unique(unname(extra.aes)))
+                }
+                sum.by <- intersect(summarise_columns, colnames(values))
+                values <- values[, list(value = sum(value)), by = sum.by]
+
+                state.by <- intersect(setdiff(summarise_columns, "np"),
+                                      colnames(values))
+                state.wo <- setdiff(setdiff(summarise_columns, "np"),
+                                    colnames(values))
+
+                if (missing(id))
+                {
+                    temp_values <-
+                        values[, list(value = median(value, na.rm = TRUE)), by = state.by]
+                    for (i in seq_along(quantile.span))
+                    {
+                        quantiles <-
+                            values[, list(max = quantile(value, 0.5 + quantile.span[i] / 2, na.rm = TRUE),
+                                          min = quantile(value, 0.5 - quantile.span[i] / 2, na.rm = TRUE)),
+                                   by = state.by]
+                        setnames(quantiles, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
+                        temp_values <- merge(temp_values, quantiles, by = state.by)
+                    }
+                    values <- temp_values
+                    if (steps)
+                    {
+                        max.nr <- values[, max(nr)]
+                        for (i in seq_along(quantile.span))
+                        {
+                            values[nr == max.nr, paste("min", i, sep = ".") := NA]
+                            values[nr == max.nr, paste("max", i, sep = ".") := NA]
+                        }
+                    }
+                } else
+                {
+                    if (!("all" %in% id))
+                    {
+                        values <- values[np %in% id]
+                    }
+                }
+
+                for (wo in state.wo)
+                {
+                    values[, paste(wo) := "n/a"]
+                }
+                values[, paste(time.dim) := NULL]
+                sdt <- rbind(sdt,
+                             data.table(state = rep(state, nrow(values)),
+                                        values))
+            } else
+            {
+                warning(paste("State", state, "does not exist"))
+            }
+        }
+        sdt[, state := factor(state, levels = unique(state))]
+        ret_data <- c(ret_data, list(states = sdt))
+
+        if (!missing(data) && nrow(dataset) > 0)
+        {
+            dataset <- dataset[state %in% plot_states]
+            if (nrow(dataset) > 0)
+            {
+                if (!missing(select))
+                {
+                    for (var_name in names(select))
+                    {
+                        if (var_name %in% unique(std[, state]))
+                        {
+                            dataset <- dataset[get(var_name) %in% select[[var_name]]]
+                            if (class(values[, get(var_name)]) == "factor")
+                            {
+                                dataset[, paste(var_name) := factor(get(var_name))]
+                            }
+                        }
+                    }
+                }
+
+                if (!all.times && nrow(sdt) > 0)
+                {
+                    sdt <- sdt[(time >= min(dataset[, time])) &
+                               (time <= max(dataset[, time]))]
+                }
+                for (i in seq_along(quantile.span))
+                {
+                    dataset[, paste("min", i, sep = ".") := 0]
+                    dataset[, paste("max", i, sep = ".") := 0]
+                }
+                ret_data <- c(ret_data, list(data = dataset))
+            }
+        }
+
+        aesthetic <- list(x = "time", y = "value")
+        if (!missing(id) && ("all" %in% id || length(id) > 1))
+        {
+            aesthetic <- c(aesthetic, list(color = "factor(np)"))
+        }
+        if (length(extra.aes) > 0)
+        {
+            aesthetic <- c(aesthetic, extra.aes)
+        }
+
+        if (nrow(sdt) > 0)
+        {
+            p <- ggplot(sdt, do.call(aes_string, aesthetic))
+
+            if (!missing(hline))
+            {
+                for (hline_state in names(hline))
+                {
+                    p <- p + geom_hline(data = data.frame(state = hline_state,
+                                                          yintercept = hline[hline_state]),
+                                        aes(yintercept = yintercept), color = "black")
+                }
+            }
+
+            if (length(plot_states) > 1)
+            {
+                p <- p + facet_wrap(~ state, scales = "free_y",
+                                    ncol = round(sqrt(length(plot_states))))
+            }
+            if (missing(id))
+            {
+                alpha <- base.alpha
+                for (i in seq_along(quantile.span))
+                {
+                    str <- as.list(paste(c("max", "min"), i, sep = "."))
+                    names(str) <- c("ymax", "ymin")
+                    p <- p + ribbon_func(do.call(aes_string, str), alpha = alpha)
+                    alpha <- alpha / 2
+                }
+            }
+            if ("color" %in% names(aesthetic))
+            {
+                p <- p + line_func(...)
+            } else
+            {
+                p <- p + line_func(color = "black", ...)
+            }
+            p <- p + scale_y_continuous("", labels = comma)
+            p <- p + expand_limits(y = 0)
+            if (!missing(data) && nrow(dataset) > 0)
+            {
+                if ("color" %in% names(extra.aes))
+                {
+                    p <- p + geom_point(data = dataset)
+                } else
+                {
+                    p <- p + geom_point(data = dataset, color = data.colour, size = 2)
+                }
+            }
+            p <- p + theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                           legend.position = "top")
+            if (!missing(date.origin))
+            {
+                p <- p + scale_x_date("")
+            }
+        }
+    }
+
+    pdt <- data.table(parameter = character(0), np = integer(0),
+                      value = numeric(0))
+    for (extra in unique(unname(extra.aes)))
+    {
+        pdt[, paste(extra) := character(0)]
+    }
+
+    plot_params <- c()
+    if (params != "none")
+    {
+        all_params <- grep("^p_", names(res), value = TRUE)
+        if (length(params) == 1 && params == "all")
+        {
+            plot_params <- all_params
+        } else
+        {
+            plot_params <- intersect(paste("p", params, sep = "_"), all_params)
+        }
+
+        for (param in plot_params)
+        {
+            values <- res[[param]]
+
+            by.mean <- "np"
+            if (!is.null(extra.aes))
+            {
+                by.mean <- c(by.mean, unique(unname(extra.aes)))
+            }
+            param.by <- intersect(by.mean, colnames(values))
+            param.wo <- setdiff(by.mean, colnames(values))
+
+            values <- values[, list(value = value), by = param.by]
+
+            if (!("np" %in% colnames(values)))
+            {
+                values[, np := 1]
+            }
+
+            for (wo in setdiff(param.wo, "np"))
+            {
+                values[, paste(wo) := "n/a"]
+            }
+            pdt <- rbind(pdt,
+                         data.table(parameter = rep(sub("^p_", "", param),
+                                                    nrow(values)), values))
+        }
+        pdt[, parameter := factor(parameter, levels = unique(parameter))]
+
+        by.varying <- "parameter"
+        if (!missing(extra.aes))
+        {
+            by.varying <- c(by.varying, unique(unname(extra.aes)))
+        }
+        pdt[, varying := (length(unique(value)) > 1), by = by.varying]
+
+        ret_data <- c(ret_data, list(params = pdt))
+
+        aesthetic <- list(x = "value", y = "..count../sum(..count..)")
+        if (length(extra.aes) > 0)
+        {
+            aesthetic <- c(aesthetic, extra.aes)
+        }
+
+        if (nrow(pdt) > 0 && nrow(pdt[varying == TRUE]) > 0)
+        {
+            if (missing(id))
+            {
+                break_dist <- 0.4
+                extra_cols <- setdiff(colnames(pdt),
+                                      c("parameter", "np", "varying", "value"))
+                if (length(extra_cols) > 0)
+                {
+                    cast_formula <-
+                        as.formula(paste(paste("np", extra_cols, sep = "+"),
+                                         "parameter", sep = "~"))
+                } else
+                {
+                    cast_formula <- as.formula("np~parameter")
+                }
+                wpdt <- data.table(dcast(pdt[varying == TRUE], cast_formula,
+                                         value.var = "value"))
+                wpdt[, np := NULL]
+                if (length(extra_cols) > 0)
+                {
+                    wpdt[, paste(extra_cols) := NULL]
+                }
+                correlations <- data.table(melt(cor(wpdt)))
+                correlations[, correlation := cut(value,
+                                                  breaks = c(seq(-1, 1, by = break_dist)))]
+                ret_data <- c(ret_data, list(correlations = correlations))
+
+                color_palette <-
+                    colorRampPalette(c("#3794bf", "#FFFFFF", "#df8640"))(2 / break_dist)
+
+                cp <- ggplot(correlations, aes(x = Var1, y = Var2,
+                                               fill = correlation))
+                cp <- cp + geom_tile()
+                cp <- cp + scale_fill_manual("Correlation", values = color_palette,
+                                             limits = levels(correlations[, correlation]))
+                cp <- cp + scale_x_discrete("")
+                cp <- cp + scale_y_discrete("")
+            } else {
+                cp <- NULL
+            }
+
+            dp <- ggplot(pdt[varying == TRUE], do.call(aes_string, aesthetic))
+            dp <- dp + facet_wrap(~ parameter, scales = "free")
+            dp <- dp + geom_density()
+            dp <- dp + scale_y_continuous("Frequency")
+            dp <- dp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                             legend.position = "top")
+            if (!missing(id))
+            {
+                dp <- dp + geom_vline(data = pdt[np %in% id],
+                                      aes(xintercept = value))
+            }
+
+            aesthetic <- list(x = "np", y = "value")
+
+            if (length(extra.aes) > 0)
+            {
+                aesthetic <- c(aesthetic, extra.aes)
+            }
+
+            tp <- ggplot(pdt[varying == TRUE], do.call(aes_string, aesthetic))
+            tp <- tp + geom_line()
+            tp <- tp + facet_wrap(~ parameter, scales = "free_y")
+            tp <- tp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                             legend.position = "top")
+            if (!missing(id))
+            {
+                tp <- tp + geom_vline(xintercept = id)
+            }
+        } else
+        {
+            dp <- NULL
+            tp <- NULL
+            cp <- NULL
+        }
+    } else
+    {
+        dp <- NULL
+        tp <- NULL
+        cp <- NULL
+    }
+
+    ndt <- data.table(noise = character(0))
+    if (missing(date.origin))
+    {
+        ndt[, time := numeric(0)]
+        ndt[, time_next := numeric(0)]
+    } else
+    {
+        ndt[, time := as.Date(character(0))]
+        ndt[, time_next := as.Date(character(0))]
+    }
+    ndt[, value := numeric(0)]
+    if (missing(id))
+    {
+        for (i in seq_along(quantile.span))
+        {
+            ndt[, paste("min", i, sep = ".") := numeric(0)]
+            ndt[, paste("max", i, sep = ".") := numeric(0)]
+        }
+    }
+    for (extra in unique(unname(extra.aes)))
+    {
+        ndt[, paste(extra) := character(0)]
+    }
+
+    np <- NULL
+    plot_noises <- c()
+    if (noises != "none")
+    {
+        all_noises <- grep("^n_", names(res), value = TRUE)
+        if (length(noises) == 1 && noises == "all")
+        {
+            plot_noises <- all_noises
+        } else
+        {
+            plot_noises <- intersect(sub("^n_", "", noises), all_noises)
+        }
+
+        for (noise in plot_noises)
+        {
+            values <- res[[noise]]
+            values[!is.finite(value), value := 0]
+
+            if (time.dim %in% colnames(values))
+            {
+                if (!missing(date.origin))
+                {
+                    if (date.unit == "day")
+                    {
+                        values[, time := date.origin + get(time.dim)]
+                        values[, time_next := time + 1]
+                    } else if (date.unit == "week")
+                    {
+                        values[, time := date.origin + get(time.dim) * 7]
+                        values[, time_next := time + 7]
+                    } else if (date.unit == "month")
+                    {
+                        values[, time := date.origin %m+% months(as.integer(get(time.dim)))]
+                        values[, time_next := time %m+% months(1)]
+                    } else if (date.unit == "year")
+                    {
+                        values[, time := date.origin + years(as.integer(get(time.dim)))]
+                        values[, time_next := time %m+% months(12)]
+                    }
+                } else {
+                    values[, time := get(time.dim)]
+                    values[, time_next := time + 1]
+                }
+            }
+
+            by.sum <- c("nr", "time", "time_next")
+            if (!is.null(extra.aes))
+            {
+                by.sum <- c(by.sum, unique(unname(extra.aes)))
+            }
+            noise.by <- intersect(by.sum, colnames(values))
+            noise.wo <- setdiff(by.sum, colnames(values))
+
+            if (missing(id))
+            {
+                temp_values <-
+                    values[, list(value = median(value, na.rm = TRUE)), by = noise.by]
+                for (i in seq_along(quantile.span))
+                {
+                    quantiles <-
+                        values[, list(max = quantile(value, 0.5 + quantile.span[i] / 2, na.rm = TRUE),
+                                      min = quantile(value, 0.5 - quantile.span[i] / 2, na.rm = TRUE)),
+                               by = noise.by]
+                    setnames(quantiles, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
+                    temp_values <- merge(temp_values, quantiles, by = noise.by)
+                }
+                values <- temp_values
+            } else
+            {
+                values <- values[np %in% id]
+                values <- values[, list(value = sum(value)), by = noise.by]
+            }
+            for (wo in noise.wo)
+            {
+                values[, paste(wo) := "n/a"]
+            }
+            values[, paste(time.dim) := NULL]
+            ndt <- rbind(ndt,
+                         data.table(noise = rep(noise, nrow(values)),
+                                    values))
+
+            ndt[, noise := factor(noise, levels = unique(noise))]
+
+            if (!missing(data) && nrow(dataset) > 0 && !all.times)
+            {
+                ndt <- ndt[(time >= min(dataset[, time])) & (time <= max(dataset[, time]))]
+            }
+
+            ret_data <- c(ret_data, list(noises = ndt))
+
+            aesthetic <- list(x = "time", y = "value")
+            if (length(extra.aes) > 0)
+            {
+                aesthetic <- c(aesthetic, extra.aes)
+            }
+
+            if (nrow(ndt) > 0)
+            {
+                np <- ggplot(ndt, do.call(aes_string, aesthetic))
+                np <- np + facet_wrap(~ noise, scales = "free_y")
+                if (missing(id))
+                {
+                    alpha <- base.alpha
+                    for (i in seq_along(quantile.span))
+                    {
+                        str <- as.list(paste(c("max", "min"), i, sep = "."))
+                        names(str) <- c("ymin", "ymax")
+                        np <- np + geom_ribbon(do.call(aes_string, str), alpha = alpha)
+                        alpha <- alpha / 2
+                    }
+                }
+                np <- np + geom_line()
+                np <- np + scale_y_continuous("", labels = comma)
+                np <- np + expand_limits(y = 0)
+                np <- np + theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                                 legend.position = "top")
+                if (!missing(date.origin))
+                {
+                    np <- np + scale_x_date("")
+                }
+            }
+        }
+    }
+
+    lp <- NULL
+    likelihoods <- grep("^log", names(res), value = TRUE)
+    if (length(likelihoods) > 0)
+    {
+        ldt <- NULL
+        for (ll in likelihoods)
+        {
+            values <- res[[ll]]
+            if (!("np" %in% colnames(values)))
+            {
+                setnames(values, "nr", "np")
+            }
+
+            values[, density := ll]
+            if (is.null(ldt))
+            {
+                ldt <- values
+            } else
+            {
+                ldt <- rbind(ldt, values)
+            }
+        }
+        extra_columns <- setdiff(colnames(ldt), c("np", "value", "density"))
+        if (length(extra_columns) > 0)
+        {
+            temp_ldt <-
+                ldt[, list(median = median(value, na.rm = TRUE)), by = c("np", "density")]
+            for (i in seq_along(quantile.span))
+            {
+                quantiles <-
+                    ldt[, list(max = quantile(value, 0.5 + quantile.span[i] / 2, na.rm = TRUE),
+                               min = quantile(value, 0.5 - quantile.span[i] / 2, na.rm = TRUE)),
+                        by = c("np", "density")]
+                setnames(quantiles, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
+                temp_ldt <- merge(temp_ldt, quantiles, by = c("np", "density"))
+            }
+            ldt <- temp_ldt
+        }
+        trace_aesthetic <- list(x = "np", y = "value")
+        density_aesthetic <- list(x = "value")
+
+        ret_data <- c(ret_data, list(likelihoods = ldt))
+
+        likelihood_dummy_plot <-
+            data.frame(expand.grid(type = c("Density", "Trace"),
+                                   density = c("loglikelihood", "logprior")))
+        if (nrow(ldt) > 0)
+        {
+            lp <- ggplot(likelihood_dummy_plot)
+            lp <- lp + geom_line(data = data.frame(ldt, type = "Trace"),
+                                 mapping = do.call(aes_string, trace_aesthetic))
+            if (length(extra_columns) > 0)
+            {
+                alpha <- base.alpha
+                for (i in seq_along(quantile.span))
+                {
+                    str <- as.list(paste(c("max", "min"), i, sep = "."))
+                    names(str) <- c("ymin", "ymax")
+                    lp <- lp + geom_ribbon(do.call(aes_string, str), alpha = alpha)
+                    alpha <- alpha / 2
+                }
+            }
+            lp <- lp +
+                geom_histogram(data = data.frame(ldt, type = "Density"),
+                               mapping = do.call(aes_string, density_aesthetic))
+            lp <- lp + facet_wrap(density ~ type, scales = "free")
+            lp <- lp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                             legend.position = "top")
+            if (!missing(id))
+            {
+                lp <- lp + geom_vline(data = data.frame(type = "Trace"),
+                                      xintercept = id)
+            }
+        }
+    }
+
+    return(list(states = p,
+                densities = dp,
+                trace = tp,
+                correlations = cp,
+                noise = np,
+                likelihoods = lp,
+                data = ret_data))
+}
+
+##' Plot routing for \code{libbi} objects
+##'
+##' @param obj \code{libbi} object
+##' @param ... parameters to \code{\link{plot_libbi}}
+##' @return plot
+plot.libbi <- function(obj, ...)
+{
+    plot_libbi(obj, ...)
+}
