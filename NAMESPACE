@@ -3,6 +3,4 @@
 export(acceptance_rate)
 export(adapt_mcmc)
 export(adapt_particles)
-export(get_traces)
-export(output_to_proposal)
 export(sample_observations)
