@@ -7,18 +7,13 @@
 #'   acceptance rate is achieved. If a scale is given, it will be used
 #'   to adapt the number of particles at each iteration.
 #' @param wrapper \code{\link{libbi}} (which has been run) to study
-#' @param init initial number of particles (default: 1)
-#' @param min minimum acceptance rate
-#' @param max maximum acceptance rate
 #' @param add_options list of additional options
 #' @param samples number of samples to generate each iteration
-#' @param max_iter maximum of iterations (default: 10)
-#' @param max_particles maximum number of particles
 #' @param ... parameters for libbi$run
 #' @importFrom coda mcmc rejectionRate effectiveSize
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @export
-adapt_particles <- function(wrapper, init = 1, min = 0, max = 1, add_options, samples, max_iter = 10, max_particles = 32768, ...) {
+adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...) {
 
   if (missing(add_options)) {
     add_options <- list()
@@ -30,15 +25,13 @@ adapt_particles <- function(wrapper, init = 1, min = 0, max = 1, add_options, sa
     stop("The model should be run first")
   }
 
-  nParticles <- init
-
   model <- bi_model(lines = wrapper$model$get_lines())
   model$remove_block("proposal_parameter")
   model$remove_block("proposal_initial")
   model$remove_block("parameter")
-  
-  init_file <- wrapper$output_file_name
-  init_np <- bi_dim_len(init_file, "np") - 1 ## use last parameter value from output file
+
+  ## use last parameter value from output file
+  add_options[["init-np"]] <- bi_dim_len(wrapper$output_file_name, "np") - 1
 
   if (missing(samples)) {
     if ("nsamples" %in% names(wrapper$global_options)) {
@@ -49,49 +42,38 @@ adapt_particles <- function(wrapper, init = 1, min = 0, max = 1, add_options, sa
   } else {
     add_options[["nsamples"]] <- samples
   }
-  add_options[["init-file"]] <- init_file
-  add_options[["init-np"]] <- init_np
-  add_options[["nparticles"]] <- nParticles
-  adapt_wrapper <-
-    wrapper$clone(model = model, run = TRUE, add_options = add_options, ...)
-  add_options[["init-file"]] <- adapt_wrapper$output_file_name
-  add_options[["init-np"]] <- samples - 1
-  add_options[["nparticles"]] <- NULL
-  iter <- 1
-  accRate <- acceptance_rate(adapt_wrapper)
 
-  ## initialise
-  new_nParticles <- nParticles
-  start <- TRUE
-  
-  while ((accRate < min | accRate > max) && iter <= max_iter &&
-    (!(accRate > max && nParticles > 1)) && (start || new_nParticles != nParticles)) {
-    start <- FALSE
-    nParticles <- new_nParticles
-    new_nParticles <- 
-      min(max_particles,
-          ifelse(accRate > 0,
-                 2 ** (ceiling(log(min/accRate, 2))) * nParticles,
-                 2 * nParticles))
-    if (new_nParticles != nParticles) {
-      cat(paste0("Acceptance rate ", accRate,
-                 ", trying ", new_nParticles, " particle",
-                 ifelse(new_nParticles > 1, "s", ""), "\n"))
-      adapt_wrapper$global_options[["nparticles"]] <- new_nParticles
-      add_options[["init-file"]] <- adapt_wrapper$output_file_name
-      adapt_wrapper <-
-        adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options, ...)
-      accRate <- acceptance_rate(adapt_wrapper)
+  accRate <- c()
+  ess <- c()
+  var_loglik <- c()
+  found_good <- FALSE
+  id <- 0
+  while (!found_good && id < length(test)) {
+    id <- id + 1
+    add_options[["nparticles"]] <- test[id]
+    wrapper <-
+      wrapper$clone(model = model, run = TRUE, add_options = add_options,
+                    init = wrapper, ...)
+    add_options[["init-np"]] <- samples - 1
+    
+    mcmc_obj <- mcmc(get_traces(wrapper, all = TRUE))
+    accRate <- c(accRate, max(1 - rejectionRate(mcmc_obj)))
+    ess <- c(ess, max(effectiveSize(mcmc_obj)))
+    var_loglik <- c(var_loglik, var(bi_read(wrapper, "loglikelihood")$value))
+    
+    cat(paste0(test[id], " particles: acceptance rate ", accRate[id],
+               ", ESS ", ess[id], ", loglikelihod variance: ", var_loglik[id], "\n"))
+
+    ## choose smallest var-loglikelihood < 1
+    if (var_loglik[id] < 1) {
+      found_good <- TRUE
+      if (id > 1) id <- id - 1
     }
-    iter <- iter + 1
-  }
-  cat("Acceptance rate:", min(accRate), "\n")
-
-  wrapper$global_options[["nparticles"]] <- nParticles
-  
-  if (iter > max_iter) {
-    warning("Maximum of iterations reached")
   }
 
+  wrapper$global_options[["nparticles"]] <- test[id]
+
+  cat("Choosing ", test[id], " particles.\n")
+      
   return(wrapper)
 }

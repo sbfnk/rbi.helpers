@@ -4,11 +4,16 @@
 \alias{adapt_particles}
 \title{Adapt the number of particles}
 \usage{
-adapt_particles(wrapper, init = 1, min = 0, max = 1, add_options, samples,
-  max_iter = 10, max_particles = 32768, ...)
+adapt_particles(wrapper, test = 2^(0:10), add_options, samples, ...)
 }
 \arguments{
 \item{wrapper}{\code{\link{libbi}} (which has been run) to study}
+
+\item{add_options}{list of additional options}
+
+\item{samples}{number of samples to generate each iteration}
+
+\item{...}{parameters for libbi$run}
 
 \item{init}{initial number of particles (default: 1)}
 
@@ -16,15 +21,9 @@ adapt_particles(wrapper, init = 1, min = 0, max = 1, add_options, samples,
 
 \item{max}{maximum acceptance rate}
 
-\item{add_options}{list of additional options}
-
-\item{samples}{number of samples to generate each iteration}
-
 \item{max_iter}{maximum of iterations (default: 10)}
 
 \item{max_particles}{maximum number of particles}
-
-\item{...}{parameters for libbi$run}
 }
 \value{
 a \code{\link{libbi}} with the desired proposal distribution
