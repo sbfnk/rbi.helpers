@@ -15,6 +15,7 @@
 #' @param max_iter maximum of iterations (default: 10)
 #' @param max_particles maximum number of particles
 #' @param ... parameters for libbi$run
+#' @importFrom coda mcmc rejectionRate effectiveSize
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @export
 adapt_particles <- function(wrapper, init = 1, min = 0, max = 1, add_options, samples, max_iter = 10, max_particles = 32768, ...) {
