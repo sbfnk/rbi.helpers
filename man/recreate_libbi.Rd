@@ -16,7 +16,7 @@ recreate_libbi(model, output_file_name, client = "sample", ...)
 \item{...}{further options to pass to \code{libbi}, e.g. global_options}
 }
 \value{
-\code{\link{\libbi}} object that can be analysed
+\code{\link{libbi}} object that can be analysed
 }
 \description{
 This function links a model and output file name of a previous run and

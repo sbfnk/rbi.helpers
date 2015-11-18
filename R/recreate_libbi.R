@@ -10,7 +10,7 @@
 #' @param output_file_name the NetCDF file holding the output of the \code{libbi} run
 #' @param client defaults to "sample"; this won't be needed in most cases but prevents a warning.
 #' @param ... further options to pass to \code{libbi}, e.g. global_options
-#' @return \code{\link{\libbi}} object that can be analysed
+#' @return \code{\link{libbi}} object that can be analysed
 #' @export
 recreate_libbi <- function(model, output_file_name, client = "sample", ...)
 {
