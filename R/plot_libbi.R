@@ -152,10 +152,10 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
 
         for (state in plot_states)
         {
-            values <- copy(res[[state]])
-
-            if (!is.null(values))
+            if (state %in% names(res))
             {
+                values <- copy(res[[state]])
+
                 if (time.dim %in% colnames(values))
                 {
                     if (!missing(date.origin))
@@ -263,7 +263,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                 sdt <- rbind(sdt,
                              data.table(state = rep(state, nrow(values)),
                                         values))
-            } else
+            } else if (state != "dummy")
             {
                 warning(paste("State", state, "does not exist"))
             }

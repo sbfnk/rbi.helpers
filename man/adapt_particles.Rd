@@ -14,16 +14,6 @@ adapt_particles(wrapper, test = 2^(0:10), add_options, samples, ...)
 \item{samples}{number of samples to generate each iteration}
 
 \item{...}{parameters for libbi$run}
-
-\item{init}{initial number of particles (default: 1)}
-
-\item{min}{minimum acceptance rate}
-
-\item{max}{maximum acceptance rate}
-
-\item{max_iter}{maximum of iterations (default: 10)}
-
-\item{max_particles}{maximum number of particles}
 }
 \value{
 a \code{\link{libbi}} with the desired proposal distribution
