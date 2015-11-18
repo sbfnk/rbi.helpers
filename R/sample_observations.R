@@ -13,21 +13,22 @@ sample_observations <- function(wrapper, output_file_name, ...){
 
   times <- bi_read(wrapper$result$output_file_name, "time", vector = TRUE)
   iterations <- bi_dim_len(wrapper$result$output_file_name, "np")
-  end_time <- max(times)
+  end_time <- max(times) + 1
   start_time <- min(times)
 
-  sample_wrapper <- wrapper$clone()
-  model <- sample_wrapper$model
+  model <- wrapper$model$clone()
   model$remove_block("transition")
-  sample_wrapper$model <- model
+  model$remove_block("parameter")
+  model$remove_block("initial")
 
-  sample_wrapper$run(add_options = list("start-time" = start_time, 
-                                        "end-time" = end_time, 
-                                        "noutputs" = start_time - end_time, 
-                                        target = "joint",
-                                        nsamples = iterations),
-                     input = wrapper, init = wrapper,
-                     output_file_name = output_file_name, ...)
+  run_joint <- wrapper$clone(run = TRUE, model = model, 
+                             add_options = list("start-time" = start_time, 
+                                                "end-time" = end_time, 
+                                                "noutputs" = end_time - start_time, 
+                                                target = "joint",
+                                                nsamples = iterations),
+                             input = wrapper, init = wrapper,
+                             output_file_name = output_file_name, ...)
 
   res <- bi_read(output_file_name)
   for (var in names(res)) {
