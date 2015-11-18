@@ -30,12 +30,14 @@ adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...
   model$remove_block("proposal_initial")
   model$remove_block("parameter")
 
+  adapt_wrapper <- wrapper(clone(model = model))
+
   ## use last parameter value from output file
   add_options[["init-np"]] <- bi_dim_len(wrapper$output_file_name, "np") - 1
 
   if (missing(samples)) {
-    if ("nsamples" %in% names(wrapper$global_options)) {
-      samples <- wrapper$global_options[["nsamples"]]
+    if ("nsamples" %in% names(adapt_wrapper$global_options)) {
+      samples <- adapt_wrapper$global_options[["nsamples"]]
     } else {
       stop("if 'nsamples' is not a global option, must provide 'samples'")
     }
@@ -51,15 +53,15 @@ adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...
   while (!found_good && id < length(test)) {
     id <- id + 1
     add_options[["nparticles"]] <- test[id]
-    wrapper <-
-      wrapper$clone(model = model, run = TRUE, add_options = add_options,
-                    init = wrapper, ...)
+    adapt_wrapper <-
+      adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options,
+                          init = adapt_wrapper, ...)
     add_options[["init-np"]] <- samples - 1
     
-    mcmc_obj <- mcmc(get_traces(wrapper, all = TRUE))
+    mcmc_obj <- mcmc(get_traces(adapt_wrapper, all = TRUE))
     accRate <- c(accRate, max(1 - rejectionRate(mcmc_obj)))
     ess <- c(ess, max(effectiveSize(mcmc_obj)))
-    var_loglik <- c(var_loglik, var(bi_read(wrapper, "loglikelihood")$value))
+    var_loglik <- c(var_loglik, var(bi_read(adapt_wrapper, "loglikelihood")$value))
     
     cat(paste0(test[id], " particles: acceptance rate ", accRate[id],
                ", ESS ", ess[id], ", loglikelihod variance: ", var_loglik[id], "\n"))
@@ -71,9 +73,9 @@ adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...
     }
   }
 
-  wrapper$global_options[["nparticles"]] <- test[id]
+  adapt_wrapper$global_options[["nparticles"]] <- test[id]
 
   cat("Choosing ", test[id], " particles.\n")
       
-  return(wrapper)
+  return(adapt_wrapper$clone(model = wrapper$model))
 }
