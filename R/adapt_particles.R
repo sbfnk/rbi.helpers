@@ -30,7 +30,8 @@ adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...
   model$remove_block("proposal_initial")
   model$remove_block("parameter")
 
-  adapt_wrapper <- wrapper(clone(model = model))
+  adapt_wrapper <- wrapper$clone(model = model)
+  init_wrapper <- wrapper
 
   ## use last parameter value from output file
   add_options[["init-np"]] <- bi_dim_len(wrapper$output_file_name, "np") - 1
@@ -55,8 +56,9 @@ adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...
     add_options[["nparticles"]] <- test[id]
     adapt_wrapper <-
       adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options,
-                          init = adapt_wrapper, ...)
+                          init = init_wrapper, ...)
     add_options[["init-np"]] <- samples - 1
+    init_wrapper <- adapt_wrapper
     
     mcmc_obj <- mcmc(get_traces(adapt_wrapper, all = TRUE))
     accRate <- c(accRate, max(1 - rejectionRate(mcmc_obj)))
