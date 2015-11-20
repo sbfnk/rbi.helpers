@@ -14,7 +14,7 @@ output_to_proposal <- function(wrapper, scale) {
     stop("The model should be run first")
   }
 
-  model <- wrapper$model
+  model <- wrapper$model$clone()
   params <- model$get_vars("param")
   res <- bi_read(wrapper$output_file_name, variables = params)
 
