@@ -42,9 +42,9 @@ output_to_proposal <- function(wrapper, scale) {
     dist <- args[[1]][1]
     bounds_string <- args[[1]][2]
 
-    if (is.na(bounds_string) || bounds_string == bounds_line) {
-      paste0(param_string, " ~ gaussian(",
-             "mean = ", param_string,
+    if (is.na(bounds_string) || bounds_string == variable_bounds[param]) {
+      paste0(param, " ~ gaussian(",
+             "mean = ", param,
              ", std = ", scale_string,
              ifelse(param_sd[param] > 0, param_sd[param], 1), ")")
     } else {
@@ -88,8 +88,8 @@ output_to_proposal <- function(wrapper, scale) {
         }
       }
 
-      paste0(param_string, " ~ truncated_gaussian(",
-             "mean = ", param_string,
+      paste0(param, " ~ truncated_gaussian(",
+             "mean = ", param,
              ", std = ", scale_string, param_sd[param], 
              ifelse(length(bounds) > 0,
                     paste0(", ", paste(names(bounds), "=", bounds,
