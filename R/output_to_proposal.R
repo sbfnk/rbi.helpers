@@ -28,19 +28,14 @@ output_to_proposal <- function(wrapper, scale) {
       ifelse(length(res[[p]]) == 1, 0, sd(res[[p]]$value))
   })
   
-  param_bounds <- model$get_block("parameter")
-
-  proposal_lines <- unname(sapply(names(param_sd)[param_sd > 0], function(param) {
-    bounds_line <-
-      grep(paste0("^[[:space:]]*", param, "[[[:space:]][^~]*~"), param_bounds,
-           value = TRUE)
-    param_string <- sub(paste0("^[[:space:]]*", param, "([^~]*)~.*$"),
-                          paste0(param, "\\1"), bounds_line)
-    param_string <- sub("[[:space:]]+$", "", param_string)
-      
+  param_block <- model$get_block("parameter")
+  param_bounds <- sapply(params, function(param) {grep(paste0("^[[:space:]]*", param, "[[[:space:]][^~]*~"), param_block, value = TRUE)})
+  variable_bounds <- param_bounds[sapply(param_bounds, function(x) {length(x) > 0})]
+  
+  proposal_lines <- unname(sapply(names(variable_bounds), function(param) {
     param_bounds_string <-
       sub("^.*(uniform|truncated_gaussian|truncated_normal)\\(([^\\)]+)\\).*$",
-          "\\1|\\2", bounds_line)
+          "\\1|\\2", variable_bounds[param])
 
     args <- strsplit(param_bounds_string, split = "\\|")
 
@@ -50,7 +45,8 @@ output_to_proposal <- function(wrapper, scale) {
     if (is.na(bounds_string) || bounds_string == bounds_line) {
       paste0(param_string, " ~ gaussian(",
              "mean = ", param_string,
-             ", std = ", scale_string, param_sd[param], ")")
+             ", std = ", scale_string,
+             ifelse(param_sd[param] > 0, param_sd[param], 1), ")")
     } else {
       bounds <- c(lower = NA, upper = NA)
       
@@ -82,9 +78,19 @@ output_to_proposal <- function(wrapper, scale) {
       bounds <- gsub("(lower|upper)[[:space:]]*=[[:space::]]*", "", bounds)
       bounds <- bounds[!is.na(bounds)]
 
+      if (param_sd[param] == 0) {
+        ## no variation
+        if (!any(is.na(is.numeric(bounds)))) {
+          ## range / 10 
+          param_sd[param] <- diff(as.numeric(bounds)) / 10
+        } else {
+          param_sd[param] <- 1
+        }
+      }
+
       paste0(param_string, " ~ truncated_gaussian(",
              "mean = ", param_string,
-             ", std = ", scale_string, param_sd[param],
+             ", std = ", scale_string, param_sd[param], 
              ifelse(length(bounds) > 0,
                     paste0(", ", paste(names(bounds), "=", bounds,
                                        sep = " ", collapse = ", "),
