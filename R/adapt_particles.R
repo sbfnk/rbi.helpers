@@ -76,8 +76,9 @@ adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...
   }
 
   adapt_wrapper$global_options[["nparticles"]] <- test[id]
+  adapt_wrapper$model <- wrapper$model
 
   cat("Choosing ", test[id], " particles.\n")
       
-  return(adapt_wrapper$clone(model = wrapper$model))
+  return(adapt_wrapper)
 }
