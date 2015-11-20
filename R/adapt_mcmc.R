@@ -33,7 +33,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 1, add_options, sample
   ## small, multiplier if the acceptance Rate is too big)
   if (scale < 1) scale <- 1 / scale 
 
-  model <- output_to_proposal(wrapper, scale)
+  model <- output_to_proposal(wrapper)
   init_file <- wrapper$output_file_name
   init_np <- bi_dim_len(init_file, "np") - 1
 
