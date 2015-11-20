@@ -47,7 +47,6 @@ adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...
   }
 
   accRate <- c()
-  ess <- c()
   var_loglik <- c()
   found_good <- FALSE
   id <- 0
@@ -62,11 +61,11 @@ adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...
     
     mcmc_obj <- mcmc(get_traces(adapt_wrapper, all = TRUE))
     accRate <- c(accRate, max(1 - rejectionRate(mcmc_obj)))
-    ess <- c(ess, max(effectiveSize(mcmc_obj)))
+    ## ess <- c(ess, max(effectiveSize(mcmc_obj)))
     var_loglik <- c(var_loglik, var(bi_read(adapt_wrapper, "loglikelihood")$value))
     
     cat(paste0(test[id], " particles: acceptance rate ", accRate[id],
-               ", ESS ", ess[id], ", loglikelihod variance: ", var_loglik[id], "\n"))
+               ", loglikelihod variance: ", var_loglik[id], "\n"))
 
     ## choose smallest var-loglikelihood < 1
     if (var_loglik[id] < 1) {
