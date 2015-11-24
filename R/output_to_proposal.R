@@ -33,6 +33,8 @@ output_to_proposal <- function(wrapper, scale) {
   variable_bounds <- param_bounds[sapply(param_bounds, function(x) {length(x) > 0})]
   
   proposal_lines <- unname(sapply(names(variable_bounds), function(param) {
+      param_string <-
+        sub(paste0("^[:space:]*(", param, "[^[:space:]~]*)[[:space:]~].*$"), "\\1", variable_bounds[param])
     param_bounds_string <-
       sub("^.*(uniform|truncated_gaussian|truncated_normal)\\(([^\\)]+)\\).*$",
           "\\1|\\2", variable_bounds[param])
@@ -43,8 +45,8 @@ output_to_proposal <- function(wrapper, scale) {
     bounds_string <- args[[1]][2]
 
     if (is.na(bounds_string) || bounds_string == variable_bounds[param]) {
-      paste0(param, " ~ gaussian(",
-             "mean = ", param,
+      paste0(param_string, " ~ gaussian(",
+             "mean = ", param_string,
              ", std = ", scale_string,
              ifelse(param_sd[param] > 0, param_sd[param], 1), ")")
     } else {
@@ -78,6 +80,20 @@ output_to_proposal <- function(wrapper, scale) {
       bounds <- gsub("(lower|upper)[[:space:]]*=[[:space::]]*", "", bounds)
       bounds <- bounds[!is.na(bounds)]
 
+      eval_bounds <- tryCatch(
+      {
+          sapply(bounds, function(x) { eval(parse(text = x))})
+      }, 
+      error = function(cond)
+      {
+          warning("Cannot convert bounds for ", param, "into R expression")
+          warning("Original message: ", cond)
+          ret <- bounds
+          ret[] <- NA
+          return(ret)
+      })
+      bounds <- eval_bounds
+
       if (param_sd[param] == 0) {
         ## no variation
         if (!any(is.na(is.numeric(bounds)))) {
@@ -88,8 +104,8 @@ output_to_proposal <- function(wrapper, scale) {
         }
       }
 
-      paste0(param, " ~ truncated_gaussian(",
-             "mean = ", param,
+      paste0(param_string, " ~ truncated_gaussian(",
+             "mean = ", param_string,
              ", std = ", scale_string, param_sd[param], 
              ifelse(length(bounds) > 0,
                     paste0(", ", paste(names(bounds), "=", bounds,
