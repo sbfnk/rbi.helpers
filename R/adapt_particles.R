@@ -69,7 +69,7 @@ adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...
                ", ESS ", ess[id], ", loglikelihod variance: ", var_loglik[id], "\n"))
 
     ## choose smallest var-loglikelihood < 1
-    if (var_loglik[id] < 1) {
+    if (var_loglik[id] > 0 && var_loglik[id] < 1) {
       found_good <- TRUE
       if (id > 1) id <- id - 1
     }
