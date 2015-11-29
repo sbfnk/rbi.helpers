@@ -20,6 +20,7 @@
 ##' @param shift list of dimensions to be shifted, and by how much
 ##' @param data.colour colour for plotting the data
 ##' @param base.alpha base alpha value for credible intervals
+##' @param trend how the trend should be characterised (e.g., mean, median)
 ##' @param ... options for geom_step / geom_line
 ##' @return list of results
 ##' @import ggplot2 scales reshape2
@@ -32,7 +33,8 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                        data, id, extra.aes = c(),
                        all.times = FALSE, hline,
                        burn, thin, steps = FALSE, select,
-                       shift, data.colour = "red", base.alpha = 0.5, ...)
+                       shift, data.colour = "red", base.alpha = 0.5,
+                       trend = "median", ...)
 {
     ret_data <- list()
     ## copy data table
@@ -227,7 +229,8 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                 if (missing(id))
                 {
                     temp_values <-
-                        values[, list(value = median(value, na.rm = TRUE)), by = state.by]
+                        values[, list(value = do.call(trend, list(value, na.rm = TRUE))),
+                               by = state.by]
                     for (i in seq_along(quantile.span))
                     {
                         quantiles <-
@@ -617,7 +620,8 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
             if (missing(id))
             {
                 temp_values <-
-                    values[, list(value = median(value, na.rm = TRUE)), by = noise.by]
+                    values[, list(value = do.call(trend, list(value, na.rm = TRUE))),
+                           by = noise.by]
                 for (i in seq_along(quantile.span))
                 {
                     quantiles <-
@@ -711,7 +715,8 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
         if (length(extra_columns) > 0)
         {
             temp_ldt <-
-                ldt[, list(median = median(value, na.rm = TRUE)), by = c("np", "density")]
+                ldt[, list(value = do.call(trend, list(value, na.rm = TRUE))),
+                    by = c("np", "density")]
             for (i in seq_along(quantile.span))
             {
                 quantiles <-
