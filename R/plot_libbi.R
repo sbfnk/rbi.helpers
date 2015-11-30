@@ -521,7 +521,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
 
                 dp <- ggplot(pdt[varying == TRUE], do.call(aes_string, aesthetic))
                 dp <- dp + facet_wrap(~ parameter, scales = "free")
-                dp <- dp + geom_density()
+                dp <- dp + geom_density(alpha = 0.5)
                 dp <- dp + scale_y_continuous("Frequency")
                 dp <- dp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
