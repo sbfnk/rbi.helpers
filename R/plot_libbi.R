@@ -6,7 +6,7 @@
 ##' @param noises noises to plot ("all" if all")
 ##' @param quantile.span if plots are produced, which quantile to use for confidence intervals
 ##' @param date.origin date of origin (if dates are to be calculated)
-##' @param date.unit unit of date
+##' @param date.unit unit of date (if desired, otherwise the time dimension will be used)
 ##' @param time.dim time dimension ("nr" by default)
 ##' @param data data (with a "time" and "value" column)
 ##' @param id one or more run ids to plot
@@ -24,18 +24,34 @@
 ##' @param ... options for geom_step / geom_line
 ##' @return list of results
 ##' @import ggplot2 scales reshape2
-##' @importFrom lubridate wday
+##' @importFrom lubridate wday %m+% years
 ##' @export
 ##' @author Sebastian Funk
 plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                        quantile.span = c(0.5, 0.95),
-                       date.origin, date.unit = "day", time.dim = "nr",
+                       date.origin, date.unit, time.dim = "nr",
                        data, id, extra.aes = c(),
                        all.times = FALSE, hline,
                        burn, thin, steps = FALSE, select,
                        shift, data.colour = "red", base.alpha = 0.5,
                        trend = "median", ...)
 {
+    use_dates <- FALSE
+    if (missing(date.origin))
+    {
+        if (!missing(date.unit) && date.unit == "year")
+        {
+            use_dates <- TRUE
+        }
+    } else {
+        if (!missing(date.unit))
+        {
+            use_dates <- TRUE
+        } else {
+            warning("date.origin given but no date.unit, will use time.dim instead")
+        }
+    }
+
     ret_data <- list()
     ## copy data table
 
@@ -104,14 +120,14 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
     }
 
     sdt <- data.table(state = character(0))
-    if (missing(date.origin))
-    {
-        sdt[, time := numeric(0)]
-        sdt[, time_next := numeric(0)]
-    } else
+    if (use_dates)
     {
         sdt[, time := as.Date(character(0))]
         sdt[, time_next := as.Date(character(0))]
+    } else
+    {
+        sdt[, time := numeric(0)]
+        sdt[, time_next := numeric(0)]
     }
     sdt[, value := numeric(0)]
     if (missing(id))
@@ -160,7 +176,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
 
                 if (time.dim %in% colnames(values))
                 {
-                    if (!missing(date.origin))
+                    if (use_dates)
                     {
                         if (date.unit == "day")
                         {
@@ -176,8 +192,13 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                             values[, time_next := time %m+% months(1)]
                         } else if (date.unit == "year")
                         {
-                            values[, time := date.origin + years(as.integer(get(time.dim)))]
-                            values[, time_next := time %m+% months(12)]
+                            if (missing(date.origin)) {
+                                values[, time := as.Date(paste(get(time.dim), 1, 1, sep = "-"))]
+                                values[, time_next := as.Date(paste(get(time.dim) + 1, 1, 1, sep = "-"))]
+                            } else {
+                                values[, time := date.origin + years(as.integer(get(time.dim)))]
+                                values[, time_next := time %m+% months(12)]
+                            }
                         }
                     } else {
                         values[, time := get(time.dim)]
@@ -384,7 +405,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
             }
             p <- p + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                            legend.position = "top")
-            if (!missing(date.origin))
+            if (use_dates)
             {
                 p <- p + scale_x_date("")
             }
@@ -541,14 +562,14 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
     }
 
     ndt <- data.table(noise = character(0))
-    if (missing(date.origin))
-    {
-        ndt[, time := numeric(0)]
-        ndt[, time_next := numeric(0)]
-    } else
+    if (use_dates)
     {
         ndt[, time := as.Date(character(0))]
         ndt[, time_next := as.Date(character(0))]
+    } else
+    {
+        ndt[, time := numeric(0)]
+        ndt[, time_next := numeric(0)]
     }
     ndt[, value := numeric(0)]
     if (missing(id))
@@ -584,7 +605,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
 
             if (time.dim %in% colnames(values))
             {
-                if (!missing(date.origin))
+                if (use_dates)
                 {
                     if (date.unit == "day")
                     {
@@ -600,8 +621,13 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                         values[, time_next := time %m+% months(1)]
                     } else if (date.unit == "year")
                     {
-                        values[, time := date.origin + years(as.integer(get(time.dim)))]
-                        values[, time_next := time %m+% months(12)]
+                        if (missing(date.origin)) {
+                            values[, time := as.Date(paste(get(time.dim), 1, 1, sep = "-"))]
+                            values[, time_next := as.Date(paste(get(time.dim) + 1, 1, 1, sep = "-"))]
+                        } else {
+                            values[, time := date.origin + years(as.integer(get(time.dim)))]
+                            values[, time_next := time %m+% months(12)]
+                        }
                     }
                 } else {
                     values[, time := get(time.dim)]
@@ -681,7 +707,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                 np <- np + expand_limits(y = 0)
                 np <- np + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
-                if (!missing(date.origin))
+                if (use_dates)
                 {
                     np <- np + scale_x_date("")
                 }

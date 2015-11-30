@@ -8,7 +8,7 @@ plot_libbi(read, states = "all", params = "all", noises = "all",
   quantile.span = c(0.5, 0.95), date.origin, date.unit = "day",
   time.dim = "nr", data, id, extra.aes = c(), all.times = FALSE, hline,
   burn, thin, steps = FALSE, select, shift, data.colour = "red",
-  base.alpha = 0.5, ...)
+  base.alpha = 0.5, trend = "median", ...)
 }
 \arguments{
 \item{read}{either a \code{libbi} or a list of data frames, as returned by \code{bi_read}}
@@ -50,6 +50,8 @@ plot_libbi(read, states = "all", params = "all", noises = "all",
 \item{data.colour}{colour for plotting the data}
 
 \item{base.alpha}{base alpha value for credible intervals}
+
+\item{trend}{how the trend should be characterised (e.g., mean, median)}
 
 \item{...}{options for geom_step / geom_line}
 }
