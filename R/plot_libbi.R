@@ -21,6 +21,8 @@
 ##' @param data.colour colour for plotting the data
 ##' @param base.alpha base alpha value for credible intervals
 ##' @param trend how the trend should be characterised (e.g., mean, median)
+##' @param densities density geometry (e.g., "histogram")
+##' @param density_args list of arguments to pass to density geometry
 ##' @param ... options for geom_step / geom_line
 ##' @return list of results
 ##' @import ggplot2 scales reshape2
@@ -34,7 +36,9 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                        all.times = FALSE, hline,
                        burn, thin, steps = FALSE, select,
                        shift, data.colour = "red", base.alpha = 0.5,
-                       trend = "median", ...)
+                       trend = "median", densities = "density",
+                       density_args = NULL,
+                       ...)
 {
     use_dates <- FALSE
     if (missing(date.origin))
@@ -172,7 +176,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
         {
             if (state %in% names(res))
             {
-                values <- copy(res[[state]])
+                values <- res[[state]]
 
                 if (time.dim %in% colnames(values))
                 {
@@ -420,7 +424,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
     }
 
     plot_params <- c()
-    if (params != "none")
+    if (!("none" %in% params))
     {
         all_params <- grep("^p_", names(res), value = TRUE)
         if (length(params) == 1 && params == "all")
@@ -521,7 +525,8 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
 
                 dp <- ggplot(pdt[varying == TRUE], do.call(aes_string, aesthetic))
                 dp <- dp + facet_wrap(~ parameter, scales = "free")
-                dp <- dp + geom_density(alpha = 0.5)
+                dp <- dp + do.call(paste0("geom_", densities),
+                                   list(alpha = 0.5, density_args))
                 dp <- dp + scale_y_continuous("Frequency")
                 dp <- dp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
