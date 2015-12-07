@@ -7,13 +7,15 @@
 #'   acceptance rate is achieved. If a scale is given, it will be used
 #'   to adapt the number of particles at each iteration.
 #' @param wrapper \code{\link{libbi}} (which has been run) to study
+#' @param min minimum number of particles
+#' @param max maximum number of particles
 #' @param add_options list of additional options
 #' @param samples number of samples to generate each iteration
 #' @param ... parameters for libbi$run
 #' @importFrom coda mcmc rejectionRate effectiveSize
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @export
-adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...) {
+adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, ...) {
 
   if (missing(add_options)) {
     add_options <- list()
@@ -24,6 +26,12 @@ adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...
   if (!wrapper$run_flag) {
     stop("The model should be run first")
   }
+
+  if (max <= min) {
+    stop("'max' must be less or equal to 'min'")
+  }
+
+  test <- 2**(seq(floor(log(min, 2)), ceiling(log(max, 2))))
 
   model <- bi_model(lines = wrapper$model$get_lines())
   model$remove_block("proposal_parameter")
