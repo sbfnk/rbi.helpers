@@ -57,7 +57,6 @@ adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...
       adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options,
                           init = init_wrapper, ...)
     add_options[["init-np"]] <- samples - 1
-    init_wrapper <- adapt_wrapper
     
     mcmc_obj <- mcmc(get_traces(adapt_wrapper, all = TRUE))
     accRate <- c(accRate, max(1 - rejectionRate(mcmc_obj)))
@@ -67,10 +66,13 @@ adapt_particles <- function(wrapper, test = 2**(0:10), add_options, samples, ...
     cat(paste0(test[id], " particles: acceptance rate ", accRate[id],
                ", loglikelihod variance: ", var_loglik[id], "\n"))
 
-    ## choose smallest var-loglikelihood < 1
-    if (var_loglik[id] > 0 && var_loglik[id] < 1) {
-      found_good <- TRUE
-      if (id > 1) id <- id - 1
+    if (var_loglik[id] > 0) {
+      init_wrapper <- adapt_wrapper
+      if (var_loglik[id] < 1) {
+      ## choose smallest var-loglikelihood < 1
+        found_good <- TRUE
+        if (id > 1) id <- id - 1
+      }
     }
   }
 
