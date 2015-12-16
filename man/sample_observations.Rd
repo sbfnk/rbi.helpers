@@ -4,14 +4,15 @@
 \alias{sample_observations}
 \title{Sample observations from trajectories of a libbi model, one at each time step}
 \usage{
-sample_observations(wrapper, output_file_name, ...)
+sample_observations(wrapper, ...)
 }
 \arguments{
 \item{wrapper}{a \code{\link{libbi}} object that has been run}
 
-\item{output_file_name}{the name of the output file to write}
-
 \item{...}{further options to be passed to \code{libbi} (with run = TRUE)}
+}
+\value{
+\code{\link{libbi}} object with sampled observations
 }
 \description{
 Sample observations from trajectories of a libbi model, one at each time step
