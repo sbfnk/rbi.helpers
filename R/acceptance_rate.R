@@ -4,7 +4,7 @@
 #' @description
 #' This function takes the provided \code{\link{libbi}} object which has been
 #' run, or a bi file, and returns a the acceptance rate
-#' @param ... parameters to \link{\code{get_traces}} (especially 'run')
+#' @param ... parameters to \code{\link{get_traces}} (especially 'run')
 #' @importFrom coda mcmc rejectionRate
 #' @return acceptance rate
 #' @export
