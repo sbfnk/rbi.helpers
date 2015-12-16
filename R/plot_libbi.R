@@ -55,7 +55,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
     ret_data <- list()
     ## copy data table
 
-    if (class(read) == "libbi")
+    if ("libbi" %in% class(read))
     {
         if (!read$run_flag)
         {
@@ -304,7 +304,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                 {
                     for (var_name in names(select))
                     {
-                        if (var_name %in% unique(std[, state]))
+                        if (var_name %in% unique(sdt[, state]))
                         {
                             dataset <- dataset[get(var_name) %in% select[[var_name]]]
                             if (class(values[, get(var_name)]) == "factor")
@@ -794,9 +794,9 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
 
     return(list(states = p,
                 densities = dp,
-                trace = tp,
+                traces = tp,
                 correlations = cp,
-                noise = np,
+                noises = np,
                 likelihoods = lp,
                 data = ret_data))
 }

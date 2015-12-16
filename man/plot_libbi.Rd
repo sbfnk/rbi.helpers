@@ -5,10 +5,10 @@
 \title{Plot results from libbi}
 \usage{
 plot_libbi(read, states = "all", params = "all", noises = "all",
-  quantile.span = c(0.5, 0.95), date.origin, date.unit = "day",
-  time.dim = "nr", data, id, extra.aes = c(), all.times = FALSE, hline,
-  burn, thin, steps = FALSE, select, shift, data.colour = "red",
-  base.alpha = 0.5, trend = "median", ...)
+  quantile.span = c(0.5, 0.95), date.origin, date.unit, time.dim = "nr",
+  data, id, extra.aes = c(), all.times = FALSE, hline, burn, thin,
+  steps = FALSE, select, shift, data.colour = "red", base.alpha = 0.5,
+  trend = "median", ...)
 }
 \arguments{
 \item{read}{either a \code{libbi} or a list of data frames, as returned by \code{bi_read}}
@@ -23,7 +23,7 @@ plot_libbi(read, states = "all", params = "all", noises = "all",
 
 \item{date.origin}{date of origin (if dates are to be calculated)}
 
-\item{date.unit}{unit of date}
+\item{date.unit}{unit of date (if desired, otherwise the time dimension will be used)}
 
 \item{time.dim}{time dimension ("nr" by default)}
 
