@@ -13,7 +13,7 @@ compute_DIC(wrapper, model, burn, ...)
 
 \item{burn}{number of iterations to discard as burn-in (if any)}
 
-\item{...}{options for \link{\code{libbi}}}
+\item{...}{options for \code\link{libbi}}
 }
 \value{
 DIC
