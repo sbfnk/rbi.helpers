@@ -16,7 +16,7 @@ output_to_proposal <- function(wrapper, scale) {
 
   model <- wrapper$model$clone()
   params <- model$get_vars("param")
-  res <- bi_read(wrapper$output_file_name, variables = params)
+  res <- bi_read(wrapper$result$output_file_name, variables = params)
 
   if (missing(scale)) {
     scale_string <- ""

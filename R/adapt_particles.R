@@ -42,7 +42,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, 
   init_wrapper <- wrapper
 
   ## use last parameter value from output file
-  add_options[["init-np"]] <- bi_dim_len(wrapper$output_file_name, "np") - 1
+  add_options[["init-np"]] <- bi_dim_len(wrapper$result$output_file_name, "np") - 1
 
   if (missing(samples)) {
     if ("nsamples" %in% names(adapt_wrapper$global_options)) {

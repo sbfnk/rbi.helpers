@@ -34,7 +34,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 1, add_options, sample
   if (scale < 1) scale <- 1 / scale 
 
   model <- output_to_proposal(wrapper)
-  init_file <- wrapper$output_file_name
+  init_file <- wrapper$result$output_file_name
   init_np <- bi_dim_len(init_file, "np") - 1
 
   if (missing(samples)) {
@@ -50,7 +50,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 1, add_options, sample
   add_options[["init-np"]] <- init_np
   adapt_wrapper <-
     wrapper$clone(model = model, run = TRUE, add_options = add_options, ...)
-  add_options[["init-file"]] <- adapt_wrapper$output_file_name
+  add_options[["init-file"]] <- adapt_wrapper$result$output_file_name
   add_options[["init-np"]] <- samples - 1
   iter <- 1
   adapt_scale <- 1
@@ -64,7 +64,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 1, add_options, sample
     cat(paste0("Acceptance rate ", min(accRate),
                ", adapting with scale ", adapt_scale, "\n"))
     model <- output_to_proposal(adapt_wrapper, adapt_scale)
-    add_options[["init-file"]] <- adapt_wrapper$output_file_name
+    add_options[["init-file"]] <- adapt_wrapper$result$output_file_name
     adapt_wrapper <-
       adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options, ...)
     mcmc_obj <- mcmc(get_traces(adapt_wrapper, all = TRUE))
