@@ -456,7 +456,7 @@ plot_libbi <- function(read, model, states, params, noises,
 
     if (missing(params))
     {
-        states <- model$get_vars("param")
+        params <- model$get_vars("param")
     }
 
     if (length(params) > 0)
