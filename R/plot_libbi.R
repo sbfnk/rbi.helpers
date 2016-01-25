@@ -181,7 +181,7 @@ plot_libbi <- function(read, model, states, params, noises,
         states <- model$get_vars("state")
     }
 
-    if (length(states) > 0)
+    if (!is.na(states) && length(states) > 0)
     {
         if (!missing(data))
         {
@@ -459,7 +459,7 @@ plot_libbi <- function(read, model, states, params, noises,
         params <- model$get_vars("param")
     }
 
-    if (length(params) > 0)
+    if (!is.na(params) && length(params) > 0)
     {
         for (param in params)
         {
@@ -628,9 +628,9 @@ plot_libbi <- function(read, model, states, params, noises,
         noises <- model$get_vars("noise")
     }
 
-    if (length(noises) > 0)
+    if (!is.na(noises) && length(noises) > 0)
     {
-        for (noise in plot_noises)
+        for (noise in noises)
         {
             values <- res[[noise]]
             values[!is.finite(value), value := 0]
