@@ -3,7 +3,7 @@
 ##' @param read either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
 ##' @param model model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)
 ##' @param burn number of iterations to discard as burn-in (if any)
-##' @param ... options for \code\link{libbi}}
+##' @param ... options for \code{\link{libbi}}
 ##' @return DIC
 ##' @export
 ##' @author Sebastian Funk
