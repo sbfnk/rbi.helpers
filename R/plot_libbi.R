@@ -2,9 +2,9 @@
 ##'
 ##' @param read either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
 ##' @param model model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)
-##' @param states states to plot ("all" if all")
-##' @param params parameters to plot ("all" if all")
-##' @param noises noises to plot ("all" if all")
+##' @param states states to plot (if not given, all states will be plotted; if empty vector is passed, no states are plotted)
+##' @param params parameters to plot (if not given, all states will be plotted; if empty vector is passed, no parameters are plotted)
+##' @param noises noises to plot (if not given, all noises will be plotted; if empty vector is passed, no noises are plotted)
 ##' @param quantile.span if plots are produced, which quantile to use for confidence intervals
 ##' @param date.origin date of origin (if dates are to be calculated)
 ##' @param date.unit unit of date (if desired, otherwise the time dimension will be used)
