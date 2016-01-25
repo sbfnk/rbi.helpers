@@ -1,6 +1,7 @@
 ##' Plot results from libbi
 ##'
-##' @param read either a \code{libbi} or a list of data frames, as returned by \code{bi_read}
+##' @param read either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
+##' @param model model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)
 ##' @param states states to plot ("all" if all")
 ##' @param params parameters to plot ("all" if all")
 ##' @param noises noises to plot ("all" if all")
@@ -23,13 +24,14 @@
 ##' @param trend how the trend should be characterised (e.g., mean, median)
 ##' @param densities density geometry (e.g., "histogram")
 ##' @param density_args list of arguments to pass to density geometry
+##' @param limit.to.data whether to limit the time axis to times in the data
 ##' @param ... options for geom_step / geom_line
 ##' @return list of results
 ##' @import ggplot2 scales reshape2
 ##' @importFrom lubridate wday %m+% years
 ##' @export
 ##' @author Sebastian Funk
-plot_libbi <- function(read, states = "all", params = "all", noises = "all",
+plot_libbi <- function(read, model, states, params, noises,
                        quantile.span = c(0.5, 0.95),
                        date.origin, date.unit, time.dim = "nr",
                        data, id, extra.aes = c(),
@@ -37,7 +39,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                        burn, thin, steps = FALSE, select,
                        shift, data.colour = "red", base.alpha = 0.5,
                        trend = "median", densities = "density",
-                       density_args = NULL,
+                       density_args = NULL, limit.to.data = FALSE, 
                        ...)
 {
     use_dates <- FALSE
@@ -75,6 +77,28 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
     }
     res <- lapply(read, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
     res <- lapply(res, copy)
+
+    if (missing(model))
+    {
+        if ("libbi" %in% class(read))
+        {
+            model <- read$model
+        } else
+        {
+            stop("If 'read' is not a libbi object, 'model' must be given.")
+        }
+    } else
+    {
+        if ("libbi" %in% class(read))
+        {
+            warning("'model' overwrites the model given in 'read'.x")
+        }
+        if (is.character(model)) {
+            model <- bi_model(model)
+        } else if (!("bi_model" %in% class(model))) {
+            stop("'model' must be either a 'bi_model' object or a path to a valid model file in LibBi's syntax")
+        }
+    }
 
     if (steps)
     {
@@ -152,17 +176,13 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
 
     plot_states <- c()
     p <- NULL
-    if (!("none" %in% states))
+    if (missing(states))
     {
-        if (length(states) == 1 && states == "all")
-        {
-            all_states <- c(grep("^[A-Z]", names(res), value = TRUE), "dummy")
-            plot_states <- all_states
-        } else
-        {
-            plot_states <- states
-        }
+        states <- model$get_vars("state")
+    }
 
+    if (length(states) > 0)
+    {
         if (!missing(data))
         {
             if (length(setdiff(c("time", "value"), colnames(data))) > 0) {
@@ -172,7 +192,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
             }
         }
 
-        for (state in plot_states)
+        for (state in states)
         {
             if (state %in% names(res))
             {
@@ -301,7 +321,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
 
         if (!missing(data) && nrow(dataset) > 0)
         {
-            dataset <- dataset[state %in% plot_states]
+            dataset <- dataset[state %in% states]
             if (nrow(dataset) > 0)
             {
                 if (!missing(select))
@@ -321,8 +341,19 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
 
                 if (!all.times && nrow(sdt) > 0)
                 {
-                    sdt <- sdt[(time >= min(dataset[, time])) &
-                               (time <= max(dataset[, time]))]
+                    for (data_state in unique(dataset[, state]))
+                    {
+                        if (limit.to.data)
+                        {
+                            ## for all states, only retain times in data
+                            sdt <- sdt[time %in% dataset[state == data_state, time]]
+                        } else
+                        {
+                            ## for states in dataset, only retain times in data
+                            sdt <- sdt[(state != data_state) |
+                                       (time %in% dataset[state == data_state, time])]
+                        }
+                    }
                 }
                 for (i in seq_along(quantile.span))
                 {
@@ -372,7 +403,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                 }
             }
 
-            if (length(plot_states) > 1)
+            if (length(states) > 1)
             {
                 p <- p + facet_wrap(~ state, scales = "free_y",
                                     ncol = round(sqrt(length(plot_states))))
@@ -423,19 +454,14 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
         pdt[, paste(extra) := character(0)]
     }
 
-    plot_params <- c()
-    if (!("none" %in% params))
+    if (missing(params))
     {
-        all_params <- grep("^p_", names(res), value = TRUE)
-        if (length(params) == 1 && params == "all")
-        {
-            plot_params <- all_params
-        } else
-        {
-            plot_params <- intersect(paste("p", params, sep = "_"), all_params)
-        }
+        states <- model$get_vars("param")
+    }
 
-        for (param in plot_params)
+    if (length(params) > 0)
+    {
+        for (param in params)
         {
             values <- res[[param]]
 
@@ -526,7 +552,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                 dp <- ggplot(pdt[varying == TRUE], do.call(aes_string, aesthetic))
                 dp <- dp + facet_wrap(~ parameter, scales = "free")
                 dp <- dp + do.call(paste0("geom_", densities),
-                                   list(alpha = 0.5, density_args))
+                                   c(list(alpha = 0.5), density_args))
                 dp <- dp + scale_y_continuous("Frequency")
                 dp <- dp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
@@ -552,6 +578,11 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
                 {
                     tp <- tp + geom_vline(xintercept = id)
                 }
+            } else
+            {
+                dp <- NULL
+                tp <- NULL
+                cp <- NULL
             }
         } else
         {
@@ -591,18 +622,14 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
     }
 
     np <- NULL
-    plot_noises <- c()
-    if (noises != "none")
-    {
-        all_noises <- grep("^n_", names(res), value = TRUE)
-        if (length(noises) == 1 && noises == "all")
-        {
-            plot_noises <- all_noises
-        } else
-        {
-            plot_noises <- intersect(sub("^n_", "", noises), all_noises)
-        }
 
+    if (missing(noises))
+    {
+        noises <- model$get_vars("noise")
+    }
+
+    if (length(noises) > 0)
+    {
         for (noise in plot_noises)
         {
             values <- res[[noise]]
@@ -721,7 +748,7 @@ plot_libbi <- function(read, states = "all", params = "all", noises = "all",
     }
 
     lp <- NULL
-    likelihoods <- grep("^log", names(res), value = TRUE)
+    likelihoods <- intersect(names(res), c("loglikelihood", "logprior"))
     if (length(likelihoods) > 0)
     {
         ldt <- NULL
