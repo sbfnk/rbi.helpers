@@ -39,7 +39,7 @@ plot_libbi <- function(read, model, states, params, noises,
                        burn, thin, steps = FALSE, select,
                        shift, data.colour = "red", base.alpha = 0.5,
                        trend = "median", densities = "density",
-                       density_args = NULL, limit.to.data = FALSE, 
+                       density_args = NULL, limit.to.data = FALSE,
                        ...)
 {
     use_dates <- FALSE
@@ -67,15 +67,18 @@ plot_libbi <- function(read, model, states, params, noises,
         {
             stop("The model should be run first")
         }
-        read <- bi_read(read)
+        res <- bi_read(read)
     } else if (is.data.frame(read))
     {
-        read <- list(dummy = read)
-    } else if (!is.list(read))
+        res <- list(dummy = read)
+    } else if (is.list(read))
+    {
+        res <- read
+    } else
     {
         stop("'read' must be a 'libbi' object or a list of data frames or a data frame.")
     }
-    res <- lapply(read, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
+    res <- lapply(res, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
     res <- lapply(res, copy)
 
     if (missing(model))
@@ -174,14 +177,14 @@ plot_libbi <- function(read, model, states, params, noises,
         sdt[, paste(extra) := character(0)]
     }
 
-    plot_states <- c()
     p <- NULL
     if (missing(states))
     {
         states <- model$get_vars("state")
         obs <- model$get_vars("obs")
-        states <- c(states, obs)
     }
+
+    states <- intersect(names(res), states)
 
     if (length(states) > 0)
     {
@@ -461,11 +464,18 @@ plot_libbi <- function(read, model, states, params, noises,
         params <- model$get_vars("param")
     }
 
+    params <- intersect(names(res), params)
+
     if (length(params) > 0)
     {
         for (param in params)
         {
             values <- res[[param]]
+
+            if (!("data.frame" %in% class(values)))
+            {
+                values <- data.table(np = 0, value = values) 
+            }
 
             by.mean <- "np"
             if (!is.null(extra.aes))
@@ -630,6 +640,8 @@ plot_libbi <- function(read, model, states, params, noises,
         noises <- model$get_vars("noise")
     }
 
+    noises <- intersect(names(res), noises)
+
     if (length(noises) > 0)
     {
         for (noise in noises)
@@ -757,6 +769,12 @@ plot_libbi <- function(read, model, states, params, noises,
         for (ll in likelihoods)
         {
             values <- res[[ll]]
+
+            if (!("data.frame" %in% class(values)))
+            {
+                values <- data.table(np = 0, value = values) 
+            }
+
             if (!("np" %in% colnames(values)))
             {
                 setnames(values, "nr", "np")
