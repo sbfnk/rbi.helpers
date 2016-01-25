@@ -180,8 +180,7 @@ plot_libbi <- function(read, model, states, params, noises,
     p <- NULL
     if (missing(states))
     {
-        states <- model$get_vars("state")
-        obs <- model$get_vars("obs")
+        states <- c(model$get_vars("state"), model$get_vars("obs"))
     }
 
     states <- intersect(names(res), states)
