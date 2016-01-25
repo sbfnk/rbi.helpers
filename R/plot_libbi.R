@@ -179,9 +179,11 @@ plot_libbi <- function(read, model, states, params, noises,
     if (missing(states))
     {
         states <- model$get_vars("state")
+        obs <- model$get_vars("obs")
+        states <- c(states, obs)
     }
 
-    if (!is.na(states) && length(states) > 0)
+    if (length(states) > 0)
     {
         if (!missing(data))
         {
@@ -406,7 +408,7 @@ plot_libbi <- function(read, model, states, params, noises,
             if (length(states) > 1)
             {
                 p <- p + facet_wrap(~ state, scales = "free_y",
-                                    ncol = round(sqrt(length(plot_states))))
+                                    ncol = round(sqrt(length(states))))
             }
             if (missing(id))
             {
@@ -459,7 +461,7 @@ plot_libbi <- function(read, model, states, params, noises,
         params <- model$get_vars("param")
     }
 
-    if (!is.na(params) && length(params) > 0)
+    if (length(params) > 0)
     {
         for (param in params)
         {
@@ -628,7 +630,7 @@ plot_libbi <- function(read, model, states, params, noises,
         noises <- model$get_vars("noise")
     }
 
-    if (!is.na(noises) && length(noises) > 0)
+    if (length(noises) > 0)
     {
         for (noise in noises)
         {
