@@ -88,10 +88,11 @@ compute_DIC <- function(read, model, burn, ...)
                 init[[param]] <- theta_mean[[param]]
             }
         }
-        if ("nsamples" %in% names(wrapper$global_options))
-        {
-            global_options[["nsamples"]] <- 1
-        }
+    }
+    
+    if ("nsamples" %in% names(wrapper$global_options))
+    {
+        wrapper$global_options[["nsamples"]] <- 1
     }
 
     wrapper$run(target = "posterior")
