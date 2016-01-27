@@ -98,7 +98,7 @@ compute_DIC <- function(read, model, burn, ...)
     wrapper$run(target = "posterior")
 
     ## likelihood at mean parameter
-    ll_mean <- mean(bi_read(wrapper)$loglikelihood$value)
+    ll_mean <- bi_read(wrapper)$loglikelihood
 
     ## deviance at mean parameter
     D_mean <- -2 * ll_mean
