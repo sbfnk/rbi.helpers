@@ -26,6 +26,7 @@
 ##' @param densities density geometry (e.g., "histogram")
 ##' @param density_args list of arguments to pass to density geometry
 ##' @param limit.to.data whether to limit the time axis to times in the data
+##' @param brewer.palette optional; brewer color palette
 ##' @param ... options for geom_step / geom_line
 ##' @return list of results
 ##' @import ggplot2 scales reshape2
@@ -41,7 +42,7 @@ plot_libbi <- function(read, prior, model, states, params, noises,
                        shift, data.colour = "red", base.alpha = 0.5,
                        trend = "median", densities = "density",
                        density_args = NULL, limit.to.data = FALSE,
-                       ...)
+                       brewer_palette, ...)
 {
     use_dates <- FALSE
     if (missing(date.origin))
@@ -462,6 +463,11 @@ plot_libbi <- function(read, prior, model, states, params, noises,
                 p <- p + line_func(color = "black", ...)
             }
             p <- p + scale_y_continuous("", labels = comma)
+            if (!missing(brewer.palette))
+            {
+                p <- p + scale_color_brewer(palette = brewer.palette)
+                p <- p + scale_fill_brewer(palette = brewer.palette)
+            }
             p <- p + expand_limits(y = 0)
             if (!missing(data) && nrow(dataset) > 0)
             {
@@ -622,7 +628,12 @@ plot_libbi <- function(read, prior, model, states, params, noises,
                 dp <- dp + facet_wrap(~ parameter, scales = "free")
                 dp <- dp + do.call(paste0("geom_", densities),
                                    c(list(alpha = 0.5), density_args))
-                dp <- dp + scale_y_continuous("Frequency")
+                if (!missing(brewer.palette))
+                {
+                    dp <- dp + scale_color_brewer(palette = brewer.palette)
+                    dp <- dp + scale_fill_brewer(palette = brewer.palette)
+                }
+                dp <- dp + scale_y_continuous("Density")
                 dp <- dp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
                 if (!missing(id))
@@ -646,6 +657,11 @@ plot_libbi <- function(read, prior, model, states, params, noises,
                 if (!missing(id))
                 {
                     tp <- tp + geom_vline(xintercept = id)
+                }
+                if (!missing(brewer.palette))
+                {
+                    tp <- tp + scale_color_brewer(palette = brewer.palette)
+                    tp <- tp + scale_fill_brewer(palette = brewer.palette)
                 }
             } else
             {
@@ -810,6 +826,11 @@ plot_libbi <- function(read, prior, model, states, params, noises,
                 }
                 np <- np + geom_line()
                 np <- np + scale_y_continuous("", labels = comma)
+                if (!missing(brewer.palette))
+                {
+                    np <- np + scale_color_brewer(palette = brewer.palette)
+                    np <- np + scale_fill_brewer(palette = brewer.palette)
+                }
                 np <- np + expand_limits(y = 0)
                 np <- np + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
@@ -832,7 +853,7 @@ plot_libbi <- function(read, prior, model, states, params, noises,
 
             if (!("data.frame" %in% class(values)))
             {
-                values <- data.table(np = 0, value = values) 
+                values <- data.table(np = 0, value = values)
             }
 
             if (!("np" %in% colnames(values)))
