@@ -564,7 +564,7 @@ plot_libbi <- function(read, prior, model, states, params, noises,
 
             ret_data <- c(ret_data, list(params = pdt))
 
-            aesthetic <- list(x = "value", y = "..count../sum(..count..)")
+            aesthetic <- list(x = "value")
             if (!missing(extra.aes))
             {
                 aesthetic <- c(aesthetic, extra.aes)
