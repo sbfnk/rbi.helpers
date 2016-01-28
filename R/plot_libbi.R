@@ -42,7 +42,7 @@ plot_libbi <- function(read, prior, model, states, params, noises,
                        shift, data.colour = "red", base.alpha = 0.5,
                        trend = "median", densities = "density",
                        density_args = NULL, limit.to.data = FALSE,
-                       brewer_palette, ...)
+                       brewer.palette, ...)
 {
     use_dates <- FALSE
     if (missing(date.origin))
