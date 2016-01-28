@@ -1,6 +1,7 @@
 ##' Plot results from libbi
 ##'
-##' @param read either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
+##' @param read Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
+##' @param prior optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
 ##' @param model model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)
 ##' @param states states to plot (if not given, all states will be plotted; if empty vector is passed, no states are plotted)
 ##' @param params parameters to plot (if not given, all states will be plotted; if empty vector is passed, no parameters are plotted)
@@ -32,6 +33,7 @@
 ##' @export
 ##' @author Sebastian Funk
 plot_libbi <- function(read, model, states, params, noises,
+plot_libbi <- function(read, prior, model, states, params, noises,
                        quantile.span = c(0.5, 0.95),
                        date.origin, date.unit, time.dim = "nr",
                        data, id, extra.aes = c(),
@@ -80,6 +82,30 @@ plot_libbi <- function(read, model, states, params, noises,
     }
     res <- lapply(res, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
     res <- lapply(res, copy)
+
+    res_prior <- NULL
+    if (!missing(prior))
+    {
+        if ("libbi" %in% class(prior))
+        {
+            if (!prior$run_flag)
+            {
+                stop("The model should be run first")
+            }
+            res_prior <- bi_read(prior)
+        } else if (is.data.frame(prior))
+        {
+            res_prior <- list(dummy = prior)
+        } else if (is.list(prior))
+        {
+            res_prior <- prior
+        } else
+        {
+            stop("'prior' must be a 'libbi' object or a list of data frames or a data frame.")
+        }
+    }
+    res_prior <- lapply(res_prior, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
+    res_prior <- lapply(res_prior, copy)
 
     if (missing(model))
     {
@@ -451,7 +477,8 @@ plot_libbi <- function(read, model, states, params, noises,
         }
     }
 
-    pdt <- data.table(parameter = character(0), np = integer(0),
+    pdt <- data.table(distribution = character(0),
+                      parameter = character(0), np = integer(0),
                       value = numeric(0))
     for (extra in unique(unname(extra.aes)))
     {
@@ -469,41 +496,52 @@ plot_libbi <- function(read, model, states, params, noises,
     {
         for (param in params)
         {
-            values <- res[[param]]
-
-            if (!("data.frame" %in% class(values)))
+            param_values <- list()
+            param_values[["posterior"]] <- res[[param]]
+            if (!is.null(res_prior) && param %in% names(res_prior))
             {
-                values <- data.table(np = 0, value = values) 
+                param_values[["prior"]] <- res_prior[[param]]
             }
 
-            by.mean <- "np"
-            if (!is.null(extra.aes))
+            for (dist in names(param_values))
             {
-                by.mean <- c(by.mean, unique(unname(extra.aes)))
-            }
-            param.by <- intersect(by.mean, colnames(values))
-            param.wo <- setdiff(by.mean, colnames(values))
+                values <- param_values[[dist]]
+                if (!("data.frame" %in% class(values)))
+                {
+                    values <- data.table(np = 0, value = values)
+                }
 
-            values <- values[, list(value = value), by = param.by]
+                by.mean <- "np"
+                if (!missing(extra.aes))
+                {
+                    by.mean <- c(by.mean, unique(unname(extra.aes)))
+                }
+                param.by <- intersect(by.mean, colnames(values))
+                param.wo <- setdiff(by.mean, colnames(values))
 
-            if (!("np" %in% colnames(values)))
-            {
-                values[, np := 1]
-            }
+                values <- values[, list(value = value), by = param.by]
 
-            for (wo in setdiff(param.wo, "np"))
-            {
-                values[, paste(wo) := "n/a"]
+                if (!("np" %in% colnames(values)))
+                {
+                    values[, np := 1]
+                }
+
+                for (wo in setdiff(param.wo, "np"))
+                {
+                    values[, paste(wo) := "n/a"]
+                }
+                pdt <- rbind(pdt,
+                             data.table(distribution = dist,
+                                        parameter = rep(sub("^p_", "", param),
+                                                        nrow(values)),
+                                        values))
             }
-            pdt <- rbind(pdt,
-                         data.table(parameter = rep(sub("^p_", "", param),
-                                                    nrow(values)), values))
         }
         if (nrow(pdt) > 0)
         {
             pdt[, parameter := factor(parameter, levels = unique(parameter))]
 
-            by.varying <- "parameter"
+            by.varying <- c("parameter", "distribution")
             if (!missing(extra.aes))
             {
                 by.varying <- c(by.varying, unique(unname(extra.aes)))
@@ -516,6 +554,17 @@ plot_libbi <- function(read, model, states, params, noises,
             if (length(extra.aes) > 0)
             {
                 aesthetic <- c(aesthetic, extra.aes)
+            }
+
+            if (!is.null(res_prior))
+            {
+                if (!missing(extra.aes) && length(intersect(c("color", "fill"), names(extra.aes))) > 0)
+                {
+                    warning("'extra.aes' (with color or fill) and 'prior' given. Will ignore 'prior' as things will look a mess otherwise.")
+                } else
+                {
+                    aesthetic <- c(aesthetic, list(color = "distribution", fill = "distribution"))
+                }
             }
 
             if (nrow(pdt[varying == TRUE]) > 0)
@@ -534,7 +583,8 @@ plot_libbi <- function(read, model, states, params, noises,
                     {
                         cast_formula <- as.formula("np~parameter")
                     }
-                    wpdt <- data.table(dcast(pdt[varying == TRUE], cast_formula,
+                    wpdt <- data.table(dcast(pdt[varying == TRUE & distribution == "posterior"],
+                                             cast_formula,
                                              value.var = "value"))
                     wpdt[, np := NULL]
                     if (length(extra_cols) > 0)
