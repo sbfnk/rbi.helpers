@@ -36,7 +36,7 @@ plot_libbi <- function(read, model, states, params, noises,
 plot_libbi <- function(read, prior, model, states, params, noises,
                        quantile.span = c(0.5, 0.95),
                        date.origin, date.unit, time.dim = "nr",
-                       data, id, extra.aes = c(),
+                       data, id, extra.aes,
                        all.times = FALSE, hline,
                        burn, thin, steps = FALSE, select,
                        shift, data.colour = "red", base.alpha = 0.5,
@@ -145,12 +145,15 @@ plot_libbi <- function(read, prior, model, states, params, noises,
         line_func <- geom_line
     }
 
-    if ("color" %in% names(extra.aes) & !("fill" %in% names(extra.aes)))
+    if (!missing(extra.aes))
     {
-        extra.aes["fill"] <- extra.aes["color"]
-    } else if ("fill" %in% names(extra.aes) & !("color" %in% names(extra.aes)))
-    {
-        extra.aes["color"] <- extra.aes["fill"]
+        if ("color" %in% names(extra.aes) && !("fill" %in% names(extra.aes)))
+        {
+            extra.aes["fill"] <- extra.aes["color"]
+        } else if ("fill" %in% names(extra.aes) & !("color" %in% names(extra.aes)))
+        {
+            extra.aes["color"] <- extra.aes["fill"]
+        }
     }
 
     if (!missing(burn) || !missing(thin))
@@ -198,9 +201,12 @@ plot_libbi <- function(read, prior, model, states, params, noises,
     {
         sdt[, np := numeric(0)]
     }
-    for (extra in unique(unname(extra.aes)))
+    if (!missing(extra.aes))
     {
-        sdt[, paste(extra) := character(0)]
+        for (extra in unique(unname(extra.aes)))
+        {
+            sdt[, paste(extra) := character(0)]
+        }
     }
 
     p <- NULL
@@ -399,7 +405,7 @@ plot_libbi <- function(read, prior, model, states, params, noises,
         {
             aesthetic <- c(aesthetic, list(color = "factor(np)"))
         }
-        if (length(extra.aes) > 0)
+        if (!missing(extra.aes))
         {
             aesthetic <- c(aesthetic, extra.aes)
         }
@@ -460,7 +466,7 @@ plot_libbi <- function(read, prior, model, states, params, noises,
             p <- p + expand_limits(y = 0)
             if (!missing(data) && nrow(dataset) > 0)
             {
-                if ("color" %in% names(extra.aes))
+                if (!missing(extra.aes) && "color" %in% names(extra.aes))
                 {
                     p <- p + geom_point(data = dataset)
                 } else
@@ -480,9 +486,12 @@ plot_libbi <- function(read, prior, model, states, params, noises,
     pdt <- data.table(distribution = character(0),
                       parameter = character(0), np = integer(0),
                       value = numeric(0))
-    for (extra in unique(unname(extra.aes)))
+    if (!missing(extra.aes))
     {
-        pdt[, paste(extra) := character(0)]
+        for (extra in unique(unname(extra.aes)))
+        {
+            pdt[, paste(extra) := character(0)]
+        }
     }
 
     if (missing(params))
@@ -551,7 +560,7 @@ plot_libbi <- function(read, prior, model, states, params, noises,
             ret_data <- c(ret_data, list(params = pdt))
 
             aesthetic <- list(x = "value", y = "..count../sum(..count..)")
-            if (length(extra.aes) > 0)
+            if (!missing(extra.aes))
             {
                 aesthetic <- c(aesthetic, extra.aes)
             }
@@ -625,7 +634,7 @@ plot_libbi <- function(read, prior, model, states, params, noises,
 
                 aesthetic <- list(x = "np", y = "value")
 
-                if (length(extra.aes) > 0)
+                if (!missing(extra.aes))
                 {
                     aesthetic <- c(aesthetic, extra.aes)
                 }
@@ -677,9 +686,12 @@ plot_libbi <- function(read, prior, model, states, params, noises,
             ndt[, paste("max", i, sep = ".") := numeric(0)]
         }
     }
-    for (extra in unique(unname(extra.aes)))
+    if (!missing(extra.aes))
     {
-        ndt[, paste(extra) := character(0)]
+        for (extra in unique(unname(extra.aes)))
+        {
+            ndt[, paste(extra) := character(0)]
+        }
     }
 
     np <- NULL
@@ -731,7 +743,7 @@ plot_libbi <- function(read, prior, model, states, params, noises,
             }
 
             by.sum <- c("nr", "time", "time_next")
-            if (!is.null(extra.aes))
+            if (!missing(extra.aes))
             {
                 by.sum <- c(by.sum, unique(unname(extra.aes)))
             }
@@ -777,7 +789,7 @@ plot_libbi <- function(read, prior, model, states, params, noises,
             ret_data <- c(ret_data, list(noises = ndt))
 
             aesthetic <- list(x = "time", y = "value")
-            if (length(extra.aes) > 0)
+            if (!is.null(extra.aes))
             {
                 aesthetic <- c(aesthetic, extra.aes)
             }
