@@ -804,7 +804,7 @@ plot_libbi <- function(read, prior, model, states, params, noises,
             ret_data <- c(ret_data, list(noises = ndt))
 
             aesthetic <- list(x = "time", y = "value")
-            if (!is.null(extra.aes))
+            if (!missing(extra.aes))
             {
                 aesthetic <- c(aesthetic, extra.aes)
             }
