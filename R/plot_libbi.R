@@ -649,7 +649,8 @@ plot_libbi <- function(read, prior, model, states, params, noises,
                     aesthetic <- c(aesthetic, extra.aes)
                 }
 
-                tp <- ggplot(pdt[varying == TRUE], do.call(aes_string, aesthetic))
+                tp <- ggplot(pdt[varying == TRUE & distribution == "posterior"],
+                             do.call(aes_string, aesthetic))
                 tp <- tp + geom_line()
                 tp <- tp + facet_wrap(~ parameter, scales = "free_y")
                 tp <- tp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
