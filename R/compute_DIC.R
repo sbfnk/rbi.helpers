@@ -1,7 +1,6 @@
 ##' Compute DIC for a libbi model
 ##'
 ##' @param read either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
-##' @param model model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)
 ##' @param burn number of iterations to discard as burn-in (if any)
 ##' @param ... options for \code{\link{libbi}}
 ##' @return DIC
@@ -67,49 +66,13 @@ compute_DIC <- function(read, model, burn, ...)
     ## read parameters
     parameters <- model$get_vars("param")
 
-    ## work out mean parameter
-    theta_mean <- list()
-    for (param in parameters)
-    {
-        theta_mean[[param]] <- mean(res[[param]][, value])
-    }
-
-    ## set up libbi to work out likelihood at mean parameter
-    if (is.null(wrapper))
-    {
-        wrapper <- libbi(client = "sample", model = model, init = theta_mean, ...)
-    } else
-    {
-        if ("init-file" %in% names(wrapper$global_options))
-        {
-            init <- bi_read(wrapper$global_options[["init-file"]])
-            for (param in parameters)
-            {
-                init[[param]] <- theta_mean[[param]]
-            }
-        }
-    }
-    
-    if ("nsamples" %in% names(wrapper$global_options))
-    {
-        wrapper$global_options[["nsamples"]] <- 1
-    }
-
-    wrapper$run(target = "posterior")
-
-    ## likelihood at mean parameter
-    ll_mean <- bi_read(wrapper)$loglikelihood
-
-    ## deviance at mean parameter
-    D_mean <- -2 * ll_mean
-
     ## sample mean deviance
-    mean_D <- -2 * mean(res[["loglikelihood"]]$value)
+    mean_D <- mean(-2 * res[["loglikelihood"]]$value)
 
     ## effective number of parameters
-    pd <- mean_D - D_mean
+    pd <- var(-2 * res[["loglikelihood"]]$value) / 2
     
     ## DIC
-    return(D_mean + 2 * pd)
+    return(mean_D + pd)
 }
 
