@@ -71,7 +71,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, 
     ## ess <- c(ess, max(effectiveSize(mcmc_obj)))
     var_loglik <- c(var_loglik, var(bi_read(adapt_wrapper, "loglikelihood")$value))
     
-    cat(paste0(test[id], " particles: acceptance rate ", accRate[id],
+    cat(date(), paste0(test[id], " particles: acceptance rate ", accRate[id],
                ", loglikelihod variance: ", var_loglik[id], "\n"))
 
     if (var_loglik[id] > 0) {
@@ -87,7 +87,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, 
   adapt_wrapper$global_options[["nparticles"]] <- test[id]
   adapt_wrapper$model <- wrapper$model
 
-  cat("Choosing ", test[id], " particles.\n")
+  cat(date(), "Choosing ", test[id], " particles.\n")
       
   return(adapt_wrapper)
 }

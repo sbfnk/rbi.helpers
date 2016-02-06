@@ -42,7 +42,7 @@ compute_DIC <- function(read, burn)
     }
 
     ## sample mean deviance
-    mean_D <- -2 * mean(res[["loglikelihood"]]$value)
+    mean_D <- mean(-2 * res[["loglikelihood"]]$value)
 
     ## effective number of parameters
     pd <- var(-2 * res[["loglikelihood"]]$value) / 2
