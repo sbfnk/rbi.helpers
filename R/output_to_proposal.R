@@ -33,6 +33,8 @@ output_to_proposal <- function(wrapper, scale) {
   variable_bounds <- param_bounds[sapply(param_bounds, function(x) {length(x) > 0})]
   
   proposal_lines <- unname(sapply(names(variable_bounds), function(param) {
+      ##:ess-bp-start::browser@nil:##
+browser(expr=is.null(.ESSBP.[["@2@"]]))##:ess-bp-end:##
       param_string <-
         sub(paste0("^[:space:]*(", param, "[^[:space:]~]*)[[:space:]~].*$"), "\\1", variable_bounds[param])
     param_bounds_string <-
@@ -96,7 +98,7 @@ output_to_proposal <- function(wrapper, scale) {
 
       if (param_sd[param] == 0) {
         ## no variation
-        if (!any(is.na(is.numeric(bounds)))) {
+        if (sum(!is.na(is.numeric(bounds))) == 2) {
           ## range / 10 
           param_sd[param] <- diff(as.numeric(bounds)) / 10
         } else {
