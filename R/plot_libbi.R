@@ -33,7 +33,7 @@
 ##' @importFrom lubridate wday %m+% years
 ##' @export
 ##' @author Sebastian Funk
-plot_libbi <- function(read, prior, model, states, params, noises,
+plot_libbi <- function(read, model, prior, states, params, noises,
                        quantile.span = c(0.5, 0.95),
                        date.origin, date.unit, time.dim = "nr",
                        data, id, extra.aes,
