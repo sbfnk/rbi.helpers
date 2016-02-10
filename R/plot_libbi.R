@@ -581,7 +581,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 }
             }
 
-            if (nrow(pdt[varying == TRUE]) > 0)
+            if (nrow(pdt[varying == TRUE & distribution == "posterior"]) > 0)
             {
                 if (missing(id))
                 {
