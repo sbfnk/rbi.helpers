@@ -27,7 +27,7 @@
 ##' @param density_args list of arguments to pass to density geometry
 ##' @param limit.to.data whether to limit the time axis to times in the data
 ##' @param brewer.palette optional; brewer color palette
-##' @param ... options for geom_step / geom_line
+##' @param ... options for geom_step / geom_line / geom_point / etc.
 ##' @return list of results
 ##' @import ggplot2 scales reshape2
 ##' @importFrom lubridate wday %m+% years
@@ -353,6 +353,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
         }
         sdt[, state := factor(state, levels = unique(state))]
+
         ret_data <- c(ret_data, list(states = sdt))
 
         if (!missing(data) && nrow(dataset) > 0)
@@ -400,6 +401,9 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
         }
 
+        states_n <- sdt[, list(single = (.N == 1)), by = state]
+        sdt <- merge(sdt, states_n, by = "state", all.x = TRUE)
+
         aesthetic <- list(x = "time", y = "value")
         if (!missing(id) && ("all" %in% id || length(id) > 1))
         {
@@ -412,7 +416,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
         if (nrow(sdt) > 0)
         {
-            p <- ggplot(sdt, do.call(aes_string, aesthetic))
+            p <- ggplot(sdt[single == FALSE], do.call(aes_string, aesthetic))
 
             if (!missing(hline))
             {
@@ -453,14 +457,24 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     names(str) <- c("ymax", "ymin")
                     p <- p + ribbon_func(do.call(aes_string, str), alpha = alpha)
                     alpha <- alpha / 2
+                    if (nrow(sdt[single == TRUE]) > 0)
+                    {
+                        p <- p + geom_errorbar(data = sdt[single == TRUE], do.call(aes_string, str), ...)
+                    }
                 }
             }
             if ("color" %in% names(aesthetic))
             {
                 p <- p + line_func(...)
+                p <- plot_libbi(res, model)
+                if (nrow(sdt[single == TRUE]) > 0)
+                {
+                    p <- p + geom_point(data = sdt[single == TRUE], shape = 4, ...)
+                }
             } else
             {
                 p <- p + line_func(color = "black", ...)
+                p <- p + geom_point(data = sdt[single == TRUE], shape = 4, color = "black", ...)
             }
             p <- p + scale_y_continuous("", labels = comma)
             if (!missing(brewer.palette))
