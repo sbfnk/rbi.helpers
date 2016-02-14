@@ -213,11 +213,9 @@ plot_libbi <- function(read, model, prior, states, params, noises,
     if (missing(states))
     {
         states <- c(model$get_vars("state"), model$get_vars("obs"))
-    } else
-    {
-        given_states <- states
     }
 
+    given_states <- states
     states <- intersect(names(res), states)
 
     missing_states <- setdiff(given_states, states)
