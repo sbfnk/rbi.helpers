@@ -302,7 +302,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
                 summarise_columns <- c("nr", "np", "time", "time_next")
 
-                if (!missing(extra.aes))
+                if (!missing(extra.aes) && extra.aes %in% colnames(values))
                 {
                     summarise_columns <- c(summarise_columns, unique(unname(extra.aes)))
                 }
@@ -473,7 +473,6 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             if ("color" %in% names(aesthetic))
             {
                 p <- p + line_func(...)
-                p <- plot_libbi(res, model)
                 if (nrow(sdt[single == TRUE]) > 0)
                 {
                     p <- p + geom_point(data = sdt[single == TRUE], shape = 4, ...)
