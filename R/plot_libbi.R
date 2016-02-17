@@ -363,13 +363,13 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
                 if (!all.times && nrow(sdt) > 0)
                 {
-                    for (data_state in unique(dataset[, state]))
+                    if (limit.to.data)
                     {
-                        if (limit.to.data)
-                        {
-                            ## for all states, only retain times in data
-                            sdt <- sdt[time %in% dataset[state == data_state, time]]
-                        } else
+                        ## for all states, only retain times in data
+                        sdt <- sdt[time %in% dataset[state == data_state, time]]
+                    } else
+                    {
+                        for (data_state in unique(dataset[, state]))
                         {
                             ## for states in dataset, only retain times in data
                             sdt <- sdt[(state != data_state) |
