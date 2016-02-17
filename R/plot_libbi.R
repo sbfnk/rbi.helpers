@@ -16,7 +16,6 @@
 ##' @param all.times whether to plot all times (not only ones with data)
 ##' @param hline horizontal marker lines, named vector in format (state = value)
 ##' @param burn How many runs to burn
-##' @param thin How many runs to thin per run kept
 ##' @param steps whether to plot lines as stepped lines
 ##' @param select list of selection criteria
 ##' @param shift list of dimensions to be shifted, and by how much
@@ -38,7 +37,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                        date.origin, date.unit, time.dim = "nr",
                        data, id, extra.aes,
                        all.times = FALSE, hline,
-                       burn, thin, steps = FALSE, select,
+                       burn, steps = FALSE, select,
                        shift, data.colour = "red", base.alpha = 0.5,
                        trend = "median", densities = "density",
                        density_args = NULL, limit.to.data = FALSE,
@@ -156,28 +155,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         }
     }
 
-    if (!missing(burn) || !missing(thin))
-    {
-        for (var in names(res))
-        {
-            if ("np" %in% colnames(res[[var]]))
-            {
-                if (!missing(burn))
-                {
-                    res[[var]] <- res[[var]][np >= burn]
-                }
-                if (!missing(thin))
-                {
-                    res[[var]] <- res[[var]][np %% (thin + 1) == 0]
-                }
-                recount_np <- data.table(np = unique(res[[var]][, np]))
-                recount_np[, new_np := seq_len(nrow(recount_np)) - 1]
-                res[[var]] <- merge(res[[var]], recount_np, by = "np")
-                res[[var]][, np := NULL]
-                setnames(res[[var]], "new_np", "np")
-            }
-        }
-    }
+    if (missing(burn)) burn <- 0
 
     sdt <- data.table(state = character(0))
     if (use_dates)
@@ -239,7 +217,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         {
             if (state %in% names(res))
             {
-                values <- res[[state]]
+                values <- res[[state]][np >= burn]
 
                 if (time.dim %in% colnames(values))
                 {
@@ -531,7 +509,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         for (param in params)
         {
             param_values <- list()
-            param_values[["posterior"]] <- res[[param]]
+            param_values[["posterior"]] <- res[[param]][np >= burn]
             if (!is.null(res_prior) && param %in% names(res_prior))
             {
                 param_values[["prior"]] <- res_prior[[param]]
@@ -743,7 +721,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
     {
         for (noise in noises)
         {
-            values <- res[[noise]]
+            values <- res[[noise]][np >= burn]
             values[!is.finite(value), value := 0]
 
             if (time.dim %in% colnames(values))
@@ -870,7 +848,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         ldt <- NULL
         for (ll in likelihoods)
         {
-            values <- res[[ll]]
+            values <- res[[ll]][np >= burn]
 
             if (!("data.frame" %in% class(values)))
             {
