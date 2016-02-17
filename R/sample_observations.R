@@ -6,7 +6,7 @@
 #' @return \code{\link{libbi}} object with sampled observations (if an \code{output_file_name} has been given), or a list of data frames containing the results
 #' @export
 #' 
-sample_observations <- function(wrapper, ...){
+sample_observations <- function(wrapper, thin, ...){
   if (!wrapper$run_flag) {
     stop("The model should be run first")
   }
@@ -30,7 +30,13 @@ sample_observations <- function(wrapper, ...){
                              input = wrapper, init = wrapper,
                              ...)
 
-  res <- bi_read(run_joint$result$output_file_name)
+  if (missing(thin))
+  {
+    res <- bi_read(run_joint$result$output_file_name)
+  } else
+  {
+    res <- bi_read(run_joint$result$output_file_name, thin = thin)
+  }
   for (var in names(res)) {
       if ("nr" %in% names(res[[var]])) {
           res[[var]]$nr <- res[[var]]$nr - 1
