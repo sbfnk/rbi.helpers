@@ -32,10 +32,10 @@ sample_observations <- function(wrapper, thin, ...){
 
   if (missing(thin))
   {
-    res <- bi_read(run_joint$result$output_file_name)
+    res <- bi_read(run_joint$result$output_file_name, model$get_vars("obs"))
   } else
   {
-    res <- bi_read(run_joint$result$output_file_name, thin = thin)
+    res <- bi_read(run_joint$result$output_file_name, thin = thin, model$get_vars("obs"))
   }
   for (var in names(res)) {
       if ("nr" %in% names(res[[var]])) {

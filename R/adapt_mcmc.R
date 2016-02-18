@@ -67,7 +67,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 1, add_options, sample
     add_options[["init-file"]] <- adapt_wrapper$result$output_file_name
     adapt_wrapper <-
       adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options, ...)
-    mcmc_obj <- mcmc(get_traces(adapt_wrapper, all = TRUE))
+    mcmc_obj <- mcmc(get_traces(adapt_wrapper))
     accRate <- acceptance_rate(adapt_wrapper)
     iter <- iter + 1
   }

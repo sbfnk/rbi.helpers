@@ -80,7 +80,6 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         stop("'read' must be a 'libbi' object or a list of data frames or a data frame.")
     }
     res <- lapply(res, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
-    res <- lapply(res, copy)
 
     res_prior <- NULL
     if (!missing(prior))
@@ -102,9 +101,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         {
             stop("'prior' must be a 'libbi' object or a list of data frames or a data frame.")
         }
+        res_prior <- lapply(res_prior, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
     }
-    res_prior <- lapply(res_prior, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
-    res_prior <- lapply(res_prior, copy)
 
     if (missing(model))
     {
@@ -191,9 +189,12 @@ plot_libbi <- function(read, model, prior, states, params, noises,
     if (missing(states))
     {
         states <- c(model$get_vars("state"), model$get_vars("obs"))
+        given_states <- c()
+    } else
+    {
+        given_states <- states
     }
 
-    given_states <- states
     states <- intersect(names(res), states)
 
     missing_states <- setdiff(given_states, states)
@@ -556,7 +557,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             by.varying <- c("parameter", "distribution")
             if (!missing(extra.aes))
             {
-                by.varying <- c(by.varying, unique(unname(extra.aes)))
+                by.varying <- c(by.varying, unlist(unique(unname(extra.aes))))
             }
             pdt[, varying := (length(unique(value)) > 1), by = by.varying]
 
@@ -589,7 +590,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     if (length(extra_cols) > 0)
                     {
                         cast_formula <-
-                            as.formula(paste(paste("np", extra_cols, sep = "+"),
+                            as.formula(paste(paste(c("np", extra_cols), collapse = " + "),
                                              "parameter", sep = "~"))
                     } else
                     {

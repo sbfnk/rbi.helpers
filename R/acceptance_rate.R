@@ -10,7 +10,7 @@
 #' @export
 acceptance_rate <- function( ...) {
 
-  mcmc_obj <- mcmc(get_traces(all = TRUE, ...))
+  mcmc_obj <- mcmc(get_traces(...))
   accRate <- max(1 - rejectionRate(mcmc_obj))
   
   return(accRate)
