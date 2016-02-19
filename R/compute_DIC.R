@@ -31,21 +31,22 @@ compute_DIC <- function(read, burn)
 
     ## convert to data.table
     res <- lapply(res, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
-    ## create a copy
-    res <- lapply(res, copy)
     
     if (!missing(burn))
     {
-        res <- lapply(res, function(x) {
+        burned <- lapply(res, function(x) {
             if ("np" %in% colnames(x)) { x <- x[np >= burn]}
         })
+    } else
+    {
+        burned <- res
     }
 
     ## sample mean deviance
-    mean_D <- mean(-2 * res[["loglikelihood"]]$value)
+    mean_D <- mean(-2 * burned[["loglikelihood"]]$value)
 
     ## effective number of parameters
-    pd <- var(-2 * res[["loglikelihood"]]$value) / 2
+    pd <- var(-2 * burned[["loglikelihood"]]$value) / 2
     
     ## DIC
     return(mean_D + pd)
