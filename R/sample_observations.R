@@ -2,11 +2,12 @@
 #' @name sample_observations
 #' @title Sample observations from trajectories of a libbi model, one at each time step
 #' @param wrapper a \code{\link{libbi}} object that has been run
+#' @param read_options options for \code{\link{bi_read}}
 #' @param ... further options to be passed to \code{libbi} (with run = TRUE)
 #' @return \code{\link{libbi}} object with sampled observations (if an \code{output_file_name} has been given), or a list of data frames containing the results
 #' @export
 #' 
-sample_observations <- function(wrapper, thin, ...){
+sample_observations <- function(wrapper, read_options, ...){
   if (!wrapper$run_flag) {
     stop("The model should be run first")
   }
@@ -30,12 +31,13 @@ sample_observations <- function(wrapper, thin, ...){
                              input = wrapper, init = wrapper,
                              ...)
 
-  if (missing(thin))
-  {
-    res <- bi_read(run_joint$result$output_file_name, model$get_vars("obs"))
-  } else
-  {
-    res <- bi_read(run_joint$result$output_file_name, thin = thin, model$get_vars("obs"))
+  if (missing(read_options)) read_options <- NULL
+  res <- do.call(bi_read, c(list(read = run_joint$result$output_file_name,
+                                 vars = model$get_vars("obs")),
+                            read_options))
+  if (is.data.frame(res)) {
+    res <- list(res)
+    names(res) <- model$get_vars("obs")
   }
   for (var in names(res)) {
       if ("nr" %in% names(res[[var]])) {
