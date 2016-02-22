@@ -281,7 +281,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
                 summarise_columns <- c("nr", "np", "time", "time_next")
 
-                if (!missing(extra.aes) && extra.aes %in% colnames(values))
+                if (!missing(extra.aes))
                 {
                     summarise_columns <- c(summarise_columns, unique(unname(extra.aes)))
                 }
@@ -382,6 +382,11 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 {
                     dataset[, paste("min", i, sep = ".") := 0]
                     dataset[, paste("max", i, sep = ".") := 0]
+                }
+
+                for (missing_column in setdiff(colnames(sdt), colnames(dataset)))
+                {
+                    dataset[, paste(missing_column) := "n/a"]
                 }
                 ret_data <- c(ret_data, list(data = dataset))
             }
