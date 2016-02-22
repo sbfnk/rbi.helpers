@@ -579,6 +579,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 if (!missing(extra.aes) && length(intersect(c("color", "fill"), names(extra.aes))) > 0)
                 {
                     warning("'extra.aes' (with color or fill) and 'prior' given. Will ignore 'prior' as things will look a mess otherwise.")
+                    param_values[["prior"]] <- NULL
                 } else
                 {
                     aesthetic <- c(aesthetic, list(color = "distribution", fill = "distribution"))
