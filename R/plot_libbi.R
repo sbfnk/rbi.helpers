@@ -398,7 +398,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         aesthetic <- list(x = "time", y = "value")
         if (!missing(id) && ("all" %in% id || length(id) > 1))
         {
-            aesthetic <- c(aesthetic, list(color = "factor(np)"))
+            aesthetic <- c(aesthetic, list(group = "factor(np)"))
         }
         if (!missing(extra.aes))
         {
