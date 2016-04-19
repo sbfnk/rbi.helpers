@@ -12,7 +12,7 @@ sample_observations <- function(wrapper, read_options, ...){
     stop("The model should be run first")
   }
 
-  times <- bi_read(wrapper$result$output_file_name, "time", vector = TRUE)
+  times <- bi_read(wrapper, "time", vector = TRUE)
   iterations <- bi_dim_len(wrapper$result$output_file_name, "np")
   end_time <- max(times) + 1
   start_time <- min(times)
@@ -32,7 +32,7 @@ sample_observations <- function(wrapper, read_options, ...){
                              ...)
 
   if (missing(read_options)) read_options <- NULL
-  res <- do.call(bi_read, c(list(read = run_joint$result$output_file_name,
+  res <- do.call(bi_read, c(list(read = run_joint,
                                  vars = model$get_vars("obs")),
                             read_options))
   if (is.data.frame(res)) {
