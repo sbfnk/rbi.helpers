@@ -1,12 +1,12 @@
 ##' Plot results from libbi
 ##'
 ##' @param read Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
-##' @param prior optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
 ##' @param model model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)
+##' @param prior optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
 ##' @param states states to plot (if not given, all states will be plotted; if empty vector is passed, no states are plotted)
 ##' @param params parameters to plot (if not given, all states will be plotted; if empty vector is passed, no parameters are plotted)
 ##' @param noises noises to plot (if not given, all noises will be plotted; if empty vector is passed, no noises are plotted)
-##' @param quantile.span if plots are produced, which quantile to use for confidence intervals
+##' @param quantiles if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)
 ##' @param date.origin date of origin (if dates are to be calculated)
 ##' @param date.unit unit of date (if desired, otherwise the time dimension will be used)
 ##' @param time.dim time dimension ("nr" by default)
@@ -21,7 +21,7 @@
 ##' @param shift list of dimensions to be shifted, and by how much
 ##' @param data.colour colour for plotting the data
 ##' @param base.alpha base alpha value for credible intervals
-##' @param trend how the trend should be characterised (e.g., mean, median)
+##' @param trend how the trend should be characterised (e.g., mean, median, or NULL for no trend line)
 ##' @param densities density geometry (e.g., "histogram")
 ##' @param density_args list of arguments to pass to density geometry
 ##' @param limit.to.data whether to limit the time axis to times in the data
@@ -33,7 +33,7 @@
 ##' @export
 ##' @author Sebastian Funk
 plot_libbi <- function(read, model, prior, states, params, noises,
-                       quantile.span = c(0.5, 0.95),
+                       quantiles = c(0.5, 0.95),
                        date.origin, date.unit, time.dim = "nr",
                        data, id, extra.aes,
                        all.times = FALSE, hline,
@@ -44,6 +44,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                        brewer.palette, ...)
 {
     use_dates <- FALSE
+    summarise_columns <- c("np", "time", "time_next")
+
     if (missing(date.origin))
     {
         if (!missing(date.unit) && date.unit == "year")
@@ -151,39 +153,12 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         {
             extra.aes["color"] <- extra.aes["fill"]
         }
+        summarise_columns <- c(summarise_columns, unique(extra.aes))
     }
 
     if (missing(burn)) burn <- 0
 
-    sdt <- data.table(state = character(0))
-    if (use_dates)
-    {
-        sdt[, time := as.Date(character(0))]
-        sdt[, time_next := as.Date(character(0))]
-    } else
-    {
-        sdt[, time := numeric(0)]
-        sdt[, time_next := numeric(0)]
-    }
-    sdt[, value := numeric(0)]
-    if (missing(id))
-    {
-        for (i in seq_along(quantile.span))
-        {
-            sdt[, paste("min", i, sep = ".") := numeric(0)]
-            sdt[, paste("max", i, sep = ".") := numeric(0)]
-        }
-    } else
-    {
-        sdt[, np := numeric(0)]
-    }
-    if (!missing(extra.aes))
-    {
-        for (extra in unique(unname(extra.aes)))
-        {
-            sdt[, paste(extra) := character(0)]
-        }
-    }
+    sdt <- NULL
 
     p <- NULL
     if (missing(states))
@@ -279,60 +254,24 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     }
                 }
 
-                summarise_columns <- c("nr", "np", "time", "time_next")
-
-                if (!missing(extra.aes))
-                {
-                    summarise_columns <- c(summarise_columns, unique(unname(extra.aes)))
-                }
                 sum.by <- intersect(summarise_columns, colnames(values))
                 values <- values[, list(value = sum(value)), by = sum.by]
 
-                state.by <- intersect(setdiff(summarise_columns, "np"),
-                                      colnames(values))
                 state.wo <- setdiff(setdiff(summarise_columns, "np"),
                                     colnames(values))
-
-                if (missing(id))
-                {
-                    temp_values <-
-                        values[, list(value = do.call(trend, list(value, na.rm = TRUE))),
-                               by = state.by]
-                    for (i in seq_along(quantile.span))
-                    {
-                        quantiles <-
-                            values[, list(max = quantile(value, 0.5 + quantile.span[i] / 2, na.rm = TRUE),
-                                          min = quantile(value, 0.5 - quantile.span[i] / 2, na.rm = TRUE)),
-                                   by = state.by]
-                        setnames(quantiles, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
-                        temp_values <- merge(temp_values, quantiles, by = state.by)
-                    }
-                    values <- temp_values
-                    if (steps)
-                    {
-                        max.nr <- values[, max(nr)]
-                        for (i in seq_along(quantile.span))
-                        {
-                            values[nr == max.nr, paste("min", i, sep = ".") := NA]
-                            values[nr == max.nr, paste("max", i, sep = ".") := NA]
-                        }
-                    }
-                } else
-                {
-                    if (!("all" %in% id))
-                    {
-                        values <- values[np %in% id]
-                    }
-                }
-
                 for (wo in state.wo)
                 {
                     values[, paste(wo) := "n/a"]
                 }
-                values[, paste(time.dim) := NULL]
-                sdt <- rbind(sdt,
-                             data.table(state = rep(state, nrow(values)),
-                                        values))
+
+                new_states <- data.table(state = rep(state, nrow(values)), values)
+                if (is.null(sdt))
+                {
+                    sdt <- new_states
+                } else
+                {
+                    sdt <- rbind(sdt, new_states)
+                }
             } else if (state != "dummy")
             {
                 warning(paste("State", state, "does not exist"))
@@ -378,7 +317,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                         }
                     }
                 }
-                for (i in seq_along(quantile.span))
+                for (i in seq_along(quantiles))
                 {
                     dataset[, paste("min", i, sep = ".") := 0]
                     dataset[, paste("max", i, sep = ".") := 0]
@@ -395,11 +334,50 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         states_n <- sdt[, list(single = (.N == 1)), by = state]
         sdt <- merge(sdt, states_n, by = "state", all.x = TRUE)
 
-        aesthetic <- list(x = "time", y = "value")
-        if (!missing(id) && ("all" %in% id || length(id) > 1))
+        aggregate_values <- NULL
+        state.by <- c("state", "single", intersect(setdiff(summarise_columns, "np"), colnames(values)))
+        if (!is.null(trend))
         {
-            aesthetic <- c(aesthetic, list(group = "factor(np)"))
+            aggregate_values <- sdt[, list(value = do.call(trend, list(value, na.rm = TRUE))),
+                                       by = state.by]
         }
+
+        if (!is.null(quantiles))
+        {
+            for (i in seq_along(quantiles))
+            {
+                quantile_values <-
+                    sdt[, list(max = quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
+                                  min = quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
+                        by = state.by]
+                setnames(quantile_values, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
+                if (is.null(aggregate_values))
+                {
+                    aggregate_values <- quantile_values
+                } else
+                {
+                    aggregate_values <- merge(aggregate_values, quantile_values, by = state.by)
+                }
+            }
+            if (steps)
+            {
+                max.nr <- aggregate_values[, max(nr)]
+                for (i in seq_along(quantiles))
+                {
+                    aggregate_values[nr == max.nr, paste("min", i, sep = ".") := NA]
+                    aggregate_values[nr == max.nr, paste("max", i, sep = ".") := NA]
+                }
+            }
+        }
+
+        ret_data <- c(ret_data, list(trends = aggregate_values))
+
+        if (!missing(id) && !("all" %in% id))
+        {
+            sdt <- sdt[np %in% id]
+        }
+
+        aesthetic <- list(x = "time", y = "value")
         if (!missing(extra.aes))
         {
             aesthetic <- c(aesthetic, extra.aes)
@@ -407,6 +385,10 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
         if (nrow(sdt) > 0)
         {
+            if (!missing(extra.aes) && "color" %in% names(extra.aes))
+            {
+                sdt <- sdt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
+            }
             p <- ggplot(sdt[single == FALSE], do.call(aes_string, aesthetic))
 
             if (!missing(hline))
@@ -439,32 +421,51 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 p <- p + facet_wrap(~ state, scales = "free_y",
                                     ncol = round(sqrt(length(states))))
             }
-            if (missing(id))
+            if (!is.null(quantiles))
             {
                 alpha <- base.alpha
-                for (i in seq_along(quantile.span))
+                for (i in seq_along(quantiles))
                 {
                     str <- as.list(paste(c("max", "min"), i, sep = "."))
                     names(str) <- c("ymax", "ymin")
-                    p <- p + ribbon_func(do.call(aes_string, str), alpha = alpha)
+                    p <- p + ribbon_func(data = aggregate_values, do.call(aes_string, str), alpha = alpha)
                     alpha <- alpha / 2
                     if (nrow(sdt[single == TRUE]) > 0)
                     {
-                        p <- p + geom_errorbar(data = sdt[single == TRUE], do.call(aes_string, str), ...)
+                        p <- p + geom_errorbar(data = aggregate_values[single == TRUE], do.call(aes_string, str), ...)
                     }
                 }
             }
             if ("color" %in% names(aesthetic))
             {
-                p <- p + line_func(...)
-                if (nrow(sdt[single == TRUE]) > 0)
+                if (!is.null(trend))
                 {
-                    p <- p + geom_point(data = sdt[single == TRUE], shape = 4, ...)
+                    p <- p + line_func(data = aggregate_values, ...)
+                    if (nrow(aggregate_values[single == TRUE]) > 0)
+                    {
+                        p <- p + geom_point(data = aggregate_values[single == TRUE], shape = 4, ...)
+                    }
+                }
+                if (!missing(id))
+                {
+                    p <- p + line_func(mapping = aes(group = color_np), alpha = 0.35, ...)
+                    if (nrow(sdt[single == TRUE]) > 0)
+                    {
+                        p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = 0.35, ...)
+                    }
                 }
             } else
             {
-                p <- p + line_func(color = "black", ...)
-                p <- p + geom_point(data = sdt[single == TRUE], shape = 4, color = "black", ...)
+                if (!is.null(trend))
+                {
+                    p <- p + line_func(data = aggregate_values, color = "black", ...)
+                    p <- p + geom_point(data = aggregate_values[single == TRUE], shape = 4, color = "black", ...)
+                }
+                if (!missing(id))
+                {
+                    p <- p + line_func(color = "black", aes(group = factor(np)), alpha = 0.35, ...)
+                    p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, color = "black", ...)
+                }
             }
             p <- p + scale_y_continuous("", labels = comma)
             if (!missing(brewer.palette))
@@ -491,7 +492,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
         }
     }
-
+            
     pdt <- data.table(distribution = character(0),
                       parameter = character(0), np = integer(0),
                       value = numeric(0))
@@ -701,7 +702,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
     ndt[, value := numeric(0)]
     if (missing(id))
     {
-        for (i in seq_along(quantile.span))
+        for (i in seq_along(quantiles))
         {
             ndt[, paste("min", i, sep = ".") := numeric(0)]
             ndt[, paste("max", i, sep = ".") := numeric(0)]
@@ -776,11 +777,11 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 temp_values <-
                     values[, list(value = do.call(trend, list(value, na.rm = TRUE))),
                            by = noise.by]
-                for (i in seq_along(quantile.span))
+                for (i in seq_along(quantiles))
                 {
                     quantiles <-
-                        values[, list(max = quantile(value, 0.5 + quantile.span[i] / 2, na.rm = TRUE),
-                                      min = quantile(value, 0.5 - quantile.span[i] / 2, na.rm = TRUE)),
+                        values[, list(max = quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
+                                      min = quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
                                by = noise.by]
                     setnames(quantiles, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
                     temp_values <- merge(temp_values, quantiles, by = noise.by)
@@ -822,7 +823,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 if (missing(id))
                 {
                     alpha <- base.alpha
-                    for (i in seq_along(quantile.span))
+                    for (i in seq_along(quantiles))
                     {
                         str <- as.list(paste(c("max", "min"), i, sep = "."))
                         names(str) <- c("ymin", "ymax")
@@ -882,11 +883,11 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             temp_ldt <-
                 ldt[, list(value = do.call(trend, list(value, na.rm = TRUE))),
                     by = c("np", "density")]
-            for (i in seq_along(quantile.span))
+            for (i in seq_along(quantiles))
             {
                 quantiles <-
-                    ldt[, list(max = quantile(value, 0.5 + quantile.span[i] / 2, na.rm = TRUE),
-                               min = quantile(value, 0.5 - quantile.span[i] / 2, na.rm = TRUE)),
+                    ldt[, list(max = quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
+                               min = quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
                         by = c("np", "density")]
                 setnames(quantiles, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
                 temp_ldt <- merge(temp_ldt, quantiles, by = c("np", "density"))
@@ -909,7 +910,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             if (length(extra_columns) > 0)
             {
                 alpha <- base.alpha
-                for (i in seq_along(quantile.span))
+                for (i in seq_along(quantiles))
                 {
                     str <- as.list(paste(c("max", "min"), i, sep = "."))
                     names(str) <- c("ymin", "ymax")
