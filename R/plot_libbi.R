@@ -279,8 +279,6 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         }
         sdt[, state := factor(state, levels = unique(state))]
 
-        ret_data <- c(ret_data, list(states = sdt))
-
         if (!missing(data) && nrow(dataset) > 0)
         {
             dataset <- dataset[state %in% states]
@@ -335,7 +333,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         sdt <- merge(sdt, states_n, by = "state", all.x = TRUE)
 
         aggregate_values <- NULL
-        state.by <- c("state", "single", intersect(setdiff(summarise_columns, "np"), colnames(values)))
+        state.by <- c("state", "single", intersect(setdiff(summarise_columns, "np"), colnames(sdt)))
         if (!is.null(trend))
         {
             aggregate_values <- sdt[, list(value = do.call(trend, list(value, na.rm = TRUE))),
@@ -370,7 +368,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
         }
 
-        ret_data <- c(ret_data, list(trends = aggregate_values))
+        ret_data <- c(ret_data, list(states = aggregate_values))
 
         if (!missing(id) && !("all" %in% id))
         {
@@ -689,35 +687,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         cp <- NULL
     }
 
-    ndt <- data.table(noise = character(0))
-    if (use_dates)
-    {
-        ndt[, time := as.Date(character(0))]
-        ndt[, time_next := as.Date(character(0))]
-    } else
-    {
-        ndt[, time := numeric(0)]
-        ndt[, time_next := numeric(0)]
-    }
-    ndt[, value := numeric(0)]
-    if (missing(id))
-    {
-        for (i in seq_along(quantiles))
-        {
-            ndt[, paste("min", i, sep = ".") := numeric(0)]
-            ndt[, paste("max", i, sep = ".") := numeric(0)]
-        }
-    }
-    if (!missing(extra.aes))
-    {
-        for (extra in unique(unname(extra.aes)))
-        {
-            ndt[, paste(extra) := character(0)]
-        }
-    }
-
     np <- NULL
-
+    ndt <- NULL
     if (missing(noises))
     {
         noises <- model$get_vars("noise")
@@ -729,122 +700,196 @@ plot_libbi <- function(read, model, prior, states, params, noises,
     {
         for (noise in noises)
         {
-            values <- res[[noise]][np >= burn]
-            values[!is.finite(value), value := 0]
-
-            if (time.dim %in% colnames(values))
+            if (noise %in% names(res))
             {
+              values <- res[[noise]][np >= burn]
+              ## values[!is.finite(value), value := 0]
+
+              if (time.dim %in% colnames(values))
+              {
                 if (use_dates)
                 {
-                    if (date.unit == "day")
-                    {
-                        values[, time := date.origin + get(time.dim)]
-                        values[, time_next := time + 1]
-                    } else if (date.unit == "week")
-                    {
-                        values[, time := date.origin + get(time.dim) * 7]
-                        values[, time_next := time + 7]
-                    } else if (date.unit == "month")
-                    {
-                        values[, time := date.origin %m+% months(as.integer(get(time.dim)))]
-                        values[, time_next := time %m+% months(1)]
-                    } else if (date.unit == "year")
-                    {
-                        if (missing(date.origin)) {
-                            values[, time := as.Date(paste(get(time.dim), 1, 1, sep = "-"))]
-                            values[, time_next := as.Date(paste(get(time.dim) + 1, 1, 1, sep = "-"))]
-                        } else {
-                            values[, time := date.origin + years(as.integer(get(time.dim)))]
-                            values[, time_next := time %m+% months(12)]
-                        }
-                    }
-                } else {
-                    values[, time := get(time.dim)]
+                  if (date.unit == "day")
+                  {
+                    values[, time := date.origin + get(time.dim)]
                     values[, time_next := time + 1]
+                  } else if (date.unit == "week")
+                  {
+                    values[, time := date.origin + get(time.dim) * 7]
+                    values[, time_next := time + 7]
+                  } else if (date.unit == "month")
+                  {
+                    values[, time := date.origin %m+% months(as.integer(get(time.dim)))]
+                    values[, time_next := time %m+% months(1)]
+                  } else if (date.unit == "year")
+                  {
+                    if (missing(date.origin)) {
+                      values[, time := as.Date(paste(get(time.dim), 1, 1, sep = "-"))]
+                      values[, time_next := as.Date(paste(get(time.dim) + 1, 1, 1, sep = "-"))]
+                    } else {
+                      values[, time := date.origin + years(as.integer(get(time.dim)))]
+                      values[, time_next := time %m+% months(12)]
+                    }
+                  }
+                } else {
+                  values[, time := get(time.dim)]
+                  values[, time_next := time + 1]
+                }
+              }
+
+              sum.by <- intersect(summarise_columns, colnames(values))
+              values <- values[, list(value = sum(value)), by = sum.by]
+
+              state.wo <- setdiff(setdiff(summarise_columns, "np"),
+                                  colnames(values))
+              for (wo in state.wo)
+              {
+                values[, paste(wo) := "n/a"]
+              }
+
+              new_noises <- data.table(noise = rep(noise, nrow(values)), values)
+              if (is.null(ndt))
+              {
+                ndt <- new_noises
+              } else
+              {
+                ndt <- rbind(ndt, new_noises)
+              }
+            }
+        }
+
+        ndt[, noise := factor(noise, levels = unique(noise))]
+
+        noises_n <- ndt[, list(single = (.N == 1)), by = noise]
+        ndt <- merge(ndt, noises_n, by = "noise", all.x = TRUE)
+
+        aggregate_noises <- NULL
+        noise.by <- c("noise", "single", intersect(setdiff(summarise_columns, "np"), colnames(ndt)))
+        if (!is.null(trend))
+        {
+            aggregate_noises <-
+                ndt[, list(value = do.call(trend,
+                                           list(value, na.rm = TRUE))),
+                    by = noise.by]
+        }
+
+        if (!is.null(quantiles))
+        {
+            for (i in seq_along(quantiles))
+            {
+                quantile_values <-
+                    ndt[, list(max = quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
+                               min = quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
+                        by = noise.by]
+                setnames(quantile_values, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
+                if (is.null(aggregate_noises))
+                {
+                    aggregate_noises <- quantile_values
+                } else
+                {
+                    aggregate_noises <- merge(aggregate_noises, quantile_values, by = noise.by)
                 }
             }
-
-            by.sum <- c("nr", "time", "time_next")
-            if (!missing(extra.aes))
+            if (steps)
             {
-                by.sum <- c(by.sum, unique(unname(extra.aes)))
-            }
-            noise.by <- intersect(by.sum, colnames(values))
-            noise.wo <- setdiff(by.sum, colnames(values))
-
-            if (missing(id))
-            {
-                temp_values <-
-                    values[, list(value = do.call(trend, list(value, na.rm = TRUE))),
-                           by = noise.by]
+                max.nr <- aggregate_noises[, max(nr)]
                 for (i in seq_along(quantiles))
                 {
-                    quantiles <-
-                        values[, list(max = quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
-                                      min = quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
-                               by = noise.by]
-                    setnames(quantiles, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
-                    temp_values <- merge(temp_values, quantiles, by = noise.by)
+                    aggregate_noises[nr == max.nr, paste("min", i, sep = ".") := NA]
+                    aggregate_noises[nr == max.nr, paste("max", i, sep = ".") := NA]
                 }
-                values <- temp_values
-            } else
-            {
-                values <- values[np %in% id]
-                values <- values[, list(value = sum(value)), by = noise.by]
             }
-            for (wo in noise.wo)
+        }
+
+        ret_data <- c(ret_data, list(noises = aggregate_noises))
+
+        if (!missing(id) && !("all" %in% id))
+        {
+            ndt <- ndt[np %in% id]
+        }
+
+        if (!missing(data) && nrow(dataset) > 0 && !all.times)
+        {
+            ndt <- ndt[(time >= min(dataset[, time])) & (time <= max(dataset[, time]))]
+        }
+
+        aesthetic <- list(x = "time", y = "value")
+        if (!missing(extra.aes))
+        {
+            aesthetic <- c(aesthetic, extra.aes)
+        }
+
+        if (nrow(ndt) > 0)
+        {
+            if (!missing(extra.aes) && "color" %in% names(extra.aes))
             {
-                values[, paste(wo) := "n/a"]
+                ndt <- ndt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
             }
-            values[, paste(time.dim) := NULL]
-            ndt <- rbind(ndt,
-                         data.table(noise = rep(noise, nrow(values)),
-                                    values))
+            np <- ggplot(ndt[single == FALSE], do.call(aes_string, aesthetic))
 
-            ndt[, noise := factor(noise, levels = unique(noise))]
-
-            if (!missing(data) && nrow(dataset) > 0 && !all.times)
+            if (length(noises) > 1)
             {
-                ndt <- ndt[(time >= min(dataset[, time])) & (time <= max(dataset[, time]))]
+                np <- np + facet_wrap(~ noise, scales = "free_y",
+                                      ncol = round(sqrt(length(states))))
             }
-
-            ret_data <- c(ret_data, list(noises = ndt))
-
-            aesthetic <- list(x = "time", y = "value")
-            if (!missing(extra.aes))
+            if (!is.null(quantiles))
             {
-                aesthetic <- c(aesthetic, extra.aes)
-            }
-
-            if (nrow(ndt) > 0)
-            {
-                np <- ggplot(ndt, do.call(aes_string, aesthetic))
-                np <- np + facet_wrap(~ noise, scales = "free_y")
-                if (missing(id))
+                alpha <- base.alpha
+                for (i in seq_along(quantiles))
                 {
-                    alpha <- base.alpha
-                    for (i in seq_along(quantiles))
+                    str <- as.list(paste(c("max", "min"), i, sep = "."))
+                    names(str) <- c("ymax", "ymin")
+                    np <- np +  ribbon_func(data = aggregate_noises, do.call(aes_string, str), alpha = alpha)
+                    alpha <- alpha / 2
+                    if (nrow(ndt[single == TRUE]) > 0)
                     {
-                        str <- as.list(paste(c("max", "min"), i, sep = "."))
-                        names(str) <- c("ymin", "ymax")
-                        np <- np + geom_ribbon(do.call(aes_string, str), alpha = alpha)
-                        alpha <- alpha / 2
+                        np <- np +  geom_errorbar(data = aggregate_noises[single == TRUE], do.call(aes_string, str), ...)
                     }
                 }
-                np <- np + geom_line()
-                np <- np + scale_y_continuous("", labels = comma)
-                if (!missing(brewer.palette))
+            }
+            if ("color" %in% names(aesthetic))
+            {
+                if (!is.null(trend))
                 {
-                    np <- np + scale_color_brewer(palette = brewer.palette)
-                    np <- np + scale_fill_brewer(palette = brewer.palette)
+                    np <- np +  line_func(data = aggregate_noises, ...)
+                    if (nrow(aggregate_noises[single == TRUE]) > 0)
+                    {
+                        np <- np +  geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
+                    }
                 }
-                np <- np + expand_limits(y = 0)
-                np <- np + theme(axis.text.x = element_text(angle = 45, hjust = 1),
-                                 legend.position = "top")
-                if (use_dates)
+                if (!missing(id))
                 {
-                    np <- np + scale_x_date("")
+                    np <- np +  line_func(mapping = aes(group = color_np), alpha = 0.35, ...)
+                    if (nrow(ndt[single == TRUE]) > 0)
+                    {
+                        np <- np +  geom_point(data = ndt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = 0.35, ...)
+                    }
                 }
+            } else
+            {
+                if (!is.null(trend))
+                {
+                    np <- np +  line_func(data = aggregate_noises, color = "black", ...)
+                    np <- np +  geom_point(data = aggregate_noises[single == TRUE], shape = 4, color = "black", ...)
+                }
+                if (!missing(id))
+                {
+                    np <- np +  line_func(color = "black", aes(group = factor(np)), alpha = 0.35, ...)
+                    np <- np +  geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, color = "black", ...)
+                }
+            }
+            np <- np +  scale_y_continuous("", labels = comma)
+            if (!missing(brewer.palette))
+            {
+                np <- np +  scale_color_brewer(palette = brewer.palette)
+                np <- np +  scale_fill_brewer(palette = brewer.palette)
+            }
+            np <- np +  expand_limits(y = 0)
+            np <- np +  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                              legend.position = "top")
+            if (use_dates)
+            {
+                np <- np +  scale_x_date("")
             }
         }
     }
