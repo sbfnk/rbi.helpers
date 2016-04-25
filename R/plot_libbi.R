@@ -922,23 +922,6 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 ldt <- rbind(ldt, values)
             }
         }
-        extra_columns <- setdiff(colnames(ldt), c("np", "value", "density"))
-        if (length(extra_columns) > 0)
-        {
-            temp_ldt <-
-                ldt[, list(value = do.call(trend, list(value, na.rm = TRUE))),
-                    by = c("np", "density")]
-            for (i in seq_along(quantiles))
-            {
-                quantiles <-
-                    ldt[, list(max = quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
-                               min = quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
-                        by = c("np", "density")]
-                setnames(quantiles, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
-                temp_ldt <- merge(temp_ldt, quantiles, by = c("np", "density"))
-            }
-            ldt <- temp_ldt
-        }
         trace_aesthetic <- list(x = "np", y = "value")
         density_aesthetic <- list(x = "value")
 
@@ -952,17 +935,6 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             lp <- ggplot(likelihood_dummy_plot)
             lp <- lp + geom_line(data = data.frame(ldt, type = "Trace"),
                                  mapping = do.call(aes_string, trace_aesthetic))
-            if (length(extra_columns) > 0)
-            {
-                alpha <- base.alpha
-                for (i in seq_along(quantiles))
-                {
-                    str <- as.list(paste(c("max", "min"), i, sep = "."))
-                    names(str) <- c("ymin", "ymax")
-                    lp <- lp + geom_ribbon(do.call(aes_string, str), alpha = alpha)
-                    alpha <- alpha / 2
-                }
-            }
             lp <- lp +
                 geom_histogram(data = data.frame(ldt, type = "Density"),
                                mapping = do.call(aes_string, density_aesthetic))
