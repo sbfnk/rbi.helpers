@@ -27,6 +27,10 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, 
     stop("The model should be run first")
   }
 
+  if (!is.null(wrapper$global_options[["nparticles"]]))
+  {
+    min <- wrapper$global_options[["nparticles"]]
+  }
   if (max <= min) {
     stop("'max' must be less or equal to 'min'")
   }
