@@ -4,16 +4,19 @@
 \alias{plot_libbi}
 \title{Plot results from libbi}
 \usage{
-plot_libbi(read, model, states, params, noises, quantile.span = c(0.5, 0.95),
-  date.origin, date.unit, time.dim = "nr", data, id, extra.aes = c(),
-  all.times = FALSE, hline, burn, thin, steps = FALSE, select, shift,
+plot_libbi(read, model, prior, states, params, noises, quantiles = c(0.5,
+  0.95), date.origin, date.unit, time.dim = "nr", data, id, extra.aes,
+  all.times = FALSE, hline, burn, steps = FALSE, select, shift,
   data.colour = "red", base.alpha = 0.5, trend = "median",
-  densities = "density", density_args = NULL, limit.to.data = FALSE, ...)
+  densities = "density", density_args = NULL, limit.to.data = FALSE,
+  brewer.palette, plot = TRUE, ...)
 }
 \arguments{
-\item{read}{either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}}
+\item{read}{Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}}
 
 \item{model}{model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)}
+
+\item{prior}{optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}}
 
 \item{states}{states to plot (if not given, all states will be plotted; if empty vector is passed, no states are plotted)}
 
@@ -21,7 +24,7 @@ plot_libbi(read, model, states, params, noises, quantile.span = c(0.5, 0.95),
 
 \item{noises}{noises to plot (if not given, all noises will be plotted; if empty vector is passed, no noises are plotted)}
 
-\item{quantile.span}{if plots are produced, which quantile to use for confidence intervals}
+\item{quantiles}{if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)}
 
 \item{date.origin}{date of origin (if dates are to be calculated)}
 
@@ -39,9 +42,7 @@ plot_libbi(read, model, states, params, noises, quantile.span = c(0.5, 0.95),
 
 \item{hline}{horizontal marker lines, named vector in format (state = value)}
 
-\item{burn}{How many runs to burn}
-
-\item{thin}{How many runs to thin per run kept}
+\item{burn}{How many iterations to burn}
 
 \item{steps}{whether to plot lines as stepped lines}
 
@@ -53,7 +54,7 @@ plot_libbi(read, model, states, params, noises, quantile.span = c(0.5, 0.95),
 
 \item{base.alpha}{base alpha value for credible intervals}
 
-\item{trend}{how the trend should be characterised (e.g., mean, median)}
+\item{trend}{how the trend should be characterised (e.g., mean, median, or NULL for no trend line)}
 
 \item{densities}{density geometry (e.g., "histogram")}
 
@@ -61,13 +62,17 @@ plot_libbi(read, model, states, params, noises, quantile.span = c(0.5, 0.95),
 
 \item{limit.to.data}{whether to limit the time axis to times in the data}
 
-\item{...}{options for geom_step / geom_line}
+\item{brewer.palette}{optional; brewer color palette}
+
+\item{plot}{set to FALSE to suppress plot of trajectories}
+
+\item{...}{options for geom_step / geom_line / geom_point / etc.}
 }
 \value{
-list of results
+a list of plots
 }
 \description{
-Plot results from libbi
+Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
 }
 \author{
 Sebastian Funk

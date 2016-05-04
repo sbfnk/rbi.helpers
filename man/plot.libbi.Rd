@@ -12,7 +12,7 @@
 \item{...}{parameters to \code{\link{plot_libbi}}}
 }
 \value{
-plot
+a list of plots plot (see \code{\link{plot_libbi}})
 }
 \description{
 Plot routing for \code{libbi} objects
