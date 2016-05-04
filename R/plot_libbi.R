@@ -15,7 +15,7 @@
 ##' @param extra.aes extra aesthetics (for ggplot)
 ##' @param all.times whether to plot all times (not only ones with data)
 ##' @param hline horizontal marker lines, named vector in format (state = value)
-##' @param burn How many runs to burn
+##' @param burn How many iterations to burn
 ##' @param steps whether to plot lines as stepped lines
 ##' @param select list of selection criteria
 ##' @param shift list of dimensions to be shifted, and by how much
@@ -193,7 +193,11 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         {
             if (state %in% names(res))
             {
-                values <- res[[state]][np >= burn]
+                values <- res[[state]]
+                if ("np" %in% colnames(res[[state]]))
+                {
+                    values <- values[np >= burn]
+                }
 
                 if (time.dim %in% colnames(values))
                 {
@@ -383,7 +387,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
         if (nrow(sdt) > 0)
         {
-            if (!missing(extra.aes) && "color" %in% names(extra.aes))
+            if (!missing(extra.aes) && "color" %in% names(extra.aes) &&
+                !missing(id))
             {
                 sdt <- sdt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
             }
@@ -514,7 +519,13 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         for (param in params)
         {
             param_values <- list()
-            param_values[["posterior"]] <- res[[param]][np >= burn]
+            param_values[["posterior"]] <- res[[param]]
+            if ("np" %in% colnames(res[[param]]))
+            {
+                param_values[["posterior"]] <-
+                    param_values[["posterior"]][np >= burn]
+            }
+
             if (!is.null(res_prior) && param %in% names(res_prior))
             {
                 param_values[["prior"]] <- res_prior[[param]]
@@ -702,7 +713,12 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         {
             if (noise %in% names(res))
             {
-              values <- res[[noise]][np >= burn]
+              values <- res[[noise]]
+                if ("np" %in% colnames(res[[noise]]))
+                {
+                    values <- values[np >= burn]
+                }
+
               ## values[!is.finite(value), value := 0]
 
               if (time.dim %in% colnames(values))
@@ -821,7 +837,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
         if (nrow(ndt) > 0)
         {
-            if (!missing(extra.aes) && "color" %in% names(extra.aes))
+            if (!missing(extra.aes) && "color" %in% names(extra.aes) &&
+                !missing(id))
             {
                 ndt <- ndt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
             }
@@ -901,7 +918,12 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         ldt <- NULL
         for (ll in likelihoods)
         {
-            values <- res[[ll]][np >= burn]
+            values <- res[[ll]]
+            if ("np" %in% colnames(res[[ll]]))
+            {
+                values <- values[np >= burn]
+                }
+
 
             if (!("data.frame" %in% class(values)))
             {
