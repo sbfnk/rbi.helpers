@@ -4,16 +4,12 @@
 \alias{compute_DIC}
 \title{Compute DIC for a libbi model}
 \usage{
-compute_DIC(read, model, burn, ...)
+compute_DIC(read, burn)
 }
 \arguments{
 \item{read}{either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}}
 
-\item{model}{model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)}
-
 \item{burn}{number of iterations to discard as burn-in (if any)}
-
-\item{...}{options for \code{\link{libbi}}}
 }
 \value{
 DIC

@@ -1,5 +1,6 @@
 ##' Plot results from libbi
 ##'
+##' Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
 ##' @param read Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
 ##' @param model model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)
 ##' @param prior optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
@@ -15,7 +16,7 @@
 ##' @param extra.aes extra aesthetics (for ggplot)
 ##' @param all.times whether to plot all times (not only ones with data)
 ##' @param hline horizontal marker lines, named vector in format (state = value)
-##' @param burn How many runs to burn
+##' @param burn How many iterations to burn
 ##' @param steps whether to plot lines as stepped lines
 ##' @param select list of selection criteria
 ##' @param shift list of dimensions to be shifted, and by how much
@@ -26,8 +27,9 @@
 ##' @param density_args list of arguments to pass to density geometry
 ##' @param limit.to.data whether to limit the time axis to times in the data
 ##' @param brewer.palette optional; brewer color palette
+##' @param plot set to FALSE to suppress plot of trajectories
 ##' @param ... options for geom_step / geom_line / geom_point / etc.
-##' @return list of results
+##' @return a list of plots
 ##' @import ggplot2 scales reshape2
 ##' @importFrom lubridate wday %m+% years
 ##' @export
@@ -40,8 +42,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                        burn, steps = FALSE, select,
                        shift, data.colour = "red", base.alpha = 0.5,
                        trend = "median", densities = "density",
-                       density_args = NULL, limit.to.data = FALSE,
-                       brewer.palette, ...)
+                       density_args = list(), limit.to.data = FALSE,
+                       brewer.palette, plot = TRUE, ...)
 {
     use_dates <- FALSE
     summarise_columns <- c("np", "time", "time_next")
@@ -193,7 +195,11 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         {
             if (state %in% names(res))
             {
-                values <- res[[state]][np >= burn]
+                values <- res[[state]]
+                if ("np" %in% colnames(res[[state]]))
+                {
+                    values <- values[np >= burn]
+                }
 
                 if (time.dim %in% colnames(values))
                 {
@@ -368,7 +374,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
         }
 
-        ret_data <- c(ret_data, list(states = aggregate_values))
+        ret_data <- c(ret_data, list(states = aggregate_values[, !"single", with = FALSE]))
 
         if (!missing(id) && !("all" %in% id))
         {
@@ -383,11 +389,12 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
         if (nrow(sdt) > 0)
         {
-            if (!missing(extra.aes) && "color" %in% names(extra.aes))
+            if (!missing(extra.aes) && "color" %in% names(extra.aes) &&
+                !missing(id))
             {
                 sdt <- sdt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
             }
-            p <- ggplot(sdt[single == FALSE], do.call(aes_string, aesthetic))
+            p <- ggplot(mapping = do.call(aes_string, aesthetic))
 
             if (!missing(hline))
             {
@@ -446,7 +453,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 }
                 if (!missing(id))
                 {
-                    p <- p + line_func(mapping = aes(group = color_np), alpha = 0.35, ...)
+                    p <- p + line_func(data = sdt[single == FALSE], mapping = aes(group = color_np), alpha = 0.35, ...)
                     if (nrow(sdt[single == TRUE]) > 0)
                     {
                         p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = 0.35, ...)
@@ -456,16 +463,16 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             {
                 if (!is.null(trend))
                 {
-                    p <- p + line_func(data = aggregate_values, color = "black", ...)
-                    p <- p + geom_point(data = aggregate_values[single == TRUE], shape = 4, color = "black", ...)
+                    p <- p + line_func(data = aggregate_values, ...)
+                    p <- p + geom_point(data = aggregate_values[single == TRUE], shape = 4, ...)
                 }
                 if (!missing(id))
                 {
-                    p <- p + line_func(color = "black", aes(group = factor(np)), alpha = 0.35, ...)
-                    p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, color = "black", ...)
+                    p <- p + line_func(data = sdt[single == FALSE], aes(group = factor(np)), alpha = 0.35, ...)
+                    p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, ...)
                 }
             }
-            p <- p + scale_y_continuous("", labels = comma)
+            p <- p + scale_y_continuous(labels = comma) + ylab("")
             if (!missing(brewer.palette))
             {
                 p <- p + scale_color_brewer(palette = brewer.palette)
@@ -514,7 +521,13 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         for (param in params)
         {
             param_values <- list()
-            param_values[["posterior"]] <- res[[param]][np >= burn]
+            param_values[["posterior"]] <- res[[param]]
+            if ("np" %in% colnames(res[[param]]))
+            {
+                param_values[["posterior"]] <-
+                    param_values[["posterior"]][np >= burn]
+            }
+
             if (!is.null(res_prior) && param %in% names(res_prior))
             {
                 param_values[["prior"]] <- res_prior[[param]]
@@ -622,22 +635,21 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     cp <- cp + geom_tile()
                     cp <- cp + scale_fill_manual("Correlation", values = color_palette,
                                                  limits = levels(correlations[, correlation]))
-                    cp <- cp + scale_x_discrete("")
-                    cp <- cp + scale_y_discrete("")
+                    cp <- cp + xlab("")
+                    cp <- cp + ylab("")
                 } else {
                     cp <- NULL
                 }
 
-                dp <- ggplot(pdt[varying == TRUE], do.call(aes_string, aesthetic))
+                dp <- ggplot(mapping = do.call(aes_string, aesthetic))
                 dp <- dp + facet_wrap(~ parameter, scales = "free")
-                dp <- dp + do.call(paste0("geom_", densities),
-                                   c(list(alpha = 0.5), density_args))
+                dp <- dp + do.call(paste0("geom_", densities), c(list(data = pdt[varying == TRUE], density_args)))
                 if (!missing(brewer.palette))
                 {
                     dp <- dp + scale_color_brewer(palette = brewer.palette)
                     dp <- dp + scale_fill_brewer(palette = brewer.palette)
                 }
-                dp <- dp + scale_y_continuous("Density")
+                dp <- dp + ylab("density")
                 dp <- dp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
                 if (!missing(id))
@@ -653,9 +665,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     aesthetic <- c(aesthetic, extra.aes)
                 }
 
-                tp <- ggplot(pdt[varying == TRUE & distribution == "posterior"],
-                             do.call(aes_string, aesthetic))
-                tp <- tp + geom_line()
+                tp <- ggplot(mapping = do.call(aes_string, aesthetic))
+                tp <- tp + geom_line(data = pdt[varying == TRUE & distribution == "posterior"])
                 tp <- tp + facet_wrap(~ parameter, scales = "free_y")
                 tp <- tp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
@@ -702,7 +713,12 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         {
             if (noise %in% names(res))
             {
-              values <- res[[noise]][np >= burn]
+              values <- res[[noise]]
+                if ("np" %in% colnames(res[[noise]]))
+                {
+                    values <- values[np >= burn]
+                }
+
               ## values[!is.finite(value), value := 0]
 
               if (time.dim %in% colnames(values))
@@ -801,7 +817,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
         }
 
-        ret_data <- c(ret_data, list(noises = aggregate_noises))
+        ret_data <- c(ret_data, list(noises = aggregate_noises[, !"single", with = FALSE]))
 
         if (!missing(id) && !("all" %in% id))
         {
@@ -821,11 +837,12 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
         if (nrow(ndt) > 0)
         {
-            if (!missing(extra.aes) && "color" %in% names(extra.aes))
+            if (!missing(extra.aes) && "color" %in% names(extra.aes) &&
+                !missing(id))
             {
                 ndt <- ndt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
             }
-            np <- ggplot(ndt[single == FALSE], do.call(aes_string, aesthetic))
+            np <- ggplot(mapping = do.call(aes_string, aesthetic))
 
             if (length(noises) > 1)
             {
@@ -839,11 +856,11 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 {
                     str <- as.list(paste(c("max", "min"), i, sep = "."))
                     names(str) <- c("ymax", "ymin")
-                    np <- np +  ribbon_func(data = aggregate_noises, do.call(aes_string, str), alpha = alpha)
+                    np <- np + ribbon_func(data = aggregate_noises, do.call(aes_string, str), alpha = alpha)
                     alpha <- alpha / 2
                     if (nrow(ndt[single == TRUE]) > 0)
                     {
-                        np <- np +  geom_errorbar(data = aggregate_noises[single == TRUE], do.call(aes_string, str), ...)
+                        np <- np + geom_errorbar(data = aggregate_noises[single == TRUE], do.call(aes_string, str), ...)
                     }
                 }
             }
@@ -851,45 +868,45 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             {
                 if (!is.null(trend))
                 {
-                    np <- np +  line_func(data = aggregate_noises, ...)
+                    np <- np + line_func(data = aggregate_noises, ...)
                     if (nrow(aggregate_noises[single == TRUE]) > 0)
                     {
-                        np <- np +  geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
+                        np <- np + geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
                     }
                 }
                 if (!missing(id))
                 {
-                    np <- np +  line_func(mapping = aes(group = color_np), alpha = 0.35, ...)
+                    np <- np + line_func(data = ndt[single == FALSE], mapping = aes(group = color_np), alpha = 0.35, ...)
                     if (nrow(ndt[single == TRUE]) > 0)
                     {
-                        np <- np +  geom_point(data = ndt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = 0.35, ...)
+                        np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = 0.35, ...)
                     }
                 }
             } else
             {
                 if (!is.null(trend))
                 {
-                    np <- np +  line_func(data = aggregate_noises, color = "black", ...)
-                    np <- np +  geom_point(data = aggregate_noises[single == TRUE], shape = 4, color = "black", ...)
+                    np <- np + line_func(data = aggregate_noises, ...)
+                    np <- np + geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
                 }
                 if (!missing(id))
                 {
-                    np <- np +  line_func(color = "black", aes(group = factor(np)), alpha = 0.35, ...)
-                    np <- np +  geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, color = "black", ...)
+                    np <- np + line_func(data = ndt[single == FALSE], aes(group = factor(np)), alpha = 0.35, ...)
+                    np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, ...)
                 }
             }
-            np <- np +  scale_y_continuous("", labels = comma)
+            np <- np + scale_y_continuous(labels = comma) + ylab("")
             if (!missing(brewer.palette))
             {
-                np <- np +  scale_color_brewer(palette = brewer.palette)
-                np <- np +  scale_fill_brewer(palette = brewer.palette)
+                np <- np + scale_color_brewer(palette = brewer.palette)
+                np <- np + scale_fill_brewer(palette = brewer.palette)
             }
-            np <- np +  expand_limits(y = 0)
-            np <- np +  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            np <- np + expand_limits(y = 0)
+            np <- np + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                               legend.position = "top")
             if (use_dates)
             {
-                np <- np +  scale_x_date("")
+                np <- np + scale_x_date("")
             }
         }
     }
@@ -901,7 +918,12 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         ldt <- NULL
         for (ll in likelihoods)
         {
-            values <- res[[ll]][np >= burn]
+            values <- res[[ll]]
+            if ("np" %in% colnames(res[[ll]]))
+            {
+                values <- values[np >= burn]
+                }
+
 
             if (!("data.frame" %in% class(values)))
             {
@@ -949,20 +971,25 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         }
     }
 
-    return(list(states = p,
-                densities = dp,
-                traces = tp,
-                correlations = cp,
-                noises = np,
-                likelihoods = lp,
-                data = ret_data))
+    ## plot state trajectories unless told otherwise
+    if (plot) print(p)
+
+    ## return all plots invisibly
+    invisible(list(states = p,
+                   densities = dp,
+                   traces = tp,
+                   correlations = cp,
+                   noises = np,
+                   likelihoods = lp,
+                   data = ret_data))
 }
 
 ##' Plot routing for \code{libbi} objects
 ##'
 ##' @param obj \code{libbi} object
 ##' @param ... parameters to \code{\link{plot_libbi}}
-##' @return plot
+##' @return a list of plots plot (see \code{\link{plot_libbi}})
+##' @export
 plot.libbi <- function(obj, ...)
 {
     plot_libbi(obj, ...)
