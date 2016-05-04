@@ -1,5 +1,6 @@
 ##' Plot results from libbi
 ##'
+##' Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
 ##' @param read Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
 ##' @param model model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)
 ##' @param prior optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
@@ -26,8 +27,9 @@
 ##' @param density_args list of arguments to pass to density geometry
 ##' @param limit.to.data whether to limit the time axis to times in the data
 ##' @param brewer.palette optional; brewer color palette
+##' @param plot set to FALSE to suppress plot of trajectories
 ##' @param ... options for geom_step / geom_line / geom_point / etc.
-##' @return list of results
+##' @return a list of plots
 ##' @import ggplot2 scales reshape2
 ##' @importFrom lubridate wday %m+% years
 ##' @export
@@ -41,7 +43,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                        shift, data.colour = "red", base.alpha = 0.5,
                        trend = "median", densities = "density",
                        density_args = NULL, limit.to.data = FALSE,
-                       brewer.palette, ...)
+                       brewer.palette, plot = TRUE, ...)
 {
     use_dates <- FALSE
     summarise_columns <- c("np", "time", "time_next")
@@ -971,20 +973,25 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         }
     }
 
-    return(list(states = p,
-                densities = dp,
-                traces = tp,
-                correlations = cp,
-                noises = np,
-                likelihoods = lp,
-                data = ret_data))
+    ## plot state trajectories unless told otherwise
+    if (plot) print(p)
+
+    ## return all plots invisibly
+    invisible(list(states = p,
+                   densities = dp,
+                   traces = tp,
+                   correlations = cp,
+                   noises = np,
+                   likelihoods = lp,
+                   data = ret_data))
 }
 
 ##' Plot routing for \code{libbi} objects
 ##'
 ##' @param obj \code{libbi} object
 ##' @param ... parameters to \code{\link{plot_libbi}}
-##' @return plot
+##' @return a list of plots plot (see \code{\link{plot_libbi}})
+##' @export
 plot.libbi <- function(obj, ...)
 {
     plot_libbi(obj, ...)
