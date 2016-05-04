@@ -8,7 +8,7 @@ plot_libbi(read, model, prior, states, params, noises, quantiles = c(0.5,
   0.95), date.origin, date.unit, time.dim = "nr", data, id, extra.aes,
   all.times = FALSE, hline, burn, steps = FALSE, select, shift,
   data.colour = "red", base.alpha = 0.5, trend = "median",
-  densities = "density", density_args = NULL, limit.to.data = FALSE,
+  densities = "density", density_args = list(), limit.to.data = FALSE,
   brewer.palette, plot = TRUE, ...)
 }
 \arguments{
