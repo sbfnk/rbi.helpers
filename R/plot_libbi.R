@@ -463,16 +463,16 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             {
                 if (!is.null(trend))
                 {
-                    p <- p + line_func(data = aggregate_values, color = "black", ...)
-                    p <- p + geom_point(data = aggregate_values[single == TRUE], shape = 4, color = "black", ...)
+                    p <- p + line_func(data = aggregate_values, ...)
+                    p <- p + geom_point(data = aggregate_values[single == TRUE], shape = 4, ...)
                 }
                 if (!missing(id))
                 {
-                    p <- p + line_func(color = "black", aes(group = factor(np)), alpha = 0.35, ...)
-                    p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, color = "black", ...)
+                    p <- p + line_func(aes(group = factor(np)), alpha = 0.35, ...)
+                    p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, ...)
                 }
             }
-            p <- p + scale_y_continuous("", labels = comma)
+            p <- p + scale_y_continuous(labels = comma) + ylab("")
             if (!missing(brewer.palette))
             {
                 p <- p + scale_color_brewer(palette = brewer.palette)
@@ -870,45 +870,45 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             {
                 if (!is.null(trend))
                 {
-                    np <- np +  line_func(data = aggregate_noises, ...)
+                    np <- np + line_func(data = aggregate_noises, ...)
                     if (nrow(aggregate_noises[single == TRUE]) > 0)
                     {
-                        np <- np +  geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
+                        np <- np + geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
                     }
                 }
                 if (!missing(id))
                 {
-                    np <- np +  line_func(mapping = aes(group = color_np), alpha = 0.35, ...)
+                    np <- np + line_func(mapping = aes(group = color_np), alpha = 0.35, ...)
                     if (nrow(ndt[single == TRUE]) > 0)
                     {
-                        np <- np +  geom_point(data = ndt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = 0.35, ...)
+                        np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = 0.35, ...)
                     }
                 }
             } else
             {
                 if (!is.null(trend))
                 {
-                    np <- np +  line_func(data = aggregate_noises, color = "black", ...)
-                    np <- np +  geom_point(data = aggregate_noises[single == TRUE], shape = 4, color = "black", ...)
+                    np <- np + line_func(data = aggregate_noises, ...)
+                    np <- np + geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
                 }
                 if (!missing(id))
                 {
-                    np <- np +  line_func(color = "black", aes(group = factor(np)), alpha = 0.35, ...)
-                    np <- np +  geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, color = "black", ...)
+                    np <- np + line_func(aes(group = factor(np)), alpha = 0.35, ...)
+                    np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, ...)
                 }
             }
-            np <- np +  scale_y_continuous("", labels = comma)
+            np <- np + scale_y_continuous(labels = comma) + ylab("")
             if (!missing(brewer.palette))
             {
-                np <- np +  scale_color_brewer(palette = brewer.palette)
-                np <- np +  scale_fill_brewer(palette = brewer.palette)
+                np <- np + scale_color_brewer(palette = brewer.palette)
+                np <- np + scale_fill_brewer(palette = brewer.palette)
             }
-            np <- np +  expand_limits(y = 0)
-            np <- np +  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            np <- np + expand_limits(y = 0)
+            np <- np + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                               legend.position = "top")
             if (use_dates)
             {
-                np <- np +  scale_x_date("")
+                np <- np + scale_x_date("")
             }
         }
     }
