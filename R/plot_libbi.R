@@ -374,7 +374,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
         }
 
-        ret_data <- c(ret_data, list(states = aggregate_values))
+        ret_data <- c(ret_data, list(states = aggregate_values[, !"single", with = FALSE]))
 
         if (!missing(id) && !("all" %in% id))
         {
@@ -394,7 +394,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             {
                 sdt <- sdt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
             }
-            p <- ggplot(sdt[single == FALSE], do.call(aes_string, aesthetic))
+            p <- ggplot(mapping = do.call(aes_string, aesthetic))
 
             if (!missing(hline))
             {
@@ -453,7 +453,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 }
                 if (!missing(id))
                 {
-                    p <- p + line_func(mapping = aes(group = color_np), alpha = 0.35, ...)
+                    p <- p + line_func(data = sdt[single == FALSE], mapping = aes(group = color_np), alpha = 0.35, ...)
                     if (nrow(sdt[single == TRUE]) > 0)
                     {
                         p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = 0.35, ...)
@@ -468,7 +468,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 }
                 if (!missing(id))
                 {
-                    p <- p + line_func(aes(group = factor(np)), alpha = 0.35, ...)
+                    p <- p + line_func(data = sdt[single == FALSE], aes(group = factor(np)), alpha = 0.35, ...)
                     p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, ...)
                 }
             }
@@ -641,9 +641,9 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     cp <- NULL
                 }
 
-                dp <- ggplot(pdt[varying == TRUE], do.call(aes_string, aesthetic))
+                dp <- ggplot(mapping = do.call(aes_string, aesthetic))
                 dp <- dp + facet_wrap(~ parameter, scales = "free")
-                dp <- dp + do.call(paste0("geom_", densities), density_args)
+                dp <- dp + do.call(paste0("geom_", densities), c(list(data = pdt[varying == TRUE], density_args)))
                 if (!missing(brewer.palette))
                 {
                     dp <- dp + scale_color_brewer(palette = brewer.palette)
@@ -665,9 +665,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     aesthetic <- c(aesthetic, extra.aes)
                 }
 
-                tp <- ggplot(pdt[varying == TRUE & distribution == "posterior"],
-                             do.call(aes_string, aesthetic))
-                tp <- tp + geom_line()
+                tp <- ggplot(mapping = do.call(aes_string, aesthetic))
+                tp <- tp + geom_line(data = pdt[varying == TRUE & distribution == "posterior"])
                 tp <- tp + facet_wrap(~ parameter, scales = "free_y")
                 tp <- tp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
@@ -818,7 +817,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
         }
 
-        ret_data <- c(ret_data, list(noises = aggregate_noises))
+        ret_data <- c(ret_data, list(noises = aggregate_noises[, !"single", with = FALSE]))
 
         if (!missing(id) && !("all" %in% id))
         {
@@ -843,7 +842,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             {
                 ndt <- ndt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
             }
-            np <- ggplot(ndt[single == FALSE], do.call(aes_string, aesthetic))
+            np <- ggplot(mapping = do.call(aes_string, aesthetic))
 
             if (length(noises) > 1)
             {
@@ -877,7 +876,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 }
                 if (!missing(id))
                 {
-                    np <- np + line_func(mapping = aes(group = color_np), alpha = 0.35, ...)
+                    np <- np + line_func(data = ndt[single == FALSE], mapping = aes(group = color_np), alpha = 0.35, ...)
                     if (nrow(ndt[single == TRUE]) > 0)
                     {
                         np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = 0.35, ...)
@@ -892,7 +891,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 }
                 if (!missing(id))
                 {
-                    np <- np + line_func(aes(group = factor(np)), alpha = 0.35, ...)
+                    np <- np + line_func(data = ndt[single == FALSE], aes(group = factor(np)), alpha = 0.35, ...)
                     np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, ...)
                 }
             }
