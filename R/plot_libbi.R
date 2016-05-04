@@ -858,11 +858,11 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 {
                     str <- as.list(paste(c("max", "min"), i, sep = "."))
                     names(str) <- c("ymax", "ymin")
-                    np <- np +  ribbon_func(data = aggregate_noises, do.call(aes_string, str), alpha = alpha)
+                    np <- np + ribbon_func(data = aggregate_noises, do.call(aes_string, str), alpha = alpha)
                     alpha <- alpha / 2
                     if (nrow(ndt[single == TRUE]) > 0)
                     {
-                        np <- np +  geom_errorbar(data = aggregate_noises[single == TRUE], do.call(aes_string, str), ...)
+                        np <- np + geom_errorbar(data = aggregate_noises[single == TRUE], do.call(aes_string, str), ...)
                     }
                 }
             }
