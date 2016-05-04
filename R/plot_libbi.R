@@ -635,8 +635,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     cp <- cp + geom_tile()
                     cp <- cp + scale_fill_manual("Correlation", values = color_palette,
                                                  limits = levels(correlations[, correlation]))
-                    cp <- cp + scale_x_discrete("")
-                    cp <- cp + scale_y_discrete("")
+                    cp <- cp + xlab("")
+                    cp <- cp + ylab("")
                 } else {
                     cp <- NULL
                 }
@@ -650,7 +650,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     dp <- dp + scale_color_brewer(palette = brewer.palette)
                     dp <- dp + scale_fill_brewer(palette = brewer.palette)
                 }
-                dp <- dp + scale_y_continuous("Density")
+                dp <- dp + ylab("Density")
                 dp <- dp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
                 if (!missing(id))
