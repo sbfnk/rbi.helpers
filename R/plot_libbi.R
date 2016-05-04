@@ -42,7 +42,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                        burn, steps = FALSE, select,
                        shift, data.colour = "red", base.alpha = 0.5,
                        trend = "median", densities = "density",
-                       density_args = NULL, limit.to.data = FALSE,
+                       density_args = list(), limit.to.data = FALSE,
                        brewer.palette, plot = TRUE, ...)
 {
     use_dates <- FALSE
@@ -643,14 +643,13 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
                 dp <- ggplot(pdt[varying == TRUE], do.call(aes_string, aesthetic))
                 dp <- dp + facet_wrap(~ parameter, scales = "free")
-                dp <- dp + do.call(paste0("geom_", densities),
-                                   c(list(alpha = 0.5), density_args))
+                dp <- dp + do.call(paste0("geom_", densities), density_args)
                 if (!missing(brewer.palette))
                 {
                     dp <- dp + scale_color_brewer(palette = brewer.palette)
                     dp <- dp + scale_fill_brewer(palette = brewer.palette)
                 }
-                dp <- dp + ylab("Density")
+                dp <- dp + ylab("density")
                 dp <- dp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
                 if (!missing(id))
