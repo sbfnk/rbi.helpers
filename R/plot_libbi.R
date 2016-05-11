@@ -643,7 +643,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
                 dp <- ggplot(mapping = do.call(aes_string, aesthetic))
                 dp <- dp + facet_wrap(~ parameter, scales = "free")
-                dp <- dp + do.call(paste0("geom_", densities), c(list(data = pdt[varying == TRUE], density_args)))
+                dp <- dp + do.call(paste0("geom_", densities), c(list(data = pdt[varying == TRUE]), density_args))
                 if (!missing(brewer.palette))
                 {
                     dp <- dp + scale_color_brewer(palette = brewer.palette)
