@@ -39,12 +39,12 @@ sample_observations <- function(wrapper, read_options, ...){
     res <- list(res)
     names(res) <- model$get_vars("obs")
   }
-  for (var in names(res)) {
-      if ("nr" %in% names(res[[var]])) {
-          res[[var]]$nr <- res[[var]]$nr - 1
-          res[[var]] <- res[[var]][res[[var]]$nr >= 0, ]
-      }
-  }
+  ## for (var in names(res)) {
+  ##     if ("nr" %in% names(res[[var]])) {
+  ##         res[[var]]$nr <- res[[var]]$nr - 1
+  ##         res[[var]] <- res[[var]][res[[var]]$nr >= 0, ]
+  ##     }
+  ## }
   ## if an output file has been given, we re-write
   args <- match.call()
   if ("output_file_name" %in% names(args))
