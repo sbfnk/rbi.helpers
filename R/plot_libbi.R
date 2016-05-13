@@ -193,12 +193,15 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
         for (state in states)
         {
-            if (state %in% names(res))
+            if (state %in% names(res) && nrow(res[[state]]) > 0)
             {
                 values <- res[[state]]
                 if ("np" %in% colnames(res[[state]]))
                 {
                     values <- values[np >= burn]
+                    if (nrow(values) == 0) {
+                        stop("Nothing left after burn-in")
+                    }
                 }
 
                 if (time.dim %in% colnames(values))
