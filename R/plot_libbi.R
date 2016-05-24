@@ -341,6 +341,11 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         states_n <- sdt[, list(single = (.N == 1)), by = state]
         sdt <- merge(sdt, states_n, by = "state", all.x = TRUE)
 
+        if (!missing(id) && !("all" %in% id))
+        {
+            sdt <- sdt[np %in% id]
+        }
+
         aggregate_values <- NULL
         state.by <- c("state", "single", intersect(setdiff(summarise_columns, "np"), colnames(sdt)))
         if (!is.null(trend))
@@ -381,11 +386,6 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         if (!is.null(aggregate_values))
         {
           ret_data <- c(ret_data, list(states = aggregate_values[, !"single", with = FALSE]))
-        }
-
-        if (!missing(id) && !("all" %in% id))
-        {
-            sdt <- sdt[np %in% id]
         }
 
         aesthetic <- list(x = "time", y = "value")
