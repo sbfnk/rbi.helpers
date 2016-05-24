@@ -821,6 +821,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
         }
 
+        if (is.null(aggregate_noises)) aggregate_noises <- ndt
+
         ret_data <- c(ret_data, list(noises = aggregate_noises[, !"single", with = FALSE]))
 
         if (!missing(id) && !("all" %in% id))
