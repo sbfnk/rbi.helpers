@@ -378,7 +378,10 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         }
         if (is.null(aggregate_values)) aggregate_values <- sdt
 
-        ret_data <- c(ret_data, list(states = aggregate_values[, !"single", with = FALSE]))
+        if (!is.null(aggregate_values))
+        {
+          ret_data <- c(ret_data, list(states = aggregate_values[, !"single", with = FALSE]))
+        }
 
         if (!missing(id) && !("all" %in% id))
         {
@@ -566,8 +569,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 }
                 pdt <- rbind(pdt,
                              data.table(distribution = dist,
-                                        parameter = rep(sub("^p_", "", param),
-                                                        nrow(values)),
+                                        parameter = rep(param, nrow(values)),
                                         values))
             }
         }
@@ -821,9 +823,10 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
         }
 
-        if (is.null(aggregate_noises)) aggregate_noises <- ndt
-
-        ret_data <- c(ret_data, list(noises = aggregate_noises[, !"single", with = FALSE]))
+        if (!is.null(aggregate_noises))
+        {
+          ret_data <- c(ret_data, list(noises = aggregate_noises[, !"single", with = FALSE]))
+        }
 
         if (!missing(id) && !("all" %in% id))
         {
