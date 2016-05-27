@@ -383,10 +383,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         }
         if (is.null(aggregate_values)) aggregate_values <- sdt
 
-        if (!is.null(aggregate_values))
-        {
-          ret_data <- c(ret_data, list(states = aggregate_values[, !"single", with = FALSE]))
-        }
+        ret_data <- c(ret_data, list(states = aggregate_values[, !"single", with = FALSE]))
 
         aesthetic <- list(x = "time", y = "value")
         if (!missing(extra.aes))
