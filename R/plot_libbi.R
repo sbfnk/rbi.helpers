@@ -290,7 +290,6 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
         if (!missing(data) && nrow(dataset) > 0)
         {
-            dataset <- dataset[state %in% states]
             if (nrow(dataset) > 0)
             {
                 if (!missing(select))
