@@ -347,10 +347,14 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
         aggregate_values <- NULL
         state.by <- c("state", "single", intersect(setdiff(summarise_columns, "np"), colnames(sdt)))
-        if (!is.null(trend))
+        if (is.null(trend))
+        {
+            id_alpha = 1
+        } else
         {
             aggregate_values <- sdt[, list(value = do.call(trend, list(value, na.rm = TRUE))),
                                        by = state.by]
+            id_alpha = 0.35
         }
 
         if (!is.null(quantiles))
@@ -456,10 +460,10 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 }
                 if (!missing(id))
                 {
-                    p <- p + line_func(data = sdt[single == FALSE], mapping = aes(group = color_np), alpha = 0.35, ...)
+                    p <- p + line_func(data = sdt[single == FALSE], mapping = aes(group = color_np), alpha = id_alpha, ...)
                     if (nrow(sdt[single == TRUE]) > 0)
                     {
-                        p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = 0.35, ...)
+                        p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = id_alpha, ...)
                     }
                 }
             } else
@@ -471,8 +475,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 }
                 if (!missing(id))
                 {
-                    p <- p + line_func(data = sdt[single == FALSE], aes(group = factor(np)), alpha = 0.35, ...)
-                    p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, ...)
+                    p <- p + line_func(data = sdt[single == FALSE], aes(group = factor(np)), alpha = id_alpha, ...)
+                    p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = id_alpha, shape = 4, ...)
                 }
             }
             p <- p + scale_y_continuous(labels = comma) + ylab("")
@@ -500,7 +504,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
         }
     }
-            
+
     pdt <- data.table(distribution = character(0),
                       parameter = character(0), np = integer(0),
                       value = numeric(0))
@@ -881,10 +885,10 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 }
                 if (!missing(id))
                 {
-                    np <- np + line_func(data = ndt[single == FALSE], mapping = aes(group = color_np), alpha = 0.35, ...)
+                    np <- np + line_func(data = ndt[single == FALSE], mapping = aes(group = color_np), alpha = id_alpha, ...)
                     if (nrow(ndt[single == TRUE]) > 0)
                     {
-                        np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = 0.35, ...)
+                        np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = id_alpha, ...)
                     }
                 }
             } else
@@ -896,8 +900,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 }
                 if (!missing(id))
                 {
-                    np <- np + line_func(data = ndt[single == FALSE], aes(group = factor(np)), alpha = 0.35, ...)
-                    np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = 0.35, shape = 4, ...)
+                    np <- np + line_func(data = ndt[single == FALSE], aes(group = factor(np)), alpha = id_alpha, ...)
+                    np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = id_alpha, shape = 4, ...)
                 }
             }
             np <- np + scale_y_continuous(labels = comma) + ylab("")
