@@ -376,11 +376,11 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
             if (steps)
             {
-                max.nr <- aggregate_values[, max(nr)]
+                max.time <- aggregate_values[, max(time)]
                 for (i in seq_along(quantiles))
                 {
-                    aggregate_values[nr == max.nr, paste("min", i, sep = ".") := NA]
-                    aggregate_values[nr == max.nr, paste("max", i, sep = ".") := NA]
+                    aggregate_values[time == max.time, paste("min", i, sep = ".") := NA]
+                    aggregate_values[time == max.time, paste("max", i, sep = ".") := NA]
                 }
             }
         }
@@ -814,11 +814,11 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
             if (steps)
             {
-                max.nr <- aggregate_noises[, max(nr)]
+                max.time <- aggregate_noises[, max(time)]
                 for (i in seq_along(quantiles))
                 {
-                    aggregate_noises[nr == max.nr, paste("min", i, sep = ".") := NA]
-                    aggregate_noises[nr == max.nr, paste("max", i, sep = ".") := NA]
+                    aggregate_noises[time == max.time, paste("min", i, sep = ".") := NA]
+                    aggregate_noises[time == max.time, paste("max", i, sep = ".") := NA]
                 }
             }
         }
@@ -931,8 +931,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             if ("np" %in% colnames(res[[ll]]))
             {
                 values <- values[np >= burn]
-                }
-
+            }
 
             if (!("data.frame" %in% class(values)))
             {
