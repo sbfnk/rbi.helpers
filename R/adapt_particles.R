@@ -69,12 +69,12 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, 
       adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options,
                           init = init_wrapper, ...)
     add_options[["init-np"]] <- samples - 1
-    
-    mcmc_obj <- mcmc(get_traces(adapt_wrapper, all = TRUE))
+
+        mcmc_obj <- mcmc(get_traces(adapt_wrapper))
     accRate <- c(accRate, max(1 - rejectionRate(mcmc_obj)))
     ## ess <- c(ess, max(effectiveSize(mcmc_obj)))
     var_loglik <- c(var_loglik, var(bi_read(adapt_wrapper, "loglikelihood")$value))
-    
+
     cat(date(), paste0(test[id], " particles: acceptance rate ", accRate[id],
                ", loglikelihod variance: ", var_loglik[id], "\n"))
 
@@ -92,6 +92,6 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, 
   adapt_wrapper$model <- wrapper$model
 
   cat(date(), "Choosing ", test[id], " particles.\n")
-      
+
   return(adapt_wrapper)
 }
