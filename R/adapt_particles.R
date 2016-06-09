@@ -3,9 +3,8 @@
 #' @title Adapt the number of particles 
 #' @description This function takes the provided \code{\link{libbi}} and
 #'   runs MCMC at a single point (i.e., repeatedly proposing the same paramters),
-#'   adapting the number of particles distribution until the desired 
-#'   acceptance rate is achieved. If a scale is given, it will be used
-#'   to adapt the number of particles at each iteration.
+#'   adapting the number of particles distribution until the variance of the likelihood
+#'   crosses one.
 #' @param wrapper \code{\link{libbi}} (which has been run) to study
 #' @param min minimum number of particles
 #' @param max maximum number of particles
@@ -70,13 +69,9 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, 
                           init = init_wrapper, ...)
     add_options[["init-np"]] <- samples - 1
 
-        mcmc_obj <- mcmc(get_traces(adapt_wrapper))
-    accRate <- c(accRate, max(1 - rejectionRate(mcmc_obj)))
-    ## ess <- c(ess, max(effectiveSize(mcmc_obj)))
     var_loglik <- c(var_loglik, var(bi_read(adapt_wrapper, "loglikelihood")$value))
 
-    cat(date(), paste0(test[id], " particles: acceptance rate ", accRate[id],
-               ", loglikelihod variance: ", var_loglik[id], "\n"))
+    cat(date(), paste0(test[id], ", loglikelihod variance: ", var_loglik[id], "\n"))
 
     if (var_loglik[id] > 0) {
       init_wrapper <- adapt_wrapper
