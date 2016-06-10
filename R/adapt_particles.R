@@ -71,7 +71,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, 
 
     var_loglik <- c(var_loglik, var(bi_read(adapt_wrapper, "loglikelihood")$value))
 
-    cat(date(), paste0(test[id], ", loglikelihod variance: ", var_loglik[id], "\n"))
+    cat(date(), paste0(test[id], " particles, loglikelihod variance: ", var_loglik[id], "\n"))
 
     if (var_loglik[id] > 0) {
       init_wrapper <- adapt_wrapper
