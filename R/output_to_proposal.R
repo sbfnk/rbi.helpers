@@ -16,7 +16,7 @@ output_to_proposal <- function(wrapper, scale) {
 
   model <- wrapper$model$clone()
   params <- model$get_vars("param")
-  res <- bi_read(wrapper$result$output_file_name, variables = params)
+  res <- bi_read(wrapper$result$output_file_name, vars = params)
 
   if (missing(scale)) {
     scale_string <- ""
@@ -27,11 +27,11 @@ output_to_proposal <- function(wrapper, scale) {
   param_sd <- sapply(params, function(p) {
       ifelse(length(res[[p]]) == 1, 0, sd(res[[p]]$value))
   })
-  
+
   param_block <- model$get_block("parameter")
   param_bounds <- sapply(params, function(param) {grep(paste0("^[[:space:]]*", param, "[[[:space:]][^~]*~"), param_block, value = TRUE)})
   variable_bounds <- param_bounds[sapply(param_bounds, function(x) {length(x) > 0})]
-  
+
   proposal_lines <- unname(sapply(names(variable_bounds), function(param) {
       param_string <-
         sub(paste0("^[:space:]*(", param, "[^[:space:]~]*)[[:space:]~].*$"), "\\1", variable_bounds[param])
@@ -51,7 +51,7 @@ output_to_proposal <- function(wrapper, scale) {
              ifelse(param_sd[param] > 0, param_sd[param], 1), ")")
     } else {
       bounds <- c(lower = NA, upper = NA)
-      
+
       split_bounds <- strsplit(bounds_string, split = ",")[[1]]
       for (bound in c("lower", "upper")) {
         named <- grep(paste0(bound, "[[:space:]]*="), split_bounds)
