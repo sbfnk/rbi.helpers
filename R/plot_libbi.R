@@ -10,7 +10,7 @@
 ##' @param quantiles if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)
 ##' @param date.origin date of origin (if dates are to be calculated)
 ##' @param date.unit unit of date (if desired, otherwise the time dimension will be used)
-##' @param time.dim time dimension ("nr" by default)
+##' @param time.dim time dimension ("time" by default)
 ##' @param data data (with a "time" and "value" column)
 ##' @param id one or more run ids to plot
 ##' @param extra.aes extra aesthetics (for ggplot)
@@ -36,7 +36,7 @@
 ##' @author Sebastian Funk
 plot_libbi <- function(read, model, prior, states, params, noises,
                        quantiles = c(0.5, 0.95),
-                       date.origin, date.unit, time.dim = "nr",
+                       date.origin, date.unit, time.dim = "time",
                        data, id, extra.aes,
                        all.times = FALSE, hline,
                        burn, steps = FALSE, select,
@@ -193,7 +193,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
         for (state in states)
         {
-            if (state %in% names(res) && nrow(res[[state]]) > 0)
+          if (state %in% names(res) && nrow(res[[state]]) > 0)
             {
                 values <- res[[state]]
                 if ("np" %in% colnames(res[[state]]))
@@ -394,7 +394,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             aesthetic <- c(aesthetic, extra.aes)
         }
 
-        if (nrow(sdt) > 0)
+        if (nrow(aggregate_values) > 0)
         {
             if (!missing(extra.aes) && "color" %in% names(extra.aes) &&
                 !missing(id))
@@ -940,7 +940,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
             if (!("np" %in% colnames(values)))
             {
-                setnames(values, "nr", "np")
+                setnames(values, "time", "np")
             }
 
             values[, density := ll]
