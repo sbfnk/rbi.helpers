@@ -7,8 +7,10 @@
 #' the sample mean and standard deviation.
 #' @param wrapper a \code{\link{libbi}} which has been run
 #' @param scale a factor by which to scale all the standard deviations
+#' @param correlations whether to take into account correlations
+#' @param start whether this is the first attempt, in which case we'll use 1/10 of every bound, and 1 otherwise
 #' @return the updated bi model
-output_to_proposal <- function(wrapper, scale) {
+output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FALSE) {
 
   if (!wrapper$run_flag) {
     stop("The model should be run first")
@@ -18,6 +20,7 @@ output_to_proposal <- function(wrapper, scale) {
   params <- model$get_vars("param")
   res <- bi_read(wrapper$result$output_file_name, vars = params)
 
+  if (correlations) {
   l <- list()
   for (param in names(res)) {
     y <- copy(res[[param]])
@@ -57,11 +60,20 @@ output_to_proposal <- function(wrapper, scale) {
   wide[["np"]] <- NULL
 
   C <- cov(wide)
-  zeroes <- which(apply(C, 1, function(x) {all(x == 0)}))
-  C <- C[-zeroes, -zeroes]
+  if (start) {
+    C[, ] <- 0
+  }
 
   sd_vec <- sqrt(diag(C) - C[1, ]**2 / C[1, 1])
   mean_scale <- C[1, ] / C[1, 1]
+
+  sd_vec[!is.finite(sd_vec)] <- 0
+  mean_scale[!is.finite(mean_scale)] <- 0
+  } else {
+    sd_vec <- sapply(params, function(p) {
+      ifelse(length(res[[p]]) == 1, 0, sd(res[[p]]$value))
+    })
+  }
 
   if (missing(scale)) {
     scale_string <- ""
@@ -76,104 +88,124 @@ output_to_proposal <- function(wrapper, scale) {
   proposal_lines <- c()
 
   first <- TRUE
-  first_param_string <- ""
-  first_param_diff <- ""
   for (dim_param in names(sd_vec)) {
     param <- gsub("\\[[^]]*\\]", "", dim_param)
-     param_string <-
+    if (param %in% names(variable_bounds[param]))
+    {
+      param_string <-
         sub(paste0("^[:space:]*(", param, "[^[:space:]~]*)[[:space:]~].*$"), "\\1", variable_bounds[param])
-   param_bounds_string <-
-      sub("^.*(uniform|truncated_gaussian|truncated_normal)\\(([^\\)]+)\\).*$",
-          "\\1|\\2", variable_bounds[param])
+      param_bounds_string <-
+        sub("^.*(uniform|truncated_gaussian|truncated_normal)\\(([^\\)]+)\\).*$",
+            "\\1|\\2", variable_bounds[param])
 
-    args <- strsplit(param_bounds_string, split = "\\|")
+      args <- strsplit(param_bounds_string, split = "\\|")
 
-    dist <- args[[1]][1]
-    bounds_string <- args[[1]][2]
+      dist <- args[[1]][1]
+      bounds_string <- args[[1]][2]
 
-    if (first) {
-      old_name <- "_old_mean_"
-      first_param_diff <- paste0("(", dim_param, " - ", old_name, ")")
-      proposal_lines <- c(paste0("param ", old_name, "(has_output = 0)"),
-                          paste(old_name, "<-", dim_param))
-      mean <- dim_param
-      sd <- C[dim_param, dim_param]
-      first <- FALSE
-    } else {
-      mean <- paste0(dim_param, " + (", mean_scale[dim_param], ") * ", first_param_diff)
-      sd <- sd_vec[[dim_param]]
-    }
-
-    if (is.na(bounds_string) || bounds_string == variable_bounds[param]) {
-      proposal_lines <-
-        c(proposal_lines,
-          paste0(dim_param, " ~ gaussian(",
-                 "mean = ", mean,
-                 ", std = ", scale_string, sd, ")"))
-    } else {
-      bounds <- c(lower = NA, upper = NA)
-
-      split_bounds <- strsplit(bounds_string, split = ",")[[1]]
-      for (bound in c("lower", "upper")) {
-        named <- grep(paste0(bound, "[[:space:]]*="), split_bounds)
-        if (length(named) > 0) {
-          bounds[bound] <- split_bounds[named]
-          split_bounds <- split_bounds[-named]
+      if (first) {
+        mean <- ifelse(correlations, dim_param, param_string)
+        if (correlations) {
+          old_name <- "_old_mean_"
+          proposal_lines <- paste("inline", old_name, "=", dim_param)
+          sd <- C[dim_param, dim_param]
+        } else {
+          sd <- sd_vec[[dim_param]]
         }
+      } else {
+        if (correlations) {
+          mean <- paste0(dim_param, " + (", mean_scale[dim_param], ") * _old_mean_diff_")
+        } else {
+          mean <- param_string
+        }
+        sd <- sd_vec[[dim_param]]
       }
 
-      if (any(is.na(bounds))) {
-        if (length(grep("^truncated", dist)) > 0) {
-          named_other <- grep("(mean|std)", split_bounds)
-          if (length(named_other) > 0) {
-            split_bounds <- split_bounds[-named_other]
-          }
-          if (length(named_other) < 2) {
-            split_bounds <- split_bounds[-seq_len(2 - length(named_other))]
+      if (is.na(bounds_string) || bounds_string == variable_bounds[param]) {
+        if (sd == 0) {
+          sd <- 1
+        }
+        proposal_lines <-
+          c(proposal_lines,
+            paste0(ifelse(correlations, dim_param, param_string), " ~ gaussian(",
+                   "mean = ", mean,
+                   ", std = ", scale_string, sd, ")"))
+      } else {
+        bounds <- c(lower = NA, upper = NA)
+
+        split_bounds <- strsplit(bounds_string, split = ",")[[1]]
+        for (bound in c("lower", "upper")) {
+          named <- grep(paste0(bound, "[[:space:]]*="), split_bounds)
+          if (length(named) > 0) {
+            bounds[bound] <- split_bounds[named]
+            split_bounds <- split_bounds[-named]
           }
         }
-      }
 
-      for (split_bound in split_bounds) {
-        bounds[which(is.na(bounds))][1] <- split_bound
-      }
+        if (any(is.na(bounds))) {
+          if (length(grep("^truncated", dist)) > 0) {
+            named_other <- grep("(mean|std)", split_bounds)
+            if (length(named_other) > 0) {
+              split_bounds <- split_bounds[-named_other]
+            }
+            if (length(named_other) < 2) {
+              split_bounds <- split_bounds[-seq_len(2 - length(named_other))]
+            }
+          }
+        }
 
-      bounds <- gsub("(lower|upper)[[:space:]]*=[[:space::]]*", "", bounds)
-      bounds <- bounds[!is.na(bounds)]
+        for (split_bound in split_bounds) {
+          bounds[which(is.na(bounds))][1] <- split_bound
+        }
 
-      eval_bounds <- tryCatch(
-      {
+        bounds <- gsub("(lower|upper)[[:space:]]*=[[:space::]]*", "", bounds)
+        bounds <- bounds[!is.na(bounds)]
+
+        eval_bounds <- tryCatch(
+        {
           sapply(bounds, function(x) { eval(parse(text = x))})
-      },
-      error = function(cond)
-      {
+        },
+        error = function(cond)
+        {
           warning("Cannot convert bounds for ", param, "into R expression")
           warning("Original message: ", cond)
           ret <- bounds
           ret[] <- NA
           return(ret)
-      })
-      bounds <- eval_bounds
+        })
+        bounds <- eval_bounds
 
-      if (sd_vec[dim_param] == 0) {
-        ## no variation
-        if (sum(!is.na(is.numeric(bounds))) == 2) {
-          ## range / 10
-          sd_vec[dim_param] <- diff(as.numeric(bounds)) / 10
+        if (sd == 0) {
+          ## no variation
+          if (sum(!is.na(as.numeric(bounds))) == 2) {
+            ## range / 10
+            sd <- diff(as.numeric(bounds)) / 10
+          } else {
+            sd <- 1
+          }
         } else {
-          sd_vec[dim_param] <- 1
+          if (sum(!is.na(as.numeric(bounds))) == 2) {
+            sd <- min(sd, diff(as.numeric(bounds)) / 10
+                      )
+          }
         }
+
+        proposal_lines <- c(proposal_lines,
+                            paste0(ifelse(correlations, dim_param, param_string),
+                                   " ~ truncated_gaussian(",
+                                   "mean = ", mean, 
+                                   ", std = ", scale_string, sd, 
+                                   ifelse(length(bounds) > 0,
+                                          paste0(", ", paste(names(bounds), "=", bounds,
+                                                             sep = " ", collapse = ", "),
+                                                 ")"),
+                                          ")")))
       }
 
-      proposal_lines <- c(proposal_lines,
-                          paste0(dim_param, " ~ truncated_gaussian(",
-                                 "mean = ", mean, 
-                                 ", std = ", scale_string, sd, 
-                                 ifelse(length(bounds) > 0,
-                                        paste0(", ", paste(names(bounds), "=", bounds,
-                                                           sep = " ", collapse = ", "),
-                                               ")"),
-                                        ")")))
+      if (first && correlations) {
+        proposal_lines <- c(proposal_lines, paste("inline", "_old_mean_diff_", "=", dim_param, "-", "_old_mean_"))
+        first <- FALSE
+      }
     }
   }
 

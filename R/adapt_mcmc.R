@@ -14,10 +14,11 @@
 #' @param add_options list of additional options
 #' @param samples number of samples to generate each iteration
 #' @param max_iter maximum of iterations (default: 10)
+#' @param correlations take into account correlations
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @export
-adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 1, add_options, samples, max_iter = 10, ...) {
+adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 1, add_options, samples, max_iter = 10, correlations = FALSE, ...) {
 
   if (missing(add_options)) {
     add_options <- list()
@@ -33,7 +34,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 1, add_options, sample
   ## small, multiplier if the acceptance Rate is too big)
   if (scale < 1) scale <- 1 / scale 
 
-  model <- output_to_proposal(wrapper)
+  model <- output_to_proposal(wrapper, correlations = correlations)
   init_file <- wrapper$result$output_file_name
   init_np <- bi_dim_len(init_file, "np") - 1
 
@@ -63,7 +64,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 1, add_options, sample
     }
     cat(date(), paste0("Acceptance rate ", min(accRate),
                        ", adapting with scale ", adapt_scale, "\n"))
-    model <- output_to_proposal(adapt_wrapper, adapt_scale)
+    model <- output_to_proposal(adapt_wrapper, adapt_scale, correlations = correlations)
     add_options[["init-file"]] <- adapt_wrapper$result$output_file_name
     adapt_wrapper <-
       adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options, ...)
