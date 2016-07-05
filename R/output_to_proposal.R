@@ -108,7 +108,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
         if (correlations) {
           old_name <- "_old_mean_"
           proposal_lines <- paste("inline", old_name, "=", dim_param)
-          sd <- C[dim_param, dim_param]
+          sd <- sqrt(C[dim_param, dim_param])
         } else {
           sd <- sd_vec[[dim_param]]
         }
