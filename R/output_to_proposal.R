@@ -18,11 +18,33 @@ output_to_proposal <- function(wrapper, scale) {
   params <- model$get_vars("param")
   res <- bi_read(wrapper$result$output_file_name, vars = params)
 
-  l <- lapply(names(res), function(x) {
-    y <- copy(res[[x]])
-    setnames(y, "value", x)
-    y
-  })
+  l <- list()
+  for (param in names(res)) {
+    y <- copy(res[[param]])
+    unique_dims <- unique(y[setdiff(colnames(y), c("np", "value"))])
+    if (!is.null(dim(unique_dims)))
+    {
+      a <- apply(unique_dims, 1, function(x) {
+        merge(t(x), y)
+      })
+      if (length(a))
+        names(a) <- unname(apply(unique_dims, 1, function(x) {
+          paste0(param, "[", paste(rev(x), collapse = ","), "]")
+        }))
+    } else
+    {
+      a <- list(y)
+      names(a) <- param
+    }
+
+    a <- lapply(names(a), function(x) {
+      for (col in colnames(unique_dims)) {
+        a[[x]][[col]] <- NULL
+      }
+      setnames(a[[x]], "value", x)
+    })
+    l <- c(l, a)
+  }
 
   if (length(l) > 1) {
     wide <- l[[1]]
@@ -32,8 +54,12 @@ output_to_proposal <- function(wrapper, scale) {
   } else {
     wide <- l
   }
+  wide[["np"]] <- NULL
 
   C <- cov(wide)
+  zeroes <- which(apply(C, 1, function(x) {all(x == 0)}))
+  C <- C[-zeroes, -zeroes]
+
   sd_vec <- sqrt(diag(C) - C[1, ]**2 / C[1, 1])
   mean_scale <- C[1, ] / C[1, 1]
 
@@ -52,10 +78,11 @@ output_to_proposal <- function(wrapper, scale) {
   first <- TRUE
   first_param_string <- ""
   first_param_diff <- ""
-  for (param in names(variable_bounds)) {
-    param_string <-
+  for (dim_param in names(sd_vec)) {
+    param <- gsub("\\[[^]]*\\]", "", dim_param)
+     param_string <-
         sub(paste0("^[:space:]*(", param, "[^[:space:]~]*)[[:space:]~].*$"), "\\1", variable_bounds[param])
-    param_bounds_string <-
+   param_bounds_string <-
       sub("^.*(uniform|truncated_gaussian|truncated_normal)\\(([^\\)]+)\\).*$",
           "\\1|\\2", variable_bounds[param])
 
@@ -65,22 +92,22 @@ output_to_proposal <- function(wrapper, scale) {
     bounds_string <- args[[1]][2]
 
     if (first) {
-      old_name <- paste0(param_string, "_")
-      first_param_diff <- paste0("(", param_string, " - ", old_name, ")")
+      old_name <- "_old_mean_"
+      first_param_diff <- paste0("(", dim_param, " - ", old_name, ")")
       proposal_lines <- c(paste0("param ", old_name, "(has_output = 0)"),
-                          paste(old_name, "<-", param_string))
-      mean <- param_string
-      sd <- C[param_string, param_string]
+                          paste(old_name, "<-", dim_param))
+      mean <- dim_param
+      sd <- C[dim_param, dim_param]
       first <- FALSE
     } else {
-      mean <- paste0(param_string, " + (", mean_scale[param_string], ") * ", first_param_diff)
-      sd <- sd_vec[param_string]
+      mean <- paste0(dim_param, " + (", mean_scale[dim_param], ") * ", first_param_diff)
+      sd <- sd_vec[[dim_param]]
     }
 
     if (is.na(bounds_string) || bounds_string == variable_bounds[param]) {
       proposal_lines <-
         c(proposal_lines,
-          paste0(param_string, " ~ gaussian(",
+          paste0(dim_param, " ~ gaussian(",
                  "mean = ", mean,
                  ", std = ", scale_string, sd, ")"))
     } else {
@@ -128,18 +155,18 @@ output_to_proposal <- function(wrapper, scale) {
       })
       bounds <- eval_bounds
 
-      if (sd_vec[param] == 0) {
+      if (sd_vec[dim_param] == 0) {
         ## no variation
         if (sum(!is.na(is.numeric(bounds))) == 2) {
           ## range / 10
-          sd_vec[param] <- diff(as.numeric(bounds)) / 10
+          sd_vec[dim_param] <- diff(as.numeric(bounds)) / 10
         } else {
-          sd_vec[param] <- 1
+          sd_vec[dim_param] <- 1
         }
       }
 
       proposal_lines <- c(proposal_lines,
-                          paste0(param_string, " ~ truncated_gaussian(",
+                          paste0(dim_param, " ~ truncated_gaussian(",
                                  "mean = ", mean, 
                                  ", std = ", scale_string, sd, 
                                  ifelse(length(bounds) > 0,
