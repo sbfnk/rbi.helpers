@@ -17,58 +17,60 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
   }
 
   model <- wrapper$model$clone()
-  params <- model$get_vars("param")
+  param_block <- model$get_block("parameter")
+  ## only go over variable parameters
+  params <- sub("[[:space:]]*~.*$", "", grep("~", param_block, value = TRUE))
   res <- bi_read(wrapper$result$output_file_name, vars = params)
 
   if (correlations) {
-  l <- list()
-  for (param in names(res)) {
-    y <- copy(res[[param]])
-    unique_dims <- unique(y[setdiff(colnames(y), c("np", "value"))])
-    if (!is.null(dim(unique_dims)))
-    {
-      a <- apply(unique_dims, 1, function(x) {
-        merge(t(x), y)
-      })
-      if (length(a))
-        names(a) <- unname(apply(unique_dims, 1, function(x) {
-          paste0(param, "[", paste(rev(x), collapse = ","), "]")
-        }))
-    } else
-    {
-      a <- list(y)
-      names(a) <- param
-    }
-
-    a <- lapply(names(a), function(x) {
-      for (col in colnames(unique_dims)) {
-        a[[x]][[col]] <- NULL
+    l <- list()
+    for (param in names(res)) {
+      y <- copy(res[[param]])
+      unique_dims <- unique(y[setdiff(colnames(y), c("np", "value"))])
+      if (sum(dim(unique_dims)) > 0)
+      {
+        a <- apply(unique_dims, 1, function(x) {
+          merge(t(x), y)
+        })
+        if (length(a))
+          names(a) <- unname(apply(unique_dims, 1, function(x) {
+            paste0(param, "[", paste(rev(x), collapse = ","), "]")
+          }))
+      } else
+      {
+        a <- list(y)
+        names(a) <- param
       }
-      setnames(a[[x]], "value", x)
-    })
-    l <- c(l, a)
-  }
 
-  if (length(l) > 1) {
-    wide <- l[[1]]
-    for (i in seq(2, length(l))) {
-      wide <- merge(wide, l[[i]])
+      a <- lapply(names(a), function(x) {
+        for (col in colnames(unique_dims)) {
+          a[[x]][[col]] <- NULL
+        }
+        setnames(a[[x]], "value", x)
+      })
+      l <- c(l, a)
     }
-  } else {
-    wide <- l
-  }
-  wide[["np"]] <- NULL
 
-  C <- cov(wide)
-  if (start) {
-    C[, ] <- 0
-  }
+    if (length(l) > 1) {
+      wide <- l[[1]]
+      for (i in seq(2, length(l))) {
+        wide <- merge(wide, l[[i]])
+      }
+    } else {
+      wide <- l
+    }
+    wide[["np"]] <- NULL
 
-  sd_vec <- sqrt(diag(C) - C[1, ]**2 / C[1, 1])
-  mean_scale <- C[1, ] / C[1, 1]
+    C <- cov(wide)
+    if (start) {
+      C[, ] <- 0
+    }
 
-  sd_vec[!is.finite(sd_vec)] <- 0
-  mean_scale[!is.finite(mean_scale)] <- 0
+    sd_vec <- sqrt(diag(C) - C[1, ]**2 / C[1, 1])
+    mean_scale <- C[1, ] / C[1, 1]
+
+    sd_vec[!is.finite(sd_vec)] <- 0
+    mean_scale[!is.finite(mean_scale)] <- 0
   } else {
     sd_vec <- sapply(params, function(p) {
       ifelse(length(res[[p]]) == 1, 0, sd(res[[p]]$value))
@@ -81,7 +83,6 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
     scale_string <- paste0(scale, " * ")
   }
 
-  param_block <- model$get_block("parameter")
   param_bounds <- sapply(params, function(param) {grep(paste0("^[[:space:]]*", param, "[[[:space:]][^~]*~"), param_block, value = TRUE)})
   variable_bounds <- param_bounds[sapply(param_bounds, function(x) {length(x) > 0})]
 
