@@ -18,7 +18,7 @@
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @export
-adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 1, add_options, samples, max_iter = 10, correlations = FALSE, ...) {
+adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, samples, max_iter = 10, correlations = FALSE, ...) {
 
   if (missing(add_options)) {
     add_options <- list()
@@ -32,9 +32,8 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 1, add_options, sample
 
   ## scale should be > 1 (it's a divider if acceptance rate is too
   ## small, multiplier if the acceptance Rate is too big)
-  if (scale < 1) scale <- 1 / scale 
+  if (scale < 1) scale <- 1 / scale
 
-  model <- output_to_proposal(wrapper, correlations = correlations)
   init_file <- wrapper$result$output_file_name
   init_np <- bi_dim_len(init_file, "np") - 1
 
@@ -49,31 +48,37 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 1, add_options, sample
   }
   add_options[["init-file"]] <- init_file
   add_options[["init-np"]] <- init_np
-  adapt_wrapper <-
-    wrapper$clone(model = model, run = TRUE, add_options = add_options, ...)
-  add_options[["init-file"]] <- adapt_wrapper$result$output_file_name
-  add_options[["init-np"]] <- samples - 1
-  iter <- 1
-  adapt_scale <- 1
-  accRate <- acceptance_rate(adapt_wrapper)
-  while ((min(accRate) < min | max(accRate) > max) && iter <= max_iter) {
-    if (min(accRate) < min) {
-      adapt_scale <- adapt_scale / scale
-    } else {
-      adapt_scale <- adapt_scale * scale
-    }
-    cat(date(), paste0("Acceptance rate ", min(accRate),
-                       ", adapting with scale ", adapt_scale, "\n"))
-    model <- output_to_proposal(adapt_wrapper, adapt_scale, correlations = correlations)
-    add_options[["init-file"]] <- adapt_wrapper$result$output_file_name
-    adapt_wrapper <-
-      adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options, ...)
-    mcmc_obj <- mcmc(get_traces(adapt_wrapper))
-    accRate <- acceptance_rate(adapt_wrapper)
-    iter <- iter + 1
+  accRate <- acceptance_rate(wrapper)
+  adapt_wrapper <- wrapper
+  shape_adapted <- FALSE
+  for (round in seq_len(1 + correlations)) {
+    iter <- 1
+    adapt_scale <- 1
+    while ((round == 2 && !shape_adapted) ||
+           (min(accRate) < min || max(accRate) > max) && iter <= max_iter) {
+      message(date(), " Acceptance rate ", min(accRate),
+              ", adapting ", ifelse(round == 1, "size", "shape"),
+              " with scale ", adapt_scale)
+      model <- output_to_proposal(adapt_wrapper, adapt_scale,
+                                  correlations = (round == 2))
+      add_options[["init-file"]] <- adapt_wrapper$result$output_file_name
+      add_options[["init-np"]] <- samples - 1
+      adapt_wrapper <-
+        adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options, ...)
+      mcmc_obj <- mcmc(get_traces(adapt_wrapper))
+      accRate <- acceptance_rate(adapt_wrapper)
+      iter <- iter + 1
+      if (min(accRate) < min) {
+        adapt_scale <- adapt_scale / scale
+      } else {
+        adapt_scale <- adapt_scale * scale
+      }
+      if (round == 2) shape_adapted <- TRUE
+     }
   }
-  cat(date(), "Acceptance rate:", min(accRate), "\n")
-  
+
+  message(date(), " Acceptance rate:", min(accRate))
+
   if (iter > max_iter) {
     warning("Maximum of iterations reached")
   }

@@ -20,6 +20,9 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
   param_block <- model$get_block("parameter")
   ## only go over variable parameters
   params <- sub("[[:space:]]*~.*$", "", grep("~", param_block, value = TRUE))
+  ## remove any dimensions
+  params <- gsub("[[:space:]]*\\[[^]]*\\]", "", params)
+  ## read parameters
   res <- bi_read(wrapper$result$output_file_name, vars = params)
 
   if (correlations) {
@@ -66,10 +69,11 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
       C[, ] <- 0
     }
 
-    sd_vec <- sqrt(diag(C) - C[1, ]**2 / C[1, 1])
+    sd_vec <- diag(C) - C[1, ]**2 / C[1, 1]
     mean_scale <- C[1, ] / C[1, 1]
 
     sd_vec[!is.finite(sd_vec)] <- 0
+    sd_vec <- sqrt(sd_vec)
     mean_scale[!is.finite(mean_scale)] <- 0
   } else {
     sd_vec <- sapply(params, function(p) {
@@ -194,8 +198,8 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
         proposal_lines <- c(proposal_lines,
                             paste0(ifelse(correlations, dim_param, param_string),
                                    " ~ truncated_gaussian(",
-                                   "mean = ", mean, 
-                                   ", std = ", scale_string, sd, 
+                                   "mean = ", mean,
+                                   ", std = ", scale_string, sd,
                                    ifelse(length(bounds) > 0,
                                           paste0(", ", paste(names(bounds), "=", bounds,
                                                              sep = " ", collapse = ", "),
