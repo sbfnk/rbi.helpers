@@ -8,7 +8,7 @@
 compute_DIC <- function(read, burn)
 {
     wrapper <- NULL
-    
+
     ## read data
     if ("libbi" %in% class(read))
     {
@@ -31,7 +31,7 @@ compute_DIC <- function(read, burn)
 
     ## convert to data.table
     res <- lapply(res, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
-    
+
     if (!missing(burn))
     {
         burned <- lapply(res, function(x) {
@@ -47,7 +47,7 @@ compute_DIC <- function(read, burn)
 
     ## effective number of parameters
     pd <- var(-2 * burned[["loglikelihood"]]$value) / 2
-    
+
     ## DIC
     return(mean_D + pd)
 }
