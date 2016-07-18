@@ -72,9 +72,10 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
     sd_vec <- diag(C) - C[1, ]**2 / C[1, 1]
     mean_scale <- C[1, ] / C[1, 1]
 
-    sd_vec[!is.finite(sd_vec)] <- 0
+    ## in case machine precision has made something < 0:
+    sd_vec[!(is.finite(sd_vec) && sd_vec > 0)] <- 0
+    mean_scale[!(is.finite(mean_scale) && mean_scale > 0)] <- 0
     sd_vec <- sqrt(sd_vec)
-    mean_scale[!is.finite(mean_scale)] <- 0
   } else {
     sd_vec <- sapply(params, function(p) {
       ifelse(length(res[[p]]) == 1, 0, sd(res[[p]]$value))
