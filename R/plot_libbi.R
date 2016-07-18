@@ -973,8 +973,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                              legend.position = "top")
             if (!missing(id))
             {
-                lp <- lp + geom_vline(data = data.frame(type = "Trace"),
-                                      xintercept = id)
+              lp <- lp + geom_vline(data = data.frame(type = "Trace"),
+                                    xintercept = ldt[np == id, value])
             }
         }
     }
