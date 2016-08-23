@@ -101,7 +101,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
       param_string <-
         sub(paste0("^[:space:]*(", param, "[^[:space:]~]*)[[:space:]~].*$"), "\\1", variable_bounds[param])
       param_bounds_string <-
-        sub("^.*(uniform|truncated_gaussian|truncated_normal)\\(([^\\)]+)\\).*$",
+        sub("^.*(uniform|truncated_gaussian|truncated_normal)\\((.*)\\)[[:space:]]*$",
             "\\1|\\2", variable_bounds[param])
 
       args <- strsplit(param_bounds_string, split = "\\|")
