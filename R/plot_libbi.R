@@ -113,9 +113,6 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         if ("libbi" %in% class(read))
         {
             model <- read$model
-        } else
-        {
-            stop("If 'read' is not a libbi object, 'model' must be given.")
         }
     } else
     {
@@ -165,8 +162,15 @@ plot_libbi <- function(read, model, prior, states, params, noises,
     p <- NULL
     if (missing(states))
     {
-        states <- c(model$get_vars("state"), model$get_vars("obs"))
-        given_states <- c()
+        if (missing(model))
+        {
+            states <- c()
+            given_states <- c()
+        } else
+        {
+            states <- c(model$get_vars("state"), model$get_vars("obs"))
+            given_states <- c()
+        }
     } else
     {
         given_states <- states
@@ -518,7 +522,13 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
     if (missing(params))
     {
-        params <- model$get_vars("param")
+        if (missing(model))
+        {
+            params <- c()
+        } else
+        {
+            params <- model$get_vars("param")
+        }
     }
 
     params <- intersect(names(res), params)
@@ -708,7 +718,13 @@ plot_libbi <- function(read, model, prior, states, params, noises,
     ndt <- NULL
     if (missing(noises))
     {
-        noises <- model$get_vars("noise")
+        if (missing(model))
+        {
+            noises <- c()
+        } else
+        {
+            noises <- model$get_vars("noise")
+        }
     }
 
     noises <- intersect(names(res), noises)
