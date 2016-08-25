@@ -602,12 +602,13 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 aesthetic <- c(aesthetic, extra.aes)
             }
 
+            black_prior <- FALSE
             if (!is.null(res_prior))
             {
                 if (!missing(extra.aes) && length(intersect(c("color", "fill"), names(extra.aes))) > 0)
                 {
-                    warning("'extra.aes' (with color or fill) and 'prior' given. Will ignore 'prior' as things will look a mess otherwise.")
-                    param_values[["prior"]] <- NULL
+                    ## if posterior is colourful, make prior black
+                    black_prior <- TRUE
                 } else
                 {
                     aesthetic <- c(aesthetic, list(color = "distribution", fill = "distribution"))
@@ -657,9 +658,16 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     cp <- NULL
                 }
 
-                dp <- ggplot(mapping = do.call(aes_string, aesthetic))
+                density_data <- pdt[varying == TRUE]
+                if (black_prior) {
+                    density_data <- density_data[distribution == "posterior"]
+                }
+                dp <- ggplot()
                 dp <- dp + facet_wrap(~ parameter, scales = "free")
-                dp <- dp + do.call(paste0("geom_", densities), c(list(data = pdt[varying == TRUE]), density_args))
+                dp <- dp + do.call(paste0("geom_", densities), c(list(mapping = do.call(aes_string, aesthetic), data = density_data), density_args))
+                if (black_prior) {
+                    dp <- dp + geom_line(data = pdt[varying == TRUE & distribution == "prior"], mapping = aes(x = value), stat = "density", color = "black", adjust = 2)
+                }
                 if (!missing(brewer.palette))
                 {
                     dp <- dp + scale_color_brewer(palette = brewer.palette)
