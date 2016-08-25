@@ -46,6 +46,7 @@ merge_parallel_runs <- function(dir, pattern, concatenate = FALSE)
             z <- rbindlist(lapply(seq_along(traces), function(y) {
                 dt <- data.table(traces[[y]][[x]])
                 dt[, unique_np := paste(np, y, sep = "_")]
+                dt[, run := y - 1]
             }))
             if (is.null(np_translate)) {
                 np_translate <-
