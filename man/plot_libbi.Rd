@@ -5,11 +5,11 @@
 \title{Plot results from libbi}
 \usage{
 plot_libbi(read, model, prior, states, params, noises, quantiles = c(0.5,
-  0.95), date.origin, date.unit, time.dim = "nr", data, id, extra.aes,
+  0.95), date.origin, date.unit, time.dim = "time", data, id, extra.aes,
   all.times = FALSE, hline, burn, steps = FALSE, select, shift,
   data.colour = "red", base.alpha = 0.5, trend = "median",
   densities = "density", density_args = list(), limit.to.data = FALSE,
-  brewer.palette, plot = TRUE, ...)
+  labels, brewer.palette, plot = TRUE, ...)
 }
 \arguments{
 \item{read}{Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}}
@@ -30,7 +30,7 @@ plot_libbi(read, model, prior, states, params, noises, quantiles = c(0.5,
 
 \item{date.unit}{unit of date (if desired, otherwise the time dimension will be used)}
 
-\item{time.dim}{time dimension ("nr" by default)}
+\item{time.dim}{time dimension ("time" by default)}
 
 \item{data}{data (with a "time" and "value" column)}
 
@@ -61,6 +61,8 @@ plot_libbi(read, model, prior, states, params, noises, quantiles = c(0.5,
 \item{density_args}{list of arguments to pass to density geometry}
 
 \item{limit.to.data}{whether to limit the time axis to times in the data}
+
+\item{labels}{facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs}
 
 \item{brewer.palette}{optional; brewer color palette}
 

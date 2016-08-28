@@ -4,12 +4,16 @@
 \alias{output_to_proposal}
 \title{Construct a proposal from run results}
 \usage{
-output_to_proposal(wrapper, scale)
+output_to_proposal(wrapper, scale, correlations = FALSE, start = FALSE)
 }
 \arguments{
 \item{wrapper}{a \code{\link{libbi}} which has been run}
 
 \item{scale}{a factor by which to scale all the standard deviations}
+
+\item{correlations}{whether to take into account correlations}
+
+\item{start}{whether this is the first attempt, in which case we'll use 1/10 of every bound, and 1 otherwise}
 }
 \value{
 the updated bi model

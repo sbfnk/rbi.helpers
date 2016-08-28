@@ -25,8 +25,7 @@ a \code{\link{libbi}} with the desired proposal distribution
 \description{
 This function takes the provided \code{\link{libbi}} and
   runs MCMC at a single point (i.e., repeatedly proposing the same paramters),
-  adapting the number of particles distribution until the desired 
-  acceptance rate is achieved. If a scale is given, it will be used
-  to adapt the number of particles at each iteration.
+  adapting the number of particles distribution until the variance of the likelihood
+  crosses one.
 }
 

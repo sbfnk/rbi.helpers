@@ -5,8 +5,8 @@
 \title{Adapt the proposal distribution of MCMC using the covariance
   of samples}
 \usage{
-adapt_mcmc(wrapper, min = 0, max = 1, scale = 1, add_options, samples,
-  max_iter = 10, ...)
+adapt_mcmc(wrapper, min = 0, max = 1, scale = 2, add_options, samples,
+  max_iter = 10, correlations = FALSE, ...)
 }
 \arguments{
 \item{wrapper}{\code{link{libbi}} (which has been run) to study}
@@ -23,6 +23,8 @@ will be inverted.}
 \item{samples}{number of samples to generate each iteration}
 
 \item{max_iter}{maximum of iterations (default: 10)}
+
+\item{correlations}{take into account correlations}
 
 \item{...}{parameters for libbi$run}
 }
