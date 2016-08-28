@@ -26,6 +26,7 @@
 ##' @param densities density geometry (e.g., "histogram")
 ##' @param density_args list of arguments to pass to density geometry
 ##' @param limit.to.data whether to limit the time axis to times in the data
+##' @param labels facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs
 ##' @param brewer.palette optional; brewer color palette
 ##' @param plot set to FALSE to suppress plot of trajectories
 ##' @param ... options for geom_step / geom_line / geom_point / etc.
@@ -43,7 +44,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                        shift, data.colour = "red", base.alpha = 0.5,
                        trend = "median", densities = "density",
                        density_args = list(), limit.to.data = FALSE,
-                       brewer.palette, plot = TRUE, ...)
+                       labels, brewer.palette, plot = TRUE, ...)
 {
     use_dates <- FALSE
     summarise_columns <- c("np", "time", "time_next")
@@ -62,6 +63,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             warning("date.origin given but no date.unit, will use time.dim instead")
         }
     }
+
+    if (missing(labels)) labels <- c()
 
     ret_data <- list()
     ## copy data table
@@ -290,7 +293,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 warning(paste("State", state, "does not exist"))
             }
         }
-        sdt[, state := factor(state, levels = unique(state))]
+        ## factorise columns
+        sdt <- factorise_columns(sdt, labels)
 
         if (!missing(data) && nrow(dataset) > 0)
         {
@@ -435,7 +439,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             if (length(states) > 1)
             {
                 p <- p + facet_wrap(~ state, scales = "free_y",
-                                    ncol = round(sqrt(length(states))))
+                                    ncol = round(sqrt(length(states))),
+                                    labeller = label_parsed)
             }
             if (!is.null(quantiles))
             {
@@ -585,7 +590,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         }
         if (nrow(pdt) > 0)
         {
-            pdt[, parameter := factor(parameter, levels = unique(parameter))]
+            ## factorise columns
+            pdt <- factorise_columns(pdt, labels)
 
             by.varying <- c("parameter", "distribution")
             if (!missing(extra.aes))
@@ -663,7 +669,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     density_data <- density_data[distribution == "posterior"]
                 }
                 dp <- ggplot()
-                dp <- dp + facet_wrap(~ parameter, scales = "free")
+                dp <- dp + facet_wrap(~ parameter, scales = "free",
+                                      labeller = label_parsed)
                 dp <- dp + do.call(paste0("geom_", densities), c(list(mapping = do.call(aes_string, aesthetic), data = density_data), density_args))
                 if (black_prior) {
                     dp <- dp + geom_line(data = pdt[varying == TRUE & distribution == "prior"], mapping = aes(x = value), stat = "density", color = "black", adjust = 2)
@@ -691,7 +698,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
                 tp <- ggplot(mapping = do.call(aes_string, aesthetic))
                 tp <- tp + geom_line(data = pdt[varying == TRUE & distribution == "posterior"])
-                tp <- tp + facet_wrap(~ parameter, scales = "free_y")
+                tp <- tp + facet_wrap(~ parameter, scales = "free_y",
+                                      labeller = label_parsed)
                 tp <- tp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
                 if (!missing(id))
@@ -804,7 +812,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
         }
 
-        ndt[, noise := factor(noise, levels = unique(noise))]
+        ndt <- factorise_columns(ndt, labels)
 
         noises_n <- ndt[, list(single = (.N == 1)), by = noise]
         ndt <- merge(ndt, noises_n, by = "noise", all.x = TRUE)
@@ -880,7 +888,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             if (length(noises) > 1)
             {
                 np <- np + facet_wrap(~ noise, scales = "free_y",
-                                      ncol = round(sqrt(length(states))))
+                                      ncol = round(sqrt(length(states))),
+                                      labeller = label_parsed)
             }
             if (!is.null(quantiles))
             {
