@@ -407,7 +407,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             if (!missing(extra.aes) && "color" %in% names(extra.aes) &&
                 !missing(id))
             {
-                sdt <- sdt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
+                aggregate_values <- aggregate_values[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
             }
             p <- ggplot(mapping = do.call(aes_string, aesthetic))
 
@@ -469,10 +469,10 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 }
                 if (!missing(id))
                 {
-                    p <- p + line_func(data = sdt[single == FALSE], mapping = aes(group = color_np), alpha = id_alpha, ...)
+                    p <- p + line_func(data = aggregate_values[single == FALSE], mapping = aes(group = color_np), alpha = id_alpha, ...)
                     if (nrow(sdt[single == TRUE]) > 0)
                     {
-                        p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = id_alpha, ...)
+                        p <- p + geom_point(data = aggregate_values[single == TRUE], aes(group = factor(np)), shape = 4, alpha = id_alpha, ...)
                     }
                 }
             } else
@@ -602,7 +602,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
             ret_data <- c(ret_data, list(params = pdt))
 
-            aesthetic <- list(x = "value")
+            aesthetic <- list(x = "value", y = "..density..")
             if (!missing(extra.aes))
             {
                 aesthetic <- c(aesthetic, extra.aes)
@@ -671,7 +671,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 dp <- ggplot()
                 dp <- dp + facet_wrap(~ parameter, scales = "free",
                                       labeller = label_parsed)
-                dp <- dp + do.call(paste0("geom_", densities), c(list(mapping = do.call(aes_string, aesthetic), data = density_data), density_args))
+                dp <- dp + do.call(paste0("geom_", densities), c(list(mapping = do.call(aes_string, aesthetic), data = density_data, position = "identity"),
+                                                                 density_args))
                 if (black_prior) {
                     dp <- dp + geom_line(data = pdt[varying == TRUE & distribution == "prior"], mapping = aes(x = value), stat = "density", color = "black", adjust = 2)
                 }
