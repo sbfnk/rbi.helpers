@@ -17,6 +17,24 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
   }
 
   model <- wrapper$model$clone()
+  ## get constant expressions
+  const_lines <- grep("^[[:space:]]*const", model$get_lines(), value = TRUE)
+  for (const_line in const_lines) {
+    line <-
+      gsub(" ", "", sub("^[[:space:]]*const[[:space:]]*", "", const_line))
+    assignment <- strsplit(line, "=")[[1]]
+    tryCatch(
+    {
+      assign(assignment[1], eval(parse(text = assignment[2])))
+    },
+    error = function(cond)
+    {
+      warning("Cannot convert const expression for ", assignemnt[1],
+              "into R expression")
+      warning("Original message: ", cond)
+    })
+  }
+  ## get parameters
   param_block <- model$get_block("parameter")
   ## only go over variable parameters
   params <- sub("[[:space:]]*~.*$", "", grep("~", param_block, value = TRUE))
@@ -164,7 +182,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
           bounds[which(is.na(bounds))][1] <- split_bound
         }
 
-        bounds <- gsub("(lower|upper)[[:space:]]*=[[:space::]]*", "", bounds)
+        bounds <- gsub("(lower|upper)[[:space:]]*=[[:space:]]*", "", bounds)
         bounds <- bounds[!is.na(bounds)]
 
         eval_bounds <- tryCatch(
