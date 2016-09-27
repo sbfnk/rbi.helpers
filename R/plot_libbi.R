@@ -31,7 +31,7 @@
 ##' @param plot set to FALSE to suppress plot of trajectories
 ##' @param ... options for geom_step / geom_line / geom_point / etc.
 ##' @return a list of plots
-##' @import ggplot2 scales reshape2
+##' @import ggplot2 scales reshape2 GGally
 ##' @importFrom lubridate wday %m+% years
 ##' @export
 ##' @author Sebastian Funk
@@ -645,21 +645,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     {
                         wpdt[, paste(extra_cols) := NULL]
                     }
-                    correlations <- data.table(melt(cor(wpdt)))
-                    correlations[, correlation := cut(value,
-                                                      breaks = c(seq(-1, 1, by = break_dist)))]
-                    ret_data <- c(ret_data, list(correlations = correlations))
-
-                    color_palette <-
-                        colorRampPalette(c("#3794bf", "#FFFFFF", "#df8640"))(2 / break_dist)
-
-                    cp <- ggplot(correlations, aes(x = Var1, y = Var2,
-                                                   fill = correlation))
-                    cp <- cp + geom_tile()
-                    cp <- cp + scale_fill_manual("Correlation", values = color_palette,
-                                                 limits = levels(correlations[, correlation]))
-                    cp <- cp + xlab("")
-                    cp <- cp + ylab("")
+                    cp <- cp + ggcorr()
                 } else {
                     cp <- NULL
                 }
