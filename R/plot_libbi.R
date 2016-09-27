@@ -407,7 +407,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             if (!missing(extra.aes) && "color" %in% names(extra.aes) &&
                 !missing(id))
             {
-                aggregate_values <- aggregate_values[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
+                sdt <- sdt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
             }
             p <- ggplot(mapping = do.call(aes_string, aesthetic))
 
@@ -469,7 +469,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 }
                 if (!missing(id))
                 {
-                    p <- p + line_func(data = aggregate_values[single == FALSE], mapping = aes(group = color_np), alpha = id_alpha, ...)
+                    p <- p + line_func(data = sdt[single == FALSE], mapping = aes(group = color_np), alpha = id_alpha, ...)
                     if (nrow(sdt[single == TRUE]) > 0)
                     {
                         p <- p + geom_point(data = aggregate_values[single == TRUE], aes(group = factor(np)), shape = 4, alpha = id_alpha, ...)
@@ -994,7 +994,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             if (!missing(id))
             {
               lp <- lp + geom_vline(data = data.frame(type = "Trace"),
-                                    xintercept = ldt[np == id, value])
+                                    xintercept = ldt[np %in% id, value])
             }
         }
     }
