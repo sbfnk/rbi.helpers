@@ -1,4 +1,4 @@
-Package: RBi.helpers
+Package: rbi.helpers
 Version: 0.2
 Date: 2016-05-04
 Title: RBi helper functions
@@ -6,7 +6,7 @@ Author: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
 Maintainer: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
 Depends:
     R,
-    RBi,
+    rbi,
     data.table
 Imports:
     ggplot2,
