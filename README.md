@@ -1,7 +1,7 @@
 rbi.helpers
 =============
 
-[![Build Status](https://travis-ci.org/sbfnk/rbi.helpers.png?branch=master)](https://travis-ci.org/sbfnk/rbi.helpers)
+[![Build Status](https://travis-ci.org/sbfnk/RBi.helpers.png?branch=master)](https://travis-ci.org/sbfnk/RBi.helpers)
   
 [rbi.helpers] (https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [rbi] (https://github.com/libbi/RBi), an R interface to [libbi] (https://github.com/libbi/LibBi), a library for Bayesian Inference.
 
