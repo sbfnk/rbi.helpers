@@ -2,10 +2,11 @@
 ##'
 ##' @param read either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
 ##' @param burn number of iterations to discard as burn-in (if any)
+##' @param bootstrap number of bootstrap samples to take, 0 to just take data
 ##' @return DIC
 ##' @export
 ##' @author Sebastian Funk
-compute_DIC <- function(read, burn)
+compute_DIC <- function(read, burn, bootstrap = 0)
 {
     wrapper <- NULL
 
