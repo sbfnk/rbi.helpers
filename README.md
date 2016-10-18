@@ -1,7 +1,9 @@
-RBi.helpers
+rbi.helpers
 =============
 
-[RBi.helpers] (https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [RBi] (https://github.com/libbi/RBi), an R interface to [libbi] (https://github.com/libbi/LibBi), a library for Bayesian Inference.
+[![Build Status](https://travis-ci.org/sbfnk/rbi.helpers.png?branch=master)](https://travis-ci.org/sbfnk/rbi.helpers)
+  
+[rbi.helpers] (https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [rbi] (https://github.com/libbi/RBi), an R interface to [libbi] (https://github.com/libbi/LibBi), a library for Bayesian Inference.
 
 It contains:
 - `acceptance_rate`, to calculate the acceptance rate of a pMCMC run
@@ -15,10 +17,10 @@ It contains:
 Installation
 =============
 
-The easiest way to install `RBi.helpers` is to use the `devtools` package:
+The easiest way to install `rbi.helpers` is to use the `devtools` package:
 
 ```r
 # install.packages("devtools")
 library(devtools)
-install_github("sbfnk/RBi.helpers")
+install_github("sbfnk/rbi.helpers")
 ```
