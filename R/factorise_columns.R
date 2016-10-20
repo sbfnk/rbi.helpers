@@ -21,7 +21,7 @@ factorise_columns <- function(df, labels)
         if (!missing(labels))
         {
             new_labels[which(new_labels %in% names(labels))] <-
-                labels[which(names(labels) %in% new_labels)]
+                labels[new_labels[which(new_labels %in% names(labels))]]
         }
         dt[, paste(column) := factor(get(column), levels = old_labels,
                                      labels = new_labels)]
