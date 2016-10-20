@@ -645,7 +645,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     {
                         wpdt[, paste(extra_cols) := NULL]
                     }
-                    cp <- cp + ggcorr()
+                    cp <- ggcorr(wpdt)
                 } else {
                     cp <- NULL
                 }
