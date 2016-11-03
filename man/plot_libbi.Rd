@@ -8,7 +8,7 @@ plot_libbi(read, model, prior, states, params, noises, quantiles = c(0.5,
   0.95), date.origin, date.unit, time.dim = "time", data, id, extra.aes,
   all.times = FALSE, hline, burn, steps = FALSE, select, shift,
   data.colour = "red", base.alpha = 0.5, trend = "median",
-  densities = "density", density_args = list(), limit.to.data = FALSE,
+  densities = "histogram", density_args = list(), limit.to.data = FALSE,
   labels, brewer.palette, plot = TRUE, ...)
 }
 \arguments{
@@ -56,7 +56,7 @@ plot_libbi(read, model, prior, states, params, noises, quantiles = c(0.5,
 
 \item{trend}{how the trend should be characterised (e.g., mean, median, or NULL for no trend line)}
 
-\item{densities}{density geometry (e.g., "histogram")}
+\item{densities}{density geometry (e.g., "histogram" (default) or "density")}
 
 \item{density_args}{list of arguments to pass to density geometry}
 

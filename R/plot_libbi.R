@@ -23,7 +23,7 @@
 ##' @param data.colour colour for plotting the data
 ##' @param base.alpha base alpha value for credible intervals
 ##' @param trend how the trend should be characterised (e.g., mean, median, or NULL for no trend line)
-##' @param densities density geometry (e.g., "histogram")
+##' @param densities density geometry (e.g., "histogram" (default) or "density")
 ##' @param density_args list of arguments to pass to density geometry
 ##' @param limit.to.data whether to limit the time axis to times in the data
 ##' @param labels facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs
@@ -42,7 +42,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                        all.times = FALSE, hline,
                        burn, steps = FALSE, select,
                        shift, data.colour = "red", base.alpha = 0.5,
-                       trend = "median", densities = "density",
+                       trend = "median", densities = "histogram",
                        density_args = list(), limit.to.data = FALSE,
                        labels, brewer.palette, plot = TRUE, ...)
 {
