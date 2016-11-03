@@ -10,6 +10,7 @@
 #' @param correlations whether to take into account correlations
 #' @param start whether this is the first attempt, in which case we'll use 1/10 of every bound, and 1 otherwise
 #' @importFrom data.table setnames
+#' @importFrom stats cov
 #' @return the updated bi model
 output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FALSE) {
 
@@ -26,7 +27,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
     assignment <- strsplit(line, "=")[[1]]
     tryCatch(
     {
-      assign(assignment[1], eval(parse(text = assignment[2])))
+      assign(assignment[1], eval(parse(text = assignment[2])), envir = .GlobalEnv)
     },
     error = function(cond)
     {
@@ -83,7 +84,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
     }
     wide[["np"]] <- NULL
 
-    C <- cov(wide)
+    C <- stats::cov(wide)
     if (start) {
       C[, ] <- 0
     }

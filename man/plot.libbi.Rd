@@ -4,7 +4,7 @@
 \alias{plot.libbi}
 \title{Plot routing for \code{libbi} objects}
 \usage{
-plot.libbi(obj, ...)
+\method{plot}{libbi}(obj, ...)
 }
 \arguments{
 \item{obj}{\code{libbi} object}

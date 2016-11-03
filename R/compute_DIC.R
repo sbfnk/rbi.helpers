@@ -4,7 +4,7 @@
 ##' @param burn number of iterations to discard as burn-in (if any)
 ##' @param bootstrap number of bootstrap samples to take, 0 to just take data
 ##' @return DIC
-##' @importFrom data.table data.table
+##' @import data.table
 ##' @importFrom stats var
 ##' @export
 ##' @author Sebastian Funk

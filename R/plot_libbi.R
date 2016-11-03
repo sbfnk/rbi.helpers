@@ -32,9 +32,8 @@
 ##' @param ... options for geom_step / geom_line / geom_point / etc.
 ##' @return a list of plots
 ##' @import ggplot2 scales data.table
-##' @importFrom lubridate wday %m+% years
+##' @importFrom lubridate %m+% years
 ##' @importFrom rbi bi_read bi_model
-##' @importFrom reshape2 dcast
 ##' @importFrom GGally ggcorr
 ##' @export
 ##' @author Sebastian Funk
@@ -641,9 +640,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                         cast_formula <- as.formula("np~parameter")
                     }
                     wpdt <-
-                      data.table::data.table(reshape2::dcast(pdt[varying == TRUE & distribution == "posterior"],
-                                                             cast_formula,
-                                                             value.var = "value"))
+                      data.table::data.table(data.table::dcast(pdt[varying == TRUE & distribution == "posterior"], cast_formula, value.var = "value"))
                     wpdt[, np := NULL]
                     if (length(extra_cols) > 0)
                     {
