@@ -5,7 +5,6 @@ Title: RBi helper functions
 Author: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
 Maintainer: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
 Depends:
-    R,
     rbi,
     data.table
 Imports:
