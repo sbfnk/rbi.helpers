@@ -7,7 +7,7 @@
 #' @param ... parameters to \code{\link{get_traces}} (especially 'run')
 #' @return acceptance rate
 #' @importFrom coda mcmc rejectionRate
-#' @importFrom coda rbi get_traces
+#' @importFrom rbi get_traces
 #' @export
 acceptance_rate <- function( ...) {
 

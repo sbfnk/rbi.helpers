@@ -31,9 +31,9 @@
 ##' @param plot set to FALSE to suppress plot of trajectories
 ##' @param ... options for geom_step / geom_line / geom_point / etc.
 ##' @return a list of plots
-##' @import ggplot2 scales
+##' @import ggplot2 scales data.table
 ##' @importFrom lubridate wday %m+% years
-##' @importFrom rbi bi_read
+##' @importFrom rbi bi_read bi_model
 ##' @importFrom reshape2 dcast
 ##' @importFrom GGally ggcorr
 ##' @export
@@ -124,10 +124,10 @@ plot_libbi <- function(read, model, prior, states, params, noises,
     {
         if ("libbi" %in% class(read))
         {
-            warning("'model' overwrites the model given in 'read'.x")
+            warning("'model' oggggverwrites the model given in 'read'.x")
         }
         if (is.character(model)) {
-            model <- bi_model(model)
+            model <- rbi::bi_model(model)
         } else if (!("bi_model" %in% class(model))) {
             stop("'model' must be either a 'bi_model' object or a path to a valid model file in LibBi's syntax")
         }
@@ -138,8 +138,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         ribbon_func <- function(mapping, ...)
         {
             if (missing(mapping)) mapping <- list()
-            mapping <- modifyList(mapping, aes_string(xmin = "time"))
-            mapping <- modifyList(mapping, aes_string(xmax = "time_next"))
+            mapping <- utils::modifyList(mapping, aes_string(xmin = "time"))
+            mapping <- utils::modifyList(mapping, aes_string(xmax = "time_next"))
             geom_rect(mapping, ...)
         }
         line_func <- geom_step
@@ -376,7 +376,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     sdt[, list(max = quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
                                   min = quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
                         by = state.by]
-                setnames(quantile_values, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
+                data.table::setnames(quantile_values, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
                 if (is.null(aggregate_values))
                 {
                     aggregate_values <- quantile_values
@@ -826,7 +826,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     ndt[, list(max = quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
                                min = quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
                         by = noise.by]
-                setnames(quantile_values, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
+                data.table::setnames(quantile_values, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
                 if (is.null(aggregate_noises))
                 {
                     aggregate_noises <- quantile_values
@@ -964,7 +964,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
             if (!("np" %in% colnames(values)))
             {
-                setnames(values, "time", "np")
+                data.table::setnames(values, "time", "np")
             }
 
             values[, density := ll]
