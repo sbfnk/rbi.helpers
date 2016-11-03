@@ -5,6 +5,7 @@
 ##' @param bootstrap number of bootstrap samples to take, 0 to just take data
 ##' @return DIC
 ##' @importFrom data.table data.table
+##' @importFrom stats var
 ##' @export
 ##' @author Sebastian Funk
 compute_DIC <- function(read, burn, bootstrap = 0)
@@ -48,7 +49,7 @@ compute_DIC <- function(read, burn, bootstrap = 0)
     mean_D <- mean(-2 * burned[["loglikelihood"]]$value)
 
     ## effective number of parameters
-    pd <- var(-2 * burned[["loglikelihood"]]$value) / 2
+    pd <- stats::var(-2 * burned[["loglikelihood"]]$value) / 2
 
     ## DIC
     return(mean_D + pd)

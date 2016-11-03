@@ -3,7 +3,7 @@
 ##' Optionally, can give new labels
 ##' @param df The data frame (or data table) to manipulate
 ##' @param labels (optionally), a character vector of new labels for the table elements; the names of the character vector should be (some or all of) the old elements
-##' @importFrom data.table data.table copy
+##' @import data.table
 ##' @return a data.table with updated columns
 factorise_columns <- function(df, labels)
 {

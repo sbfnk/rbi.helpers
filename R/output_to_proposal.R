@@ -9,6 +9,7 @@
 #' @param scale a factor by which to scale all the standard deviations
 #' @param correlations whether to take into account correlations
 #' @param start whether this is the first attempt, in which case we'll use 1/10 of every bound, and 1 otherwise
+#' @importFrom data.table setnames
 #' @return the updated bi model
 output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FALSE) {
 
@@ -67,7 +68,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
         for (col in colnames(unique_dims)) {
           a[[x]][[col]] <- NULL
         }
-        setnames(a[[x]], "value", x)
+        data.table::setnames(a[[x]], "value", x)
       })
       l <- c(l, a)
     }

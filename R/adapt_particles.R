@@ -11,8 +11,10 @@
 #' @param add_options list of additional options
 #' @param samples number of samples to generate each iteration
 #' @param ... parameters for libbi$run
-#' @importFrom coda mcmc rejectionRate effectiveSize
 #' @return a \code{\link{libbi}} with the desired proposal distribution
+#' @importFrom coda mcmc rejectionRate effectiveSize
+#' @importFrom rbi bi_model bi_dim_len bi_read
+#' @importFrom stats var
 #' @export
 adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, ...) {
 
@@ -36,7 +38,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, 
 
   test <- 2**(seq(floor(log(min, 2)), ceiling(log(max, 2))))
 
-  model <- bi_model(lines = wrapper$model$get_lines())
+  model <- rbi::bi_model(lines = wrapper$model$get_lines())
   model$remove_block("proposal_parameter")
   model$remove_block("proposal_initial")
   model$remove_block("parameter")
@@ -45,7 +47,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, 
   init_wrapper <- wrapper
 
   ## use last parameter value from output file
-  add_options[["init-np"]] <- bi_dim_len(wrapper$result$output_file_name, "np") - 1
+  add_options[["init-np"]] <- rbi::bi_dim_len(wrapper$result$output_file_name, "np") - 1
 
   if (missing(samples)) {
     if ("nsamples" %in% names(adapt_wrapper$global_options)) {
@@ -69,7 +71,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, 
                           init = init_wrapper, ...)
     add_options[["init-np"]] <- samples - 1
 
-    var_loglik <- c(var_loglik, var(bi_read(adapt_wrapper, "loglikelihood")$value))
+    var_loglik <- c(var_loglik, stats::var(rbi::bi_read(adapt_wrapper, "loglikelihood")$value))
 
     cat(date(), paste0(test[id], " particles, loglikelihod variance: ", var_loglik[id], "\n"))
 

@@ -18,6 +18,7 @@
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @importFrom coda mcmc
+#' @importFrom rbi bi_dim_len get_traces
 #' @export
 adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, samples, max_iter = 10, correlations = FALSE, ...) {
 
@@ -36,7 +37,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, sample
   if (scale < 1) scale <- 1 / scale
 
   init_file <- wrapper$result$output_file_name
-  init_np <- bi_dim_len(init_file, "np") - 1
+  init_np <- rbi::bi_dim_len(init_file, "np") - 1
 
   if (missing(samples)) {
     if ("nsamples" %in% names(wrapper$global_options)) {
@@ -66,7 +67,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, sample
       add_options[["init-np"]] <- samples - 1
       adapt_wrapper <-
         adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options, ...)
-      mcmc_obj <- coda::mcmc(get_traces(adapt_wrapper))
+      mcmc_obj <- coda::mcmc(rbi::get_traces(adapt_wrapper))
       accRate <- acceptance_rate(adapt_wrapper)
       iter <- iter + 1
       if (min(accRate) < min) {
