@@ -4,14 +4,12 @@
 \alias{compute_DIC}
 \title{Compute DIC for a libbi model}
 \usage{
-compute_DIC(read, burn, bootstrap = 0)
+compute_DIC(read, burn)
 }
 \arguments{
 \item{read}{either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}}
 
 \item{burn}{number of iterations to discard as burn-in (if any)}
-
-\item{bootstrap}{number of bootstrap samples to take, 0 to just take data}
 }
 \value{
 DIC
