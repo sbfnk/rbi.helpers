@@ -17,6 +17,7 @@
 #' @param correlations take into account correlations
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
+#' @importFrom coda mcmc
 #' @export
 adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, samples, max_iter = 10, correlations = FALSE, ...) {
 
@@ -65,7 +66,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, sample
       add_options[["init-np"]] <- samples - 1
       adapt_wrapper <-
         adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options, ...)
-      mcmc_obj <- mcmc(get_traces(adapt_wrapper))
+      mcmc_obj <- coda::mcmc(get_traces(adapt_wrapper))
       accRate <- acceptance_rate(adapt_wrapper)
       iter <- iter + 1
       if (min(accRate) < min) {

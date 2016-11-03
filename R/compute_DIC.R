@@ -4,6 +4,7 @@
 ##' @param burn number of iterations to discard as burn-in (if any)
 ##' @param bootstrap number of bootstrap samples to take, 0 to just take data
 ##' @return DIC
+##' @importFrom data.table data.table
 ##' @export
 ##' @author Sebastian Funk
 compute_DIC <- function(read, burn, bootstrap = 0)
@@ -31,7 +32,7 @@ compute_DIC <- function(read, burn, bootstrap = 0)
     }
 
     ## convert to data.table
-    res <- lapply(res, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
+    res <- lapply(res, function(x) { if (is.data.frame(x)) { data.table::data.table(x) } else {x} })
 
     if (!missing(burn))
     {

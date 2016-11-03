@@ -11,11 +11,12 @@
 #' @param client defaults to "sample"; this won't be needed in most cases but prevents a warning.
 #' @param ... further options to pass to \code{libbi}, e.g. global_options
 #' @return \code{\link{libbi}} object that can be analysed
+#' @importFrom rbi libbi
 #' @export
 recreate_libbi <- function(model, output_file_name, client = "sample", ...)
 {
 
-  wrapper <- libbi(client = "sample", model = model, ...)
+  wrapper <- rbi::libbi(client = "sample", model = model, ...)
   wrapper$result <- list(output_file_name = output_file_name)
   wrapper$run_flag <- TRUE
 

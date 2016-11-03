@@ -31,8 +31,11 @@
 ##' @param plot set to FALSE to suppress plot of trajectories
 ##' @param ... options for geom_step / geom_line / geom_point / etc.
 ##' @return a list of plots
-##' @import ggplot2 scales reshape2 GGally
+##' @import ggplot2 scales
 ##' @importFrom lubridate wday %m+% years
+##' @importFrom rbi bi_read
+##' @importFrom reshape2 dcast
+##' @importFrom ggAlly ggcorr
 ##' @export
 ##' @author Sebastian Funk
 plot_libbi <- function(read, model, prior, states, params, noises,
@@ -75,7 +78,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         {
             stop("The model should be run first")
         }
-        res <- bi_read(read)
+        res <- rbi::bi_read(read)
     } else if (is.data.frame(read))
     {
         res <- list(dummy = read)
@@ -86,7 +89,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
     {
         stop("'read' must be a 'libbi' object or a list of data frames or a data frame.")
     }
-    res <- lapply(res, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
+    res <- lapply(res, function(x) { if (is.data.frame(x)) { data.table::data.table(x) } else {x} })
 
     res_prior <- NULL
     if (!missing(prior))
@@ -108,7 +111,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         {
             stop("'prior' must be a 'libbi' object or a list of data frames or a data frame.")
         }
-        res_prior <- lapply(res_prior, function(x) { if (is.data.frame(x)) { data.table(x) } else {x} })
+        res_prior <- lapply(res_prior, function(x) { if (is.data.frame(x)) { data.table::data.table(x) } else {x} })
     }
 
     if (missing(model))
@@ -194,7 +197,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             if (length(setdiff(c("time", "value"), colnames(data))) > 0) {
                 stop("'data' does not have a 'time' and 'value' column.")
             } else {
-                dataset <- data.table(data)
+                dataset <- data.table::data.table(data)
             }
         }
 
@@ -280,7 +283,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     values[, paste(wo) := "n/a"]
                 }
 
-                new_states <- data.table(state = rep(state, nrow(values)), values)
+                new_states <- data.table::data.table(state = rep(state, nrow(values)), values)
                 if (is.null(sdt))
                 {
                     sdt <- new_states
@@ -514,9 +517,9 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         }
     }
 
-    pdt <- data.table(distribution = character(0),
-                      parameter = character(0), np = integer(0),
-                      value = numeric(0))
+    pdt <- data.table::data.table(distribution = character(0),
+                                  parameter = character(0), np = integer(0),
+                                  value = numeric(0))
     if (!missing(extra.aes))
     {
         for (extra in unique(unname(extra.aes)))
@@ -560,7 +563,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 values <- param_values[[dist]]
                 if (!("data.frame" %in% class(values)))
                 {
-                    values <- data.table(np = 0, value = values)
+                    values <- data.table::data.table(np = 0, value = values)
                 }
 
                 by.mean <- "np"
@@ -583,9 +586,9 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     values[, paste(wo) := "n/a"]
                 }
                 pdt <- rbind(pdt,
-                             data.table(distribution = dist,
-                                        parameter = rep(param, nrow(values)),
-                                        values))
+                             data.table::data.table(distribution = dist,
+                                                    parameter = rep(param, nrow(values)),
+                                                    values))
             }
         }
         if (nrow(pdt) > 0)
@@ -637,15 +640,16 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     {
                         cast_formula <- as.formula("np~parameter")
                     }
-                    wpdt <- data.table(dcast(pdt[varying == TRUE & distribution == "posterior"],
-                                             cast_formula,
-                                             value.var = "value"))
+                    wpdt <-
+                      data.table::data.table(reshape2::dcast(pdt[varying == TRUE & distribution == "posterior"],
+                                                             cast_formula,
+                                                             value.var = "value"))
                     wpdt[, np := NULL]
                     if (length(extra_cols) > 0)
                     {
                         wpdt[, paste(extra_cols) := NULL]
                     }
-                    cp <- ggcorr(wpdt)
+                    cp <- GGally::ggcorr(wpdt)
                 } else {
                     cp <- NULL
                 }
@@ -788,7 +792,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 values[, paste(wo) := "n/a"]
               }
 
-              new_noises <- data.table(noise = rep(noise, nrow(values)), values)
+              new_noises <- data.table::data.table(noise = rep(noise, nrow(values)), values)
               if (is.null(ndt))
               {
                 ndt <- new_noises
@@ -955,7 +959,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
             if (!("data.frame" %in% class(values)))
             {
-                values <- data.table(np = 0, value = values)
+                values <- data.table::data.table(np = 0, value = values)
             }
 
             if (!("np" %in% colnames(values)))

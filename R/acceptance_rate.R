@@ -10,8 +10,8 @@
 #' @export
 acceptance_rate <- function( ...) {
 
-  mcmc_obj <- mcmc(get_traces(...))
-  accRate <- max(1 - rejectionRate(mcmc_obj))
+  mcmc_obj <- coda::mcmc(get_traces(...))
+  accRate <- max(1 - coda::rejectionRate(mcmc_obj))
 
   return(accRate)
 }

@@ -12,7 +12,9 @@ Imports:
     ggplot2,
     lubridate,
     scales,
-    coda
+    coda,
+    GGally,
+    reshape2
 Suggests:
 Description: R helper functions for inference with libbi
 License: GPL (>= 3)
