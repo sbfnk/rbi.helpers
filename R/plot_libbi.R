@@ -35,7 +35,7 @@
 ##' @importFrom lubridate wday %m+% years
 ##' @importFrom rbi bi_read
 ##' @importFrom reshape2 dcast
-##' @importFrom ggAlly ggcorr
+##' @importFrom GGally ggcorr
 ##' @export
 ##' @author Sebastian Funk
 plot_libbi <- function(read, model, prior, states, params, noises,
