@@ -27,4 +27,5 @@ brew_packages:
 
 apt_packages:
   - libnetcdf-dev
+  - netcdf-bin
 
