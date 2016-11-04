@@ -10,6 +10,8 @@ It contains:
 - `adapt_particles`, to adapt the number of particles at a given point in parameter space.
 - `plot_libbi`, to plot libbi output
 - `compute_DIC`, to compute the DIC of a pMCMC run
+- `merge_parallel_runs`, to merge parallel MCMC runs
+- `sample_observations`, to sample observations
 - `acceptance_rate`, to calculate the acceptance rate of a pMCMC run
 - `recreate_libbi`, to create a libbi object from past runs
 
