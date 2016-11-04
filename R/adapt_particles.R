@@ -15,6 +15,13 @@
 #' @importFrom coda mcmc rejectionRate effectiveSize
 #' @importFrom rbi bi_model bi_dim_len bi_read
 #' @importFrom stats var
+#' @examples
+#' example_obs <- bi_read(system.file(package="rbi", "example_output.nc"))
+#' example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
+#' example_bi <- libbi(model = example_model, obs = example_obs)
+#' obs_states <- example_model$get_vars("obs")
+#' max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
+#' \dontrun{adapted <- adapt_particles(example_bi, samples = 128, end_time = max_time)}
 #' @export
 adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, ...) {
 

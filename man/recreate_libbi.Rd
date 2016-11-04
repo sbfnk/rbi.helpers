@@ -23,4 +23,9 @@ This function links a model and output file name of a previous run and
 returns a \code{\link{libbi}} object, so as to be able to pass it to analysis
 functions
 }
+\examples{
+example_run_file <- system.file(package="rbi.helpers", "example_run.nc")
+example_model_file <- system.file(package="rbi", "PZ.bi")
+example_bi <- recreate_libbi(example_model_file, example_run_file)
+}
 

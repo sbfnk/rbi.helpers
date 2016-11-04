@@ -1,47 +1,57 @@
-##' Plot results from libbi
-##'
-##' Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
-##' @param read Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
-##' @param model model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)
-##' @param prior optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
-##' @param states states to plot (if not given, all states will be plotted; if empty vector is passed, no states are plotted)
-##' @param params parameters to plot (if not given, all states will be plotted; if empty vector is passed, no parameters are plotted)
-##' @param noises noises to plot (if not given, all noises will be plotted; if empty vector is passed, no noises are plotted)
-##' @param quantiles if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)
-##' @param date.origin date of origin (if dates are to be calculated)
-##' @param date.unit unit of date (if desired, otherwise the time dimension will be used)
-##' @param time.dim time dimension ("time" by default)
-##' @param data data (with a "time" and "value" column)
-##' @param id one or more run ids to plot
-##' @param extra.aes extra aesthetics (for ggplot)
-##' @param all.times whether to plot all times (not only ones with data)
-##' @param hline horizontal marker lines, named vector in format (state = value)
-##' @param burn How many iterations to burn
-##' @param steps whether to plot lines as stepped lines
-##' @param select list of selection criteria
-##' @param shift list of dimensions to be shifted, and by how much
-##' @param data.colour colour for plotting the data
-##' @param base.alpha base alpha value for credible intervals
-##' @param trend how the trend should be characterised (e.g., mean, median, or NULL for no trend line)
-##' @param densities density geometry (e.g., "histogram" (default) or "density")
-##' @param density_args list of arguments to pass to density geometry
-##' @param limit.to.data whether to limit the time axis to times in the data
-##' @param labels facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs
-##' @param brewer.palette optional; brewer color palette
-##' @param plot set to FALSE to suppress plot of trajectories
-##' @param ... options for geom_step / geom_line / geom_point / etc.
-##' @return a list of plots
-##' @import ggplot2 scales data.table
-##' @importFrom lubridate %m+% years
-##' @importFrom rbi bi_read bi_model
-##' @importFrom stats quantile as.formula
-##' @importFrom GGally ggcorr
-##' @export
-##' @examples
-##' example_output_file <- system.file(package="rbi", "example_output.nc")
-##' example_output <- bi_read(example_output_file)
-##' plot_libbi(example_output)
-##' @author Sebastian Funk
+#' Plot results from libbi
+#'
+#' Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
+#' @param read Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
+#' @param model model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)
+#' @param prior optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
+#' @param states states to plot (if not given, all states will be plotted; if empty vector is passed, no states are plotted)
+#' @param params parameters to plot (if not given, all states will be plotted; if empty vector is passed, no parameters are plotted)
+#' @param noises noises to plot (if not given, all noises will be plotted; if empty vector is passed, no noises are plotted)
+#' @param quantiles if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)
+#' @param date.origin date of origin (if dates are to be calculated)
+#' @param date.unit unit of date (if desired, otherwise the time dimension will be used)
+#' @param time.dim time dimension ("time" by default)
+#' @param data data (with a "time" and "value" column)
+#' @param id one or more run ids to plot
+#' @param extra.aes extra aesthetics (for ggplot)
+#' @param all.times whether to plot all times (not only ones with data)
+#' @param hline horizontal marker lines, named vector in format (state = value)
+#' @param burn How many iterations to burn
+#' @param steps whether to plot lines as stepped lines
+#' @param select list of selection criteria
+#' @param shift list of dimensions to be shifted, and by how much
+#' @param data.colour colour for plotting the data
+#' @param base.alpha base alpha value for credible intervals
+#' @param trend how the trend should be characterised (e.g., mean, median, or NULL for no trend line)
+#' @param densities density geometry (e.g., "histogram" (default) or "density")
+#' @param density_args list of arguments to pass to density geometry
+#' @param limit.to.data whether to limit the time axis to times in the data
+#' @param labels facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs
+#' @param brewer.palette optional; brewer color palette
+#' @param plot set to FALSE to suppress plot of trajectories
+#' @param ... options for geom_step / geom_line / geom_point / etc.
+#' @return a list of plots: states, densities, traces, correlations, noises, likelihoods, as well as underlying raw and aggregate data
+#' @import ggplot2 scales data.table
+#' @importFrom lubridate %m+% years
+#' @importFrom rbi bi_read bi_model
+#' @importFrom stats quantile as.formula
+#' @importFrom GGally ggcorr
+#' @export
+#' @examples
+#' example_run_file <- system.file(package="rbi.helpers", "example_run.nc")
+#' example_model_file <- system.file(package="rbi", "PZ.bi")
+#' example_bi <- recreate_libbi(example_model_file, example_run_file)
+#'
+#' plot(example_bi) # just plot trajectories
+#' p <- plot(example_bi, plot = FALSE) # get whole suite of plots
+#'
+#' p$states
+#' p$densities
+#' p$traces
+#' p$correlations
+#' p$noises
+#' p$likelihoods
+#' @author Sebastian Funk
 plot_libbi <- function(read, model, prior, states, params, noises,
                        quantiles = c(0.5, 0.95),
                        date.origin, date.unit, time.dim = "time",

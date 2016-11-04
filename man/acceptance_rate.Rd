@@ -16,4 +16,13 @@ acceptance rate
 This function takes the provided \code{\link{libbi}} object which has been
 run, or a bi file, and returns a the acceptance rate
 }
+\examples{
+example_run_file <- system.file(package="rbi.helpers", "example_run.nc")
+example_model_file <- system.file(package="rbi", "PZ.bi")
+example_bi <- recreate_libbi(example_model_file, example_run_file)
+acceptance_rate(example_bi)
+}
+\author{
+Sebastian Funk
+}
 

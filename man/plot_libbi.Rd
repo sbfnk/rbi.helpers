@@ -71,15 +71,25 @@ plot_libbi(read, model, prior, states, params, noises, quantiles = c(0.5,
 \item{...}{options for geom_step / geom_line / geom_point / etc.}
 }
 \value{
-a list of plots
+a list of plots: states, densities, traces, correlations, noises, likelihoods, as well as underlying raw and aggregate data
 }
 \description{
 Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
 }
 \examples{
-example_output_file <- system.file(package="rbi", "example_output.nc")
-example_output <- bi_read(example_output_file)
-plot_libbi(example_output)
+example_run_file <- system.file(package="rbi.helpers", "example_run.nc")
+example_model_file <- system.file(package="rbi", "PZ.bi")
+example_bi <- recreate_libbi(example_model_file, example_run_file)
+
+plot(example_bi) # just plot trajectories
+p <- plot(example_bi, plot = FALSE) # get whole suite of plots
+
+p$states
+p$densities
+p$traces
+p$correlations
+p$noises
+p$likelihoods
 }
 \author{
 Sebastian Funk

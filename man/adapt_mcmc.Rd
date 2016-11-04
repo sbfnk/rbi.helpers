@@ -5,7 +5,7 @@
 \title{Adapt the proposal distribution of MCMC using the covariance
   of samples}
 \usage{
-adapt_mcmc(wrapper, min = 0, max = 1, scale = 2, add_options, samples,
+adapt_mcmc(wrapper, min = 0, max = 1, scale = 2, add_options, nsamples,
   max_iter = 10, correlations = FALSE, ...)
 }
 \arguments{
@@ -20,7 +20,7 @@ will be inverted.}
 
 \item{add_options}{list of additional options}
 
-\item{samples}{number of samples to generate each iteration}
+\item{nsamples}{number of samples to generate each iteration}
 
 \item{max_iter}{maximum of iterations (default: 10)}
 
@@ -36,5 +36,14 @@ This function takes the provided \code{\link{libbi}} object and
   runs MCMC, adapting the proposal distribution until the desired
   acceptance rate is achieved. If a scale is given, it will be used
   to adapt the proposal at each iteration
+}
+\examples{
+example_obs <- bi_read(system.file(package="rbi", "example_output.nc"))
+example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
+example_bi <- libbi(model = example_model, obs = example_obs)
+obs_states <- example_model$get_vars("obs")
+max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
+# adapt to acceptance rate between 0.1 and 0.5
+\dontrun{adapted <- adapt_mcmc(example_bi, nsamples = 100, end_time = max_time, min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 }
 

@@ -12,15 +12,23 @@
 #' @param scale scale multiplier/divider for the proposal. If >1 this
 #'   will be inverted.
 #' @param add_options list of additional options
-#' @param samples number of samples to generate each iteration
+#' @param nsamples number of samples to generate each iteration
 #' @param max_iter maximum of iterations (default: 10)
 #' @param correlations take into account correlations
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @importFrom coda mcmc
 #' @importFrom rbi bi_dim_len get_traces
+#' @examples
+#' example_obs <- bi_read(system.file(package="rbi", "example_output.nc"))
+#' example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
+#' example_bi <- libbi(model = example_model, obs = example_obs)
+#' obs_states <- example_model$get_vars("obs")
+#' max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
+#' # adapt to acceptance rate between 0.1 and 0.5
+#' \dontrun{adapted <- adapt_mcmc(example_bi, nsamples = 100, end_time = max_time, min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 #' @export
-adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, samples, max_iter = 10, correlations = FALSE, ...) {
+adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, nsamples, max_iter = 10, correlations = FALSE, ...) {
 
   if (missing(add_options)) {
     add_options <- list()
@@ -29,7 +37,8 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, sample
   }
 
   if (!wrapper$run_flag) {
-    stop("The model should be run first")
+    message(date(), " Initial trial run")
+    wrapper$run(...)
   }
 
   ## scale should be > 1 (it's a divider if acceptance rate is too
@@ -39,14 +48,14 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, sample
   init_file <- wrapper$result$output_file_name
   init_np <- rbi::bi_dim_len(init_file, "np") - 1
 
-  if (missing(samples)) {
+  if (missing(nsamples)) {
     if ("nsamples" %in% names(wrapper$global_options)) {
-      samples <- wrapper$global_options[["nsamples"]]
+      nsamples <- wrapper$global_options[["nsamples"]]
     } else {
-      stop("if 'nsamples' is not a global option, must provide 'samples'")
+      stop("must provide 'nsamples'")
     }
   } else {
-    add_options[["nsamples"]] <- samples
+    add_options[["nsamples"]] <- nsamples
   }
   add_options[["init-file"]] <- init_file
   add_options[["init-np"]] <- init_np
@@ -57,17 +66,20 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, sample
     iter <- 1
     adapt_scale <- 1
     while ((round == 2 && !shape_adapted) ||
-           (min(accRate) < min || max(accRate) > max) && iter <= max_iter) {
-      message(date(), " Acceptance rate ", min(accRate),
-              ", adapting ", ifelse(round == 1, "size", "shape"),
-              " with scale ", adapt_scale)
+           (min(accRate) < min || max(accRate) > max || !is.finite(accRate)) &&
+           iter <= max_iter) {
+      if (is.finite(accRate)) {
+        message(date(), " Acceptance rate ", min(accRate),
+                ", adapting ", ifelse(round == 1, "size", "shape"),
+                " with scale ", adapt_scale)
+      }
       model <- output_to_proposal(adapt_wrapper, adapt_scale,
                                   correlations = (round == 2))
-      add_options[["init-file"]] <- adapt_wrapper$result$output_file_name
-      add_options[["init-np"]] <- samples - 1
       adapt_wrapper <-
         adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options, ...)
       mcmc_obj <- coda::mcmc(rbi::get_traces(adapt_wrapper))
+      add_options[["init-file"]] <- adapt_wrapper$result$output_file_name
+      add_options[["init-np"]] <- nsamples - 1
       accRate <- acceptance_rate(adapt_wrapper)
       iter <- iter + 1
       if (min(accRate) < min) {
@@ -79,7 +91,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, sample
      }
   }
 
-  message(date(), " Acceptance rate:", min(accRate))
+  message(date(), " Acceptance rate: ", min(accRate))
 
   if (iter > max_iter) {
     warning("Maximum of iterations reached")
