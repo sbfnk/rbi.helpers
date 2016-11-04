@@ -4,10 +4,10 @@
 \alias{plot.libbi}
 \title{Plot routing for \code{libbi} objects}
 \usage{
-\method{plot}{libbi}(obj, ...)
+\method{plot}{libbi}(x, ...)
 }
 \arguments{
-\item{obj}{\code{libbi} object}
+\item{x}{\code{libbi} object}
 
 \item{...}{parameters to \code{\link{plot_libbi}}}
 }

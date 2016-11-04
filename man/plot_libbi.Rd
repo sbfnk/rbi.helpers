@@ -76,6 +76,11 @@ a list of plots
 \description{
 Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
 }
+\examples{
+example_output_file <- system.file(package="rbi", "example_output.nc")
+example_output <- bi_read(example_output_file)
+plot_libbi(example_output)
+}
 \author{
 Sebastian Funk
 }

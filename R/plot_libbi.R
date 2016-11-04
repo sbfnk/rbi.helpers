@@ -34,8 +34,13 @@
 ##' @import ggplot2 scales data.table
 ##' @importFrom lubridate %m+% years
 ##' @importFrom rbi bi_read bi_model
+##' @importFrom stats quantile as.formula
 ##' @importFrom GGally ggcorr
 ##' @export
+##' @examples
+##' example_output_file <- system.file(package="rbi", "example_output.nc")
+##' example_output <- bi_read(example_output_file)
+##' plot_libbi(example_output)
 ##' @author Sebastian Funk
 plot_libbi <- function(read, model, prior, states, params, noises,
                        quantiles = c(0.5, 0.95),
@@ -372,8 +377,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             for (i in seq_along(quantiles))
             {
                 quantile_values <-
-                    sdt[, list(max = quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
-                                  min = quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
+                    sdt[, list(max = stats::quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
+                                  min = stats::quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
                         by = state.by]
                 data.table::setnames(quantile_values, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
                 if (is.null(aggregate_values))
@@ -633,8 +638,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                     if (length(extra_cols) > 0)
                     {
                         cast_formula <-
-                            as.formula(paste(paste(c("np", extra_cols), collapse = " + "),
-                                             "parameter", sep = "~"))
+                            stats::as.formula(paste(paste(c("np", extra_cols), collapse = " + "), "parameter", sep = "~"))
                     } else
                     {
                         cast_formula <- as.formula("np~parameter")
@@ -820,8 +824,8 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             for (i in seq_along(quantiles))
             {
                 quantile_values <-
-                    ndt[, list(max = quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
-                               min = quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
+                    ndt[, list(max = stats::quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
+                               min = stats::quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
                         by = noise.by]
                 data.table::setnames(quantile_values, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
                 if (is.null(aggregate_noises))
@@ -1015,11 +1019,11 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
 ##' Plot routing for \code{libbi} objects
 ##'
-##' @param obj \code{libbi} object
+##' @param x \code{libbi} object
 ##' @param ... parameters to \code{\link{plot_libbi}}
 ##' @return a list of plots plot (see \code{\link{plot_libbi}})
 ##' @export
-plot.libbi <- function(obj, ...)
+plot.libbi <- function(x, ...)
 {
-    plot_libbi(obj, ...)
+    plot_libbi(x, ...)
 }
