@@ -8,7 +8,6 @@
 #' @param wrapper \code{\link{libbi}} (which has been run) to study
 #' @param min minimum number of particles
 #' @param max maximum number of particles
-#' @param add_options list of additional options
 #' @param samples number of samples to generate each iteration
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
@@ -23,7 +22,7 @@
 #' max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
 #' \dontrun{adapted <- adapt_particles(example_bi, samples = 128, end_time = max_time)}
 #' @export
-adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, ...) {
+adapt_particles <- function(wrapper, min = 1, max = 1024, samples, ...) {
 
   if (missing(add_options)) {
     add_options <- list()
@@ -32,7 +31,8 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, add_options, samples, 
   }
 
   if (!wrapper$run_flag) {
-    stop("The model should be run first")
+    message(date(), " Initial trial run")
+    wrapper$run(client = "sample", ...)
   }
 
   if (missing(min) && !is.null(wrapper$global_options[["nparticles"]]))
