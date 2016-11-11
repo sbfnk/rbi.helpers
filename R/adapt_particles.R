@@ -24,12 +24,6 @@
 #' @export
 adapt_particles <- function(wrapper, min = 1, max = 1024, samples, ...) {
 
-  if (missing(add_options)) {
-    add_options <- list()
-  } else if (!is.list(add_options)) {
-    stop("'add_options' must be given as list.")
-  }
-
   if (!wrapper$run_flag) {
     message(date(), " Initial trial run")
     wrapper$run(client = "sample", ...)
@@ -53,6 +47,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, samples, ...) {
   adapt_wrapper <- wrapper$clone(model = model)
   init_wrapper <- wrapper
 
+  add_options <- list()
   ## use last parameter value from output file
   add_options[["init-np"]] <- rbi::bi_dim_len(wrapper$result$output_file_name, "np") - 1
 
