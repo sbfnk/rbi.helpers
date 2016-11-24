@@ -4,7 +4,7 @@
 \alias{adapt_particles}
 \title{Adapt the number of particles}
 \usage{
-adapt_particles(wrapper, min = 1, max = 1024, add_options, samples, ...)
+adapt_particles(wrapper, min = 1, max = 1024, samples, ...)
 }
 \arguments{
 \item{wrapper}{\code{\link{libbi}} (which has been run) to study}
@@ -12,8 +12,6 @@ adapt_particles(wrapper, min = 1, max = 1024, add_options, samples, ...)
 \item{min}{minimum number of particles}
 
 \item{max}{maximum number of particles}
-
-\item{add_options}{list of additional options}
 
 \item{samples}{number of samples to generate each iteration}
 
