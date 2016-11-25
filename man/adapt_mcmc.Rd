@@ -44,6 +44,7 @@ example_bi <- libbi(model = example_model, obs = example_obs)
 obs_states <- example_model$get_vars("obs")
 max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
 # adapt to acceptance rate between 0.1 and 0.5
-\dontrun{adapted <- adapt_mcmc(example_bi, nsamples = 100, end_time = max_time, min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
+\dontrun{adapted <- adapt_mcmc(example_bi, nsamples = 100, end_time = max_time,
+                               min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 }
 
