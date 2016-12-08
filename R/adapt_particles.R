@@ -47,9 +47,9 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, samples, ...) {
   adapt_wrapper <- wrapper$clone(model = model)
   init_wrapper <- wrapper
 
-  add_options <- list()
+  options <- list()
   ## use last parameter value from output file
-  add_options[["init-np"]] <- rbi::bi_dim_len(wrapper$result$output_file_name, "np") - 1
+  options[["init-np"]] <- rbi::bi_dim_len(wrapper$result$output_file_name, "np") - 1
 
   if (missing(samples)) {
     if ("nsamples" %in% names(adapt_wrapper$global_options)) {
@@ -58,7 +58,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, samples, ...) {
       stop("if 'nsamples' is not a global option, must provide 'samples'")
     }
   } else {
-    add_options[["nsamples"]] <- samples
+    options[["nsamples"]] <- samples
   }
 
   accRate <- c()
@@ -67,15 +67,15 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, samples, ...) {
   id <- 0
   while (!found_good && id < length(test)) {
     id <- id + 1
-    add_options[["nparticles"]] <- test[id]
+    options[["nparticles"]] <- test[id]
     adapt_wrapper <-
-      adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options,
+      adapt_wrapper$clone(model = model, run = TRUE, options = options,
                           init = init_wrapper, ...)
-    add_options[["init-np"]] <- samples - 1
+    options[["init-np"]] <- samples - 1
 
     var_loglik <- c(var_loglik, stats::var(rbi::bi_read(adapt_wrapper, "loglikelihood")$value))
 
-    cat(date(), paste0(test[id], " particles, loglikelihod variance: ", var_loglik[id], "\n"))
+    message(date(), " ", test[id], " particles, loglikelihod variance: ", var_loglik[id])
 
     if (var_loglik[id] > 0) {
       init_wrapper <- adapt_wrapper
@@ -90,7 +90,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, samples, ...) {
   adapt_wrapper$global_options[["nparticles"]] <- test[id]
   adapt_wrapper$model <- wrapper$model
 
-  cat(date(), "Choosing ", test[id], " particles.\n")
+  message(date(), " Choosing ", test[id], " particles.")
 
   return(adapt_wrapper)
 }
