@@ -11,7 +11,7 @@
 #' @param max maximum acceptance rate
 #' @param scale scale multiplier/divider for the proposal. If >1 this
 #'   will be inverted.
-#' @param add_options list of additional options
+#' @param options list of additional options
 #' @param nsamples number of samples to generate each iteration
 #' @param max_iter maximum of iterations (default: 10)
 #' @param correlations take into account correlations
@@ -29,12 +29,12 @@
 #' \dontrun{adapted <- adapt_mcmc(example_bi, nsamples = 100, end_time = max_time,
 #'                                min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 #' @export
-adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, nsamples, max_iter = 10, correlations = FALSE, ...) {
+adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, options, nsamples, max_iter = 10, correlations = FALSE, ...) {
 
-  if (missing(add_options)) {
-    add_options <- list()
-  } else if (!is.list(add_options)) {
-    stop("'add_options' must be given as list.")
+  if (missing(options)) {
+    options <- list()
+  } else if (!is.list(options)) {
+    stop("'options' must be given as list.")
   }
 
   if (!wrapper$run_flag) {
@@ -56,10 +56,10 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, nsampl
       stop("must provide 'nsamples'")
     }
   } else {
-    add_options[["nsamples"]] <- nsamples
+    options[["nsamples"]] <- nsamples
   }
-  add_options[["init-file"]] <- init_file
-  add_options[["init-np"]] <- init_np
+  options[["init-file"]] <- init_file
+  options[["init-np"]] <- init_np
   accRate <- acceptance_rate(wrapper)
   adapt_wrapper <- wrapper
   shape_adapted <- FALSE
@@ -77,10 +77,10 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, add_options, nsampl
       model <- output_to_proposal(adapt_wrapper, adapt_scale,
                                   correlations = (round == 2))
       adapt_wrapper <-
-        adapt_wrapper$clone(model = model, run = TRUE, add_options = add_options, ...)
+        adapt_wrapper$clone(model = model, run = TRUE, options = options, ...)
       mcmc_obj <- coda::mcmc(rbi::get_traces(adapt_wrapper))
-      add_options[["init-file"]] <- adapt_wrapper$result$output_file_name
-      add_options[["init-np"]] <- nsamples - 1
+      options[["init-file"]] <- adapt_wrapper$result$output_file_name
+      options[["init-np"]] <- nsamples - 1
       accRate <- acceptance_rate(adapt_wrapper)
       iter <- iter + 1
       if (min(accRate) < min) {
