@@ -27,7 +27,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
     assignment <- strsplit(line, "=")[[1]]
     tryCatch(
     {
-      assign(assignment[1], eval(parse(text = assignment[2])), envir = .GlobalEnv)
+      assign(assignment[1], eval(parse(text = assignment[2])))
     },
     error = function(cond)
     {
