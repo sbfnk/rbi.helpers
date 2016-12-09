@@ -4,17 +4,17 @@
 \alias{plot_libbi}
 \title{Plot results from libbi}
 \usage{
-plot_libbi(read, model, prior, states, params, noises, quantiles = c(0.5,
-  0.95), date.origin, date.unit, time.dim = "time", data, id, extra.aes,
+plot_libbi(data, model, prior, states, params, noises, quantiles = c(0.5,
+  0.95), date.origin, date.unit, time.dim = "time", obs, id, extra.aes,
   all.times = FALSE, hline, burn, steps = FALSE, select, shift,
   data.colour = "red", base.alpha = 0.5, trend = "median",
-  densities = "histogram", density_args = list(), limit.to.data = FALSE,
+  densities = "histogram", density_args = list(), limit.to.obs = FALSE,
   labels, brewer.palette, plot = TRUE, ...)
 }
 \arguments{
-\item{read}{Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}}
+\item{data}{Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}, or the name of an NetCDF file used as 'output' in a libbi run}
 
-\item{model}{model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)}
+\item{model}{model file or a \code{bi_model} object (if \code{data} is not a \code{libbi} object)}
 
 \item{prior}{optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}}
 
@@ -32,13 +32,13 @@ plot_libbi(read, model, prior, states, params, noises, quantiles = c(0.5,
 
 \item{time.dim}{time dimension ("time" by default)}
 
-\item{data}{data (with a "time" and "value" column)}
+\item{obs}{observations (a named list of data frames, a \code{libbi} object with observations, or a NetCDF file name)}
 
 \item{id}{one or more run ids to plot}
 
 \item{extra.aes}{extra aesthetics (for ggplot)}
 
-\item{all.times}{whether to plot all times (not only ones with data)}
+\item{all.times}{whether to plot all times (not only ones with observations)}
 
 \item{hline}{horizontal marker lines, named vector in format (state = value)}
 
@@ -50,8 +50,6 @@ plot_libbi(read, model, prior, states, params, noises, quantiles = c(0.5,
 
 \item{shift}{list of dimensions to be shifted, and by how much}
 
-\item{data.colour}{colour for plotting the data}
-
 \item{base.alpha}{base alpha value for credible intervals}
 
 \item{trend}{how the trend should be characterised (e.g., mean, median, or NULL for no trend line)}
@@ -60,7 +58,7 @@ plot_libbi(read, model, prior, states, params, noises, quantiles = c(0.5,
 
 \item{density_args}{list of arguments to pass to density geometry}
 
-\item{limit.to.data}{whether to limit the time axis to times in the data}
+\item{limit.to.obs}{whether to limit the time axis to times with observations}
 
 \item{labels}{facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs}
 
@@ -69,6 +67,8 @@ plot_libbi(read, model, prior, states, params, noises, quantiles = c(0.5,
 \item{plot}{set to FALSE to suppress plot of trajectories}
 
 \item{...}{options for geom_step / geom_line / geom_point / etc.}
+
+\item{obs.colour}{colour for plotting the observations}
 }
 \value{
 a list of plots: states, densities, traces, correlations, noises, likelihoods, as well as underlying raw and aggregate data
