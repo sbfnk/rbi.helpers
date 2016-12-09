@@ -1,8 +1,8 @@
 #' Plot results from libbi
 #'
 #' Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
-#' @param read Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
-#' @param model model file or a \code{bi_model} object (if \code{read} is not a \code{libbi} object)
+#' @param data Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}, or the name of an NetCDF file used as 'output' in a libbi run
+#' @param model model file or a \code{bi_model} object (if \code{data} is not a \code{libbi} object)
 #' @param prior optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
 #' @param states states to plot (if not given, all states will be plotted; if empty vector is passed, no states are plotted)
 #' @param params parameters to plot (if not given, all states will be plotted; if empty vector is passed, no parameters are plotted)
@@ -11,21 +11,21 @@
 #' @param date.origin date of origin (if dates are to be calculated)
 #' @param date.unit unit of date (if desired, otherwise the time dimension will be used)
 #' @param time.dim time dimension ("time" by default)
-#' @param data data (with a "time" and "value" column)
+#' @param obs observations (a named list of data frames, a \code{libbi} object with observations, or a NetCDF file name)
 #' @param id one or more run ids to plot
 #' @param extra.aes extra aesthetics (for ggplot)
-#' @param all.times whether to plot all times (not only ones with data)
+#' @param all.times whether to plot all times (not only ones with observations)
 #' @param hline horizontal marker lines, named vector in format (state = value)
 #' @param burn How many iterations to burn
 #' @param steps whether to plot lines as stepped lines
 #' @param select list of selection criteria
 #' @param shift list of dimensions to be shifted, and by how much
-#' @param data.colour colour for plotting the data
+#' @param obs.colour colour for plotting the observations
 #' @param base.alpha base alpha value for credible intervals
 #' @param trend how the trend should be characterised (e.g., mean, median, or NULL for no trend line)
 #' @param densities density geometry (e.g., "histogram" (default) or "density")
 #' @param density_args list of arguments to pass to density geometry
-#' @param limit.to.data whether to limit the time axis to times in the data
+#' @param limit.to.obs whether to limit the time axis to times with observations
 #' @param labels facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs
 #' @param brewer.palette optional; brewer color palette
 #' @param plot set to FALSE to suppress plot of trajectories
@@ -52,15 +52,15 @@
 #' p$noises
 #' p$likelihoods
 #' @author Sebastian Funk
-plot_libbi <- function(read, model, prior, states, params, noises,
+plot_libbi <- function(data, model, prior, states, params, noises,
                        quantiles = c(0.5, 0.95),
                        date.origin, date.unit, time.dim = "time",
-                       data, id, extra.aes,
+                       obs, id, extra.aes,
                        all.times = FALSE, hline,
                        burn, steps = FALSE, select,
                        shift, data.colour = "red", base.alpha = 0.5,
                        trend = "median", densities = "histogram",
-                       density_args = list(), limit.to.data = FALSE,
+                       density_args = list(), limit.to.obs = FALSE,
                        labels, brewer.palette, plot = TRUE, ...)
 {
     use_dates <- FALSE
@@ -84,61 +84,66 @@ plot_libbi <- function(read, model, prior, states, params, noises,
     if (missing(labels)) labels <- c()
 
     ret_data <- list()
-    ## copy data table
 
-    if ("libbi" %in% class(read))
+    clean_data <- function(x, name, use.read=TRUE)
     {
-        if (!read$run_flag)
+        if ("libbi" %in% class(x))
         {
-            stop("The model should be run first")
-        }
-        res <- rbi::bi_read(read)
-    } else if (is.data.frame(read))
-    {
-        res <- list(dummy = read)
-    } else if (is.list(read))
-    {
-        res <- read
-    } else
-    {
-        stop("'read' must be a 'libbi' object or a list of data frames or a data frame.")
-    }
-    res <- lapply(res, function(x) { if (is.data.frame(x)) { data.table::data.table(x) } else {x} })
-
-    res_prior <- NULL
-    if (!missing(prior))
-    {
-        if ("libbi" %in% class(prior))
-        {
-            if (!prior$run_flag)
+            if (!x$run_flag)
             {
-                stop("The model should be run first")
+                stop("The model in '", name, "'should be run first")
             }
-            res_prior <- bi_read(prior)
-        } else if (is.data.frame(prior))
+            if (use.read)
+            {
+                x <- rbi::bi_read(x)
+            } else
+            {
+                opt_name <- paste(name, "file", sep="-")
+                if (!is.null(x[["options"]]) &&
+                    !is.null(x[["options"]][[opt_name]]))
+                {
+                    x <- rbi::bi_read(x[[]])
+                } else
+                {
+                    stop("No ", opt_name, " found.")
+                }
+            }
+        } else if (is.data.frame(x))
         {
-            res_prior <- list(dummy = prior)
-        } else if (is.list(prior))
+            x <- list(.state = x)
+        } else if (is.list(x))
         {
-            res_prior <- prior
+            x <- x
+        } else if (is.character(x))
+        {
+            x <- rbi::bi_read(x)
         } else
         {
-            stop("'prior' must be a 'libbi' object or a list of data frames or a data frame.")
+            stop("'", name, "' must be a 'libbi' object or a list of data frames or a data frame.")
         }
-        res_prior <- lapply(res_prior, function(x) { if (is.data.frame(x)) { data.table::data.table(x) } else {x} })
+        x <- lapply(x, function(y) { if (is.data.frame(y)) { data.table::data.table(y) } else {y} })
+    }
+
+    data <- clean_data(data, "data")
+    if (!missing(prior)) prior <- clean_data(prior, "prior")
+    if ((missing(obs) && "libbi" %in% class(data) &&
+         !is.null(x[["options"]]) && !is.null(x[["options"]][[opt_name]])) ||
+        !missing(obs))
+    {
+        obs <- clean_data(obs, "obs", use.read=FALSE)
     }
 
     if (missing(model))
     {
-        if ("libbi" %in% class(read))
+        if ("libbi" %in% class(data))
         {
-            model <- read$model
+            model <- data$model
         }
     } else
     {
-        if ("libbi" %in% class(read))
+        if ("libbi" %in% class(data))
         {
-            warning("'model' oggggverwrites the model given in 'read'.x")
+            warning("'model' overwrites the model given in 'data'.")
         }
         if (is.character(model)) {
             model <- rbi::bi_model(model)
@@ -196,7 +201,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         given_states <- states
     }
 
-    states <- intersect(names(res), states)
+    states <- intersect(names(data), states)
 
     missing_states <- setdiff(given_states, states)
     if (length(missing_states) > 0)
@@ -206,21 +211,12 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
     if (length(states) > 0)
     {
-        if (!missing(data))
-        {
-            if (length(setdiff(c("time", "value"), colnames(data))) > 0) {
-                stop("'data' does not have a 'time' and 'value' column.")
-            } else {
-                dataset <- data.table::data.table(data)
-            }
-        }
-
         for (state in states)
         {
-          if (state %in% names(res) && nrow(res[[state]]) > 0)
+          if (state %in% names(data) && nrow(data[[state]]) > 0)
             {
-                values <- res[[state]]
-                if ("np" %in% colnames(res[[state]]))
+                values <- data[[state]]
+                if ("np" %in% colnames(data[[state]]))
                 {
                     values <- values[np >= burn]
                     if (nrow(values) == 0) {
@@ -305,7 +301,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 {
                     sdt <- rbind(sdt, new_states)
                 }
-            } else if (state != "dummy")
+            } else if (state != ".state")
             {
                 warning(paste("State", state, "does not exist"))
             }
@@ -313,15 +309,22 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         ## factorise columns
         sdt <- factorise_columns(sdt, labels)
 
-        if (!missing(data) && nrow(dataset) > 0)
+        if (!missing(obs))
         {
+            dataset <- lapply(names(obs), function(x) {obs[[x]][, state := x]})
+            dataset <- rbindlist(dataset, fill=TRUE)
+            for (col in colnames(dataset))
+            {
+                dataset[is.na(get(col)), paste(col) := "n/a"]
+            }
+
             if (nrow(dataset) > 0)
             {
                 if (!missing(select))
                 {
                     for (var_name in names(select))
                     {
-                        if (var_name %in% unique(sdt[, state]))
+                        if (var_name %in% colnames(dataset))
                         {
                             dataset <- dataset[get(var_name) %in% select[[var_name]]]
                             if (class(values[, get(var_name)]) == "factor")
@@ -334,17 +337,17 @@ plot_libbi <- function(read, model, prior, states, params, noises,
 
                 if (!all.times && nrow(sdt) > 0)
                 {
-                    if (limit.to.data)
+                    if (limit.to.obs)
                     {
-                        ## for all states, only retain times in data
+                        ## for all states, only retain times with observations
                         sdt <- sdt[time %in% dataset[, time]]
                     } else
                     {
-                        for (data_state in unique(dataset[, state]))
+                        for (obs_state in unique(dataset[, state]))
                         {
-                            ## for states in dataset, only retain times in data
-                            sdt <- sdt[(state != data_state) |
-                                       (time %in% dataset[state == data_state, time])]
+                            ## for states in observations, only retain times with observations
+                            sdt <- sdt[(state != obs_state) |
+                                       (time %in% dataset[state == obs_state, time])]
                         }
                     }
                 }
@@ -358,7 +361,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 {
                     dataset[, paste(missing_column) := "n/a"]
                 }
-                ret_data <- c(ret_data, list(data = dataset))
+                ret_data <- c(ret_data, list(obs = dataset))
             }
         }
 
@@ -512,14 +515,14 @@ plot_libbi <- function(read, model, prior, states, params, noises,
                 p <- p + scale_fill_brewer(palette = brewer.palette)
             }
             p <- p + expand_limits(y = 0)
-            if (!missing(data) && nrow(dataset) > 0)
+            if (!missing(obs) && nrow(dataset) > 0)
             {
                 if (!missing(extra.aes) && "color" %in% names(extra.aes))
                 {
                     p <- p + geom_point(data = dataset)
                 } else
                 {
-                    p <- p + geom_point(data = dataset, color = data.colour, size = 2)
+                    p <- p + geom_point(data = dataset, color = obs.colour, size = 2)
                 }
             }
             p <- p + theme(axis.text.x = element_text(angle = 45, hjust = 1),
@@ -553,23 +556,23 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         }
     }
 
-    params <- intersect(names(res), params)
+    params <- intersect(names(data), params)
 
     if (length(params) > 0)
     {
         for (param in params)
         {
             param_values <- list()
-            param_values[["posterior"]] <- res[[param]]
-            if ("np" %in% colnames(res[[param]]))
+            param_values[["posterior"]] <- data[[param]]
+            if ("np" %in% colnames(data[[param]]))
             {
                 param_values[["posterior"]] <-
                     param_values[["posterior"]][np >= burn]
             }
 
-            if (!is.null(res_prior) && param %in% names(res_prior))
+            if (!missing(prior) && param %in% names(prior))
             {
-                param_values[["prior"]] <- res_prior[[param]]
+                param_values[["prior"]] <- prior[[param]]
             }
 
             for (dist in names(param_values))
@@ -626,7 +629,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             }
 
             black_prior <- FALSE
-            if (!is.null(res_prior))
+            if (!missing(prior))
             {
                 if (!missing(extra.aes) && length(intersect(c("color", "fill"), names(extra.aes))) > 0)
                 {
@@ -745,16 +748,16 @@ plot_libbi <- function(read, model, prior, states, params, noises,
         }
     }
 
-    noises <- intersect(names(res), noises)
+    noises <- intersect(names(data), noises)
 
     if (length(noises) > 0)
     {
         for (noise in noises)
         {
-            if (noise %in% names(res))
+            if (noise %in% names(data))
             {
-              values <- res[[noise]]
-                if ("np" %in% colnames(res[[noise]]))
+              values <- data[[noise]]
+                if ("np" %in% colnames(data[[noise]]))
                 {
                     values <- values[np >= burn]
                 }
@@ -867,7 +870,7 @@ plot_libbi <- function(read, model, prior, states, params, noises,
             ndt <- ndt[np %in% id]
         }
 
-        if (!missing(data) && nrow(dataset) > 0 && !all.times)
+        if (!missing(obs) && nrow(dataset) > 0 && !all.times)
         {
             ndt <- ndt[(time >= min(dataset[, time])) & (time <= max(dataset[, time]))]
         }
@@ -956,14 +959,14 @@ plot_libbi <- function(read, model, prior, states, params, noises,
     }
 
     lp <- NULL
-    likelihoods <- intersect(names(res), c("loglikelihood", "logprior"))
+    likelihoods <- intersect(names(data), c("loglikelihood", "logprior"))
     if (length(likelihoods) > 0)
     {
         ldt <- NULL
         for (ll in likelihoods)
         {
-            values <- res[[ll]]
-            if ("np" %in% colnames(res[[ll]]))
+            values <- data[[ll]]
+            if ("np" %in% colnames(data[[ll]]))
             {
                 values <- values[np >= burn]
             }
