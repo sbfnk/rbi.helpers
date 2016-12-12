@@ -1,14 +1,15 @@
 #' @rdname adapt_particles
 #' @name adapt_particles
-#' @title Adapt the number of particles 
+#' @title Adapt the number of particles
 #' @description This function takes the provided \code{\link{libbi}} and
 #'   runs MCMC at a single point (i.e., repeatedly proposing the same paramters),
-#'   adapting the number of particles distribution until the variance of the likelihood
-#'   crosses one.
+#'   adapting the number of particles distribution until the variance of the log-likelihood
+#'   crosses the value given as \code{target.variance} (1 by default).
 #' @param wrapper \code{\link{libbi}} (which has been run) to study
 #' @param min minimum number of particles
 #' @param max maximum number of particles
-#' @param samples number of samples to generate each iteration
+#' @param samples number of samples to generate each iteration; if not give, will use what has been set in \code{wrapper}
+#' @param target.variance target log-likelihood variance; once this is crossed, the current number of particles will be used
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @importFrom coda mcmc rejectionRate effectiveSize
@@ -22,7 +23,7 @@
 #' max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
 #' \dontrun{adapted <- adapt_particles(example_bi, samples = 128, end_time = max_time)}
 #' @export
-adapt_particles <- function(wrapper, min = 1, max = 1024, samples, ...) {
+adapt_particles <- function(wrapper, min = 1, max = 1024, samples, target.variance = 1, ...) {
 
   if (!wrapper$run_flag) {
     message(date(), " Initial trial run")
@@ -79,8 +80,8 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, samples, ...) {
 
     if (var_loglik[id] > 0) {
       init_wrapper <- adapt_wrapper
-      if (var_loglik[id] < 1) {
-      ## choose smallest var-loglikelihood < 1
+      if (var_loglik[id] < target.variance) {
+      ## choose smallest var-loglikelihood < target.variance
         found_good <- TRUE
         if (id > 1) id <- id - 1
       }
