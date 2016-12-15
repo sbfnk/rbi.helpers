@@ -58,7 +58,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                        obs, id, extra.aes,
                        all.times = FALSE, hline,
                        burn, steps = FALSE, select,
-                       shift, data.colour = "red", base.alpha = 0.5,
+                       shift, obs.colour = "red", base.alpha = 0.5,
                        trend = "median", densities = "histogram",
                        density_args = list(), limit.to.obs = FALSE,
                        labels, brewer.palette, plot = TRUE, ...)
@@ -84,6 +84,38 @@ plot_libbi <- function(data, model, prior, states, params, noises,
     if (missing(labels)) labels <- c()
 
     ret_data <- list()
+
+    if (missing(obs))
+    {
+        if ("libbi" %in% class(data) &&
+            !is.null(data[["options"]]) &&
+            !is.null(data[["options"]][["obs-file"]]))
+        {
+            ## if obs is missing but a libbi object passed, get obs file from
+            ## the object
+            obs <- bi_read(data[["options"]][["obs-file"]],
+                           vars=data[["model"]]$get_vars("obs"))
+        }
+    }
+
+    if (missing(model))
+    {
+        if ("libbi" %in% class(data))
+        {
+            model <- data$model
+        }
+    } else
+    {
+        if ("libbi" %in% class(data))
+        {
+            warning("'model' overwrites the model given in 'data'.")
+        }
+        if (is.character(model)) {
+            model <- rbi::bi_model(model)
+        } else if (!("bi_model" %in% class(model))) {
+            stop("'model' must be either a 'bi_model' object or a path to a valid model file in LibBi's syntax")
+        }
+    }
 
     clean_data <- function(x, name, use.read=TRUE)
     {
@@ -126,31 +158,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
     data <- clean_data(data, "data")
     if (!missing(prior)) prior <- clean_data(prior, "prior")
-    if ((missing(obs) && "libbi" %in% class(data) &&
-         !is.null(x[["options"]]) && !is.null(x[["options"]][[opt_name]])) ||
-        !missing(obs))
-    {
-        obs <- clean_data(obs, "obs", use.read=FALSE)
-    }
-
-    if (missing(model))
-    {
-        if ("libbi" %in% class(data))
-        {
-            model <- data$model
-        }
-    } else
-    {
-        if ("libbi" %in% class(data))
-        {
-            warning("'model' overwrites the model given in 'data'.")
-        }
-        if (is.character(model)) {
-            model <- rbi::bi_model(model)
-        } else if (!("bi_model" %in% class(model))) {
-            stop("'model' must be either a 'bi_model' object or a path to a valid model file in LibBi's syntax")
-        }
-    }
+    if (!missing(obs)) obs <- clean_data(obs, "obs", use.read=FALSE)
 
     if (steps)
     {
@@ -211,6 +219,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
     if (length(states) > 0)
     {
+        obs <- obs[names(obs) %in% states]
         for (state in states)
         {
           if (state %in% names(data) && nrow(data[[state]]) > 0)
