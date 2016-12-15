@@ -219,7 +219,6 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
     if (length(states) > 0)
     {
-        obs <- obs[names(obs) %in% states]
         for (state in states)
         {
           if (state %in% names(data) && nrow(data[[state]]) > 0)
@@ -320,6 +319,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
         if (!missing(obs))
         {
+            obs <- obs[names(obs) %in% states]
             dataset <- lapply(names(obs), function(x) {obs[[x]][, state := x]})
             dataset <- rbindlist(dataset, fill=TRUE)
             for (col in colnames(dataset))
