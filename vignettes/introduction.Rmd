@@ -1,0 +1,6 @@
+SIRmodel_prior <- SIRmodel$propose_prior()
+bi_prior <- libbi(SIRmodel_prior, nsamples=100, end_time=16*7, noutputs=16, nparticles=16, obs=SIRdata)
+bi_prior$run()
+adapted <- adapt_particles(bi_prior)
+adapted_proposal <- adapt_mcmc(adapted, min=0.05, max=0.2)
+adapted_proposal$model$write("~/sir.bi")
