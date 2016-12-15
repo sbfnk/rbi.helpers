@@ -4,7 +4,8 @@
 \alias{adapt_particles}
 \title{Adapt the number of particles}
 \usage{
-adapt_particles(wrapper, min = 1, max = 1024, samples, ...)
+adapt_particles(wrapper, min = 1, max = 1024, nsamples,
+  target.variance = 1, quite = FALSE, ...)
 }
 \arguments{
 \item{wrapper}{\code{\link{libbi}} (which has been run) to study}
@@ -13,7 +14,9 @@ adapt_particles(wrapper, min = 1, max = 1024, samples, ...)
 
 \item{max}{maximum number of particles}
 
-\item{samples}{number of samples to generate each iteration}
+\item{nsamples}{number of samples to generate each iteration; if not give, will use what has been set in \code{wrapper}}
+
+\item{target.variance}{target log-likelihood variance; once this is crossed, the current number of particles will be used}
 
 \item{...}{parameters for libbi$run}
 }
@@ -23,8 +26,8 @@ a \code{\link{libbi}} with the desired proposal distribution
 \description{
 This function takes the provided \code{\link{libbi}} and
   runs MCMC at a single point (i.e., repeatedly proposing the same paramters),
-  adapting the number of particles distribution until the variance of the likelihood
-  crosses one.
+  adapting the number of particles distribution until the variance of the log-likelihood
+  crosses the value given as \code{target.variance} (1 by default).
 }
 \examples{
 example_obs <- bi_read(system.file(package="rbi", "example_output.nc"))
@@ -32,6 +35,6 @@ example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
 example_bi <- libbi(model = example_model, obs = example_obs)
 obs_states <- example_model$get_vars("obs")
 max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
-\dontrun{adapted <- adapt_particles(example_bi, samples = 128, end_time = max_time)}
+\dontrun{adapted <- adapt_particles(example_bi, nsamples = 128, end_time = max_time)}
 }
 

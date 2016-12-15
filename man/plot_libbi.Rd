@@ -7,7 +7,7 @@
 plot_libbi(data, model, prior, states, params, noises, quantiles = c(0.5,
   0.95), date.origin, date.unit, time.dim = "time", obs, id, extra.aes,
   all.times = FALSE, hline, burn, steps = FALSE, select, shift,
-  data.colour = "red", base.alpha = 0.5, trend = "median",
+  obs.colour = "red", base.alpha = 0.5, trend = "median",
   densities = "histogram", density_args = list(), limit.to.obs = FALSE,
   labels, brewer.palette, plot = TRUE, ...)
 }
@@ -50,6 +50,8 @@ plot_libbi(data, model, prior, states, params, noises, quantiles = c(0.5,
 
 \item{shift}{list of dimensions to be shifted, and by how much}
 
+\item{obs.colour}{colour for plotting the observations}
+
 \item{base.alpha}{base alpha value for credible intervals}
 
 \item{trend}{how the trend should be characterised (e.g., mean, median, or NULL for no trend line)}
@@ -67,8 +69,6 @@ plot_libbi(data, model, prior, states, params, noises, quantiles = c(0.5,
 \item{plot}{set to FALSE to suppress plot of trajectories}
 
 \item{...}{options for geom_step / geom_line / geom_point / etc.}
-
-\item{obs.colour}{colour for plotting the observations}
 }
 \value{
 a list of plots: states, densities, traces, correlations, noises, likelihoods, as well as underlying raw and aggregate data
