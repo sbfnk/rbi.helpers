@@ -50,8 +50,8 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, options, nsamples, 
   init_np <- rbi::bi_dim_len(init_file, "np") - 1
 
   if (missing(nsamples)) {
-    if ("nsamples" %in% names(wrapper$global_options)) {
-      nsamples <- wrapper$global_options[["nsamples"]]
+    if ("nsamples" %in% names(wrapper$options)) {
+      nsamples <- wrapper$options[["nsamples"]]
     } else {
       stop("must provide 'nsamples'")
     }

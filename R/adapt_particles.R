@@ -8,7 +8,7 @@
 #' @param wrapper \code{\link{libbi}} (which has been run) to study
 #' @param min minimum number of particles
 #' @param max maximum number of particles
-#' @param samples number of samples to generate each iteration; if not give, will use what has been set in \code{wrapper}
+#' @param nsamples number of samples to generate each iteration; if not give, will use what has been set in \code{wrapper}
 #' @param target.variance target log-likelihood variance; once this is crossed, the current number of particles will be used
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
@@ -21,18 +21,18 @@
 #' example_bi <- libbi(model = example_model, obs = example_obs)
 #' obs_states <- example_model$get_vars("obs")
 #' max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
-#' \dontrun{adapted <- adapt_particles(example_bi, samples = 128, end_time = max_time)}
+#' \dontrun{adapted <- adapt_particles(example_bi, nsamples = 128, end_time = max_time)}
 #' @export
-adapt_particles <- function(wrapper, min = 1, max = 1024, samples, target.variance = 1, ...) {
+adapt_particles <- function(wrapper, min = 1, max = 1024, nsamples, target.variance = 1, quite=FALSE, ...) {
 
   if (!wrapper$run_flag) {
     message(date(), " Initial trial run")
     wrapper$run(client = "sample", ...)
   }
 
-  if (missing(min) && !is.null(wrapper$global_options[["nparticles"]]))
+  if (missing(min) && !is.null(wrapper$options[["nparticles"]]))
   {
-    min <- wrapper$global_options[["nparticles"]]
+    min <- wrapper$options[["nparticles"]]
   }
   if (max <= min) {
     stop("'max' must be less or equal to 'min'")
@@ -52,14 +52,14 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, samples, target.varian
   ## use last parameter value from output file
   options[["init-np"]] <- rbi::bi_dim_len(wrapper$result$output_file_name, "np") - 1
 
-  if (missing(samples)) {
-    if ("nsamples" %in% names(adapt_wrapper$global_options)) {
-      samples <- adapt_wrapper$global_options[["nsamples"]]
+  if (missing(nsamples)) {
+    if ("nsamples" %in% names(adapt_wrapper$options)) {
+      nsamples <- adapt_wrapper$options[["nsamples"]]
     } else {
-      stop("if 'nsamples' is not a global option, must provide 'samples'")
+      stop("if 'nsamples' is not an option in the 'libbi' object, it must be provided")
     }
   } else {
-    options[["nsamples"]] <- samples
+    options[["nsamples"]] <- nsamples
   }
 
   accRate <- c()
@@ -72,7 +72,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, samples, target.varian
     adapt_wrapper <-
       adapt_wrapper$clone(model = model, run = TRUE, options = options,
                           init = init_wrapper, ...)
-    options[["init-np"]] <- samples - 1
+    options[["init-np"]] <- nsamples - 1
 
     var_loglik <- c(var_loglik, stats::var(rbi::bi_read(adapt_wrapper, "loglikelihood")$value))
 
@@ -88,7 +88,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, samples, target.varian
     }
   }
 
-  adapt_wrapper$global_options[["nparticles"]] <- test[id]
+  adapt_wrapper$options[["nparticles"]] <- test[id]
   adapt_wrapper$model <- wrapper$model
 
   message(date(), " Choosing ", test[id], " particles.")
