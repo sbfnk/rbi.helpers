@@ -51,7 +51,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, nsamples, target.varia
 
   options <- list()
   ## use last parameter value from output file
-  options[["init-np"]] <- rbi::bi_dim_len(wrapper$result$output_file_name, "np") - 1
+  options[["init-np"]] <- rbi::bi_dim_len(wrapper$output_file_name, "np") - 1
 
   if (missing(nsamples)) {
     if ("nsamples" %in% names(adapt_wrapper$options)) {

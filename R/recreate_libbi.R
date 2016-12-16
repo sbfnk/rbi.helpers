@@ -21,7 +21,7 @@ recreate_libbi <- function(model, output_file_name, client = "sample", ...)
 {
 
   wrapper <- rbi::libbi(client = "sample", model = model, ...)
-  wrapper$result <- list(output_file_name = output_file_name)
+  wrapper$output_file_name <- output_file_name
   wrapper$run_flag <- TRUE
 
   return(wrapper)

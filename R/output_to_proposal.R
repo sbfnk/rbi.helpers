@@ -43,7 +43,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
   ## remove any dimensions
   params <- gsub("[[:space:]]*\\[[^]]*\\]", "", params)
   ## read parameters
-  res <- bi_read(wrapper$result$output_file_name, vars = params)
+  res <- bi_read(wrapper$output_file_name, vars = params)
 
   if (correlations) {
     l <- list()

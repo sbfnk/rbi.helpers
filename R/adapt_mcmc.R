@@ -47,7 +47,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, options, nsamples, 
   ## small, multiplier if the acceptance Rate is too big)
   if (scale < 1) scale <- 1 / scale
 
-  init_file <- wrapper$result$output_file_name
+  init_file <- wrapper$output_file_name
   init_np <- rbi::bi_dim_len(init_file, "np") - 1
 
   if (missing(nsamples)) {
@@ -82,7 +82,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, options, nsamples, 
       adapt_wrapper <-
         adapt_wrapper$clone(model = model, run = TRUE, options = options, ...)
       mcmc_obj <- coda::mcmc(rbi::get_traces(adapt_wrapper))
-      options[["init-file"]] <- adapt_wrapper$result$output_file_name
+      options[["init-file"]] <- adapt_wrapper$output_file_name
       options[["init-np"]] <- nsamples - 1
       accRate <- acceptance_rate(adapt_wrapper)
       iter <- iter + 1
