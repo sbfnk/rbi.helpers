@@ -14,7 +14,7 @@
 #' @param options list of additional options
 #' @param nsamples number of samples to generate each iteration
 #' @param max_iter maximum of iterations (default: 10)
-#' @param correlations take into account correlations
+#' @param correlations if TRUE (default), take into account correlations
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
@@ -30,7 +30,7 @@
 #' \dontrun{adapted <- adapt_mcmc(example_bi, nsamples = 100, end_time = max_time,
 #'                                min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 #' @export
-adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, options, nsamples, max_iter = 10, correlations = FALSE, quiet = FALSE, ...) {
+adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, options, nsamples, max_iter = 10, correlations = TRUE, quiet = FALSE, ...) {
 
   if (missing(options)) {
     options <- list()
