@@ -6,7 +6,7 @@
   of samples}
 \usage{
 adapt_mcmc(wrapper, min = 0, max = 1, scale = 2, options, nsamples,
-  max_iter = 10, correlations = FALSE, ...)
+  max_iter = 10, correlations = FALSE, quiet = FALSE, ...)
 }
 \arguments{
 \item{wrapper}{\code{link{libbi}} (which has been run) to study}
@@ -25,6 +25,8 @@ will be inverted.}
 \item{max_iter}{maximum of iterations (default: 10)}
 
 \item{correlations}{take into account correlations}
+
+\item{quiet}{if set to TRUE, will not provide running output of particle numbers tested}
 
 \item{...}{parameters for libbi$run}
 }

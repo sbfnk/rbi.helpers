@@ -10,6 +10,7 @@
 #' @param max maximum number of particles
 #' @param nsamples number of samples to generate each iteration; if not give, will use what has been set in \code{wrapper}
 #' @param target.variance target log-likelihood variance; once this is crossed, the current number of particles will be used
+#' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @importFrom coda mcmc rejectionRate effectiveSize
@@ -23,10 +24,10 @@
 #' max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
 #' \dontrun{adapted <- adapt_particles(example_bi, nsamples = 128, end_time = max_time)}
 #' @export
-adapt_particles <- function(wrapper, min = 1, max = 1024, nsamples, target.variance = 1, quite=FALSE, ...) {
+adapt_particles <- function(wrapper, min = 1, max = 1024, nsamples, target.variance = 1, quiet=FALSE, ...) {
 
   if (!wrapper$run_flag) {
-    message(date(), " Initial trial run")
+    if (!quiet) message(date(), " Initial trial run")
     wrapper$run(client = "sample", ...)
   }
 
@@ -76,7 +77,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, nsamples, target.varia
 
     var_loglik <- c(var_loglik, stats::var(rbi::bi_read(adapt_wrapper, "loglikelihood")$value))
 
-    message(date(), " ", test[id], " particles, loglikelihod variance: ", var_loglik[id])
+    if (!quiet) message(date(), " ", test[id], " particles, loglikelihod variance: ", var_loglik[id])
 
     if (var_loglik[id] > 0) {
       init_wrapper <- adapt_wrapper
@@ -91,7 +92,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, nsamples, target.varia
   adapt_wrapper$options[["nparticles"]] <- test[id]
   adapt_wrapper$model <- wrapper$model
 
-  message(date(), " Choosing ", test[id], " particles.")
+  if (!quiet) message(date(), " Choosing ", test[id], " particles.")
 
   return(adapt_wrapper)
 }

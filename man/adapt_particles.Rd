@@ -5,7 +5,7 @@
 \title{Adapt the number of particles}
 \usage{
 adapt_particles(wrapper, min = 1, max = 1024, nsamples,
-  target.variance = 1, quite = FALSE, ...)
+  target.variance = 1, quiet = FALSE, ...)
 }
 \arguments{
 \item{wrapper}{\code{\link{libbi}} (which has been run) to study}
@@ -17,6 +17,8 @@ adapt_particles(wrapper, min = 1, max = 1024, nsamples,
 \item{nsamples}{number of samples to generate each iteration; if not give, will use what has been set in \code{wrapper}}
 
 \item{target.variance}{target log-likelihood variance; once this is crossed, the current number of particles will be used}
+
+\item{quiet}{if set to TRUE, will not provide running output of particle numbers tested}
 
 \item{...}{parameters for libbi$run}
 }

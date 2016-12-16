@@ -15,6 +15,7 @@
 #' @param nsamples number of samples to generate each iteration
 #' @param max_iter maximum of iterations (default: 10)
 #' @param correlations take into account correlations
+#' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @importFrom coda mcmc
@@ -29,7 +30,7 @@
 #' \dontrun{adapted <- adapt_mcmc(example_bi, nsamples = 100, end_time = max_time,
 #'                                min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 #' @export
-adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, options, nsamples, max_iter = 10, correlations = FALSE, ...) {
+adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, options, nsamples, max_iter = 10, correlations = FALSE, quiet = FALSE, ...) {
 
   if (missing(options)) {
     options <- list()
@@ -38,7 +39,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, options, nsamples, 
   }
 
   if (!wrapper$run_flag) {
-    message(date(), " Initial trial run")
+    if (!quiet) message(date(), " Initial trial run")
     wrapper$run(...)
   }
 
@@ -70,9 +71,11 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, options, nsamples, 
            (min(accRate) < min || max(accRate) > max || !is.finite(accRate)) &&
            iter <= max_iter) {
       if (is.finite(accRate)) {
-        message(date(), " Acceptance rate ", min(accRate),
-                ", adapting ", ifelse(round == 1, "size", "shape"),
-                " with scale ", adapt_scale)
+        if (!quiet) {
+          message(date(), " Acceptance rate ", min(accRate),
+                  ", adapting ", ifelse(round == 1, "size", "shape"),
+                  " with scale ", adapt_scale)
+        }
       }
       model <- output_to_proposal(adapt_wrapper, adapt_scale,
                                   correlations = (round == 2))
@@ -92,7 +95,7 @@ adapt_mcmc <- function(wrapper, min = 0, max = 1, scale = 2, options, nsamples, 
      }
   }
 
-  message(date(), " Acceptance rate: ", min(accRate))
+  if (!quiet) message(date(), " Acceptance rate: ", min(accRate))
 
   if (iter > max_iter) {
     warning("Maximum of iterations reached")
