@@ -673,8 +673,10 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                         wpdt[, paste(extra_cols) := NULL]
                     }
                     cp <- GGally::ggcorr(wpdt)
+                    pp <- GGally::ggpairs(wpdt)
                 } else {
                     cp <- NULL
+                    pp <- NULL
                 }
 
                 density_data <- pdt[varying == TRUE]
@@ -1034,6 +1036,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                    densities = dp,
                    traces = tp,
                    correlations = cp,
+                   pairs = pp,
                    noises = np,
                    likelihoods = lp,
                    data = ret_data))
