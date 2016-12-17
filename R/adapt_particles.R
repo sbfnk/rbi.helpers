@@ -75,7 +75,7 @@ adapt_particles <- function(wrapper, min = 1, max = 1024, nsamples, target.varia
                           init = init_wrapper, ...)
     options[["init-np"]] <- nsamples - 1
 
-    var_loglik <- c(var_loglik, stats::var(rbi::bi_read(adapt_wrapper, "loglikelihood")$value))
+    var_loglik <- c(var_loglik, stats::var(rbi::bi_read(adapt_wrapper, "loglikelihood")$loglikelihood$value))
 
     if (!quiet) message(date(), " ", test[id], " particles, loglikelihod variance: ", var_loglik[id])
 
