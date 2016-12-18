@@ -21,9 +21,15 @@ pre code {
 }
 </style>
 
-[rbi.helpers] (https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [rbi] (https://github.com/libbi/RBi), an R interface to [libbi] (https://github.com/libbi/LibBi), a library for Bayesian Inference.
+[RBi.helpers] (https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [RBi] (https://github.com/libbi/RBi), an R interface to [LibBi] (https://github.com/libbi/LibBi), a library for Bayesian Inference.
 
 ### Latest Version: _0.2.0_  &nbsp; <small>(5 May 2016)</small>
+
+# Adapt the number of particles
+# Adapt the proposal distribution
+# Plot libbi objects
+# Compute DIC
+# Recreate `libbi` objects
 
 SIRmodel_prior <- SIRmodel$propose_prior()
 bi_prior <- libbi(SIRmodel_prior, nsamples=100, end_time=16*7, noutputs=16, nparticles=16, obs=SIRdata)
