@@ -25,10 +25,115 @@ pre code {
 
 ### Latest Version: _0.2.0_  &nbsp; <small>(5 May 2016)</small>
 
-This vignette builds on the 
+This vignette builds on the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html), applying the higher-level functions contained in **RBi.helpers** to the same model introduced there.
+For the lower-level functions to run **LibBi** and read the results, please refer to the documentation and vignette that comes with **RBi**.
+
+# Installation
+
+The **RBi.helpers** package requires `R` (>= 3.2.0) as well as the packages:
+
+- `rbi`
+- `data.table`
+- `reshape2`
+- `lubridate`
+- `coda`
+- `ggplot2`
+- `scales`
+- `GGally`
+
+Most functions also require a working installation of **LibBi**.
+Please see the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html) for how to get one via homebrew or linuxbrew.
+
+The package name of **RBi.helpers** is `rbi.helpers` (all lowercase).
+The current stable version can be installed using the `devtools` package:
+
+```{r eval=FALSE}
+# install.packages("devtools")
+library('devtools')
+install_github("sbfnk/rbi.helpers")
+```
+
+# Loading the package
+
+Use
+
+```{R}
+library('rbi.helpers')
+```
+to load the package.
+
+# Loading the model and generating a synthetic dataset
+
+These steps are reproduced from the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html), where there is more information on the individual steps
+
+```{R}
+model_file <- system.file(package="rbi", "SIR.bi") # get full file name from package
+SIRmodel <- bi_model(model_file) # load model
+SIRdata <- bi_generate_dataset(SIRmodel, end_time=16*7, noutputs=16, seed=12345678)
+```
 
 # Adapt the number of particles
+
+In the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html), a [stochastic SIR model](https://raw.githubusercontent.com/libbi/RBi/master/inst/SIR.bi) was fitted to simulated data from the same model using particle Markov-chain Monte Carlo with 16 particles.
+Given a model and data, how do we know how many particles we need?
+This question does not have a simple answer, as the "optimal" number of particles may depend on the state of the Markov chain.
+A possible rule-of-thumb is to choose the number of particles such that the variance of the log-likelihood near the mode is approximately one.
+This suggests a [strategy](https://darrenjw.wordpress.com/2014/06/08/tuning-particle-mcmc-algorithms/) by which first and approximate location of the mode or mean of the posterior distribution is obtained in a trial run, before the numer of particles is adjusted by monitoring the variance of the log-likelihood while keeping the parameters fixed.
+**RBi.helpers** implements the second part of this strategy (adjusting the number of particles at a given location in parameter space) with the `adapt_particles` method.
+For the first part (finding the mode), a crude method is to take a fixed number of samples from the prior distribution and choose the one that maximises the posterior distribution.
+In **RBi**, this can be achieved with
+
+```{R}
+SIRmodel_prior <- SIRmodel$propose_prior()
+bi_prior <- libbi(SIRmodel_prior, nsamples=1000, end_time=16*7, noutputs=16, nparticles=16, obs=SIRdata, seed=1234)
+bi_prior$run()
+```
+
+The first line changes the `bi_model` object called SIRmodel to have the prior distribution as proposal distribution.
+In other words, when sampling from the posterior the proposals will be drawn independently from the prior distribution.
+The second line performs the sampling.
+Note that we set a seed to make the results reproducible.
+It is worth trying the commands with a different seed and seeing the difference to the results obtained below.
+The location in parameters of the sampler at the end of the 1000 samples will give an approximation of the mode of the posterior distribution.
+This can then be used to adjust the number of particles using
+
+```{R}
+adapted <- adapt_particles(bi_prior)
+```
+
+This will take the last sample of the output file contained in the `libbi` object `bi_prior`, and use it to adjust the number of particles by starting with 1 particle (or a given `min`) and doubling it until the variance of the loglikelihood crosses 1.
+The number of particles is then saved in the `adapted` object:
+
+```{R}
+adapted$options$nparticles
+```
+
 # Adapt the proposal distribution
+
+Having adjusted the number of particles, the second important information to give the posterior sampler is the proposal distribution.
+This can, again, be obtained using a sequence of trial runs, whereby the proposal distribution is sequentially adjusted from previous samples to be proportional to the empirical covariance of the posterior samples.
+The way this is implemented in the `adapt_proposal` function in **RBi.helpers** is that first the /size/ of the proposal distribution is adjusted by adjusting independent normal proposals for each parameter until the acceptance rate lies between a given minimum and maximum (by default, 0.1 and 0.5), before the /shape/ of the distribution is adjusted by changing the proposals to come from a multivariate normal taking into account the full covariance of samples, again until the acceptance rate lies between the given minimum and maximum.
+For example, to adjust the proposal distribution for an acceptance rate between 0.05 and 0.4, we can run:
+
+```{R}
+adapted_proposal <- adapt_proposal(adapted, min=0.05, max=0.4)
+```
+
+The adjusted proposals are stored in the `bi_model` contained in the `libbi` object `adapted_proposal`
+
+```{R}
+adapted_proposal$model$get_block("proposal_parameters")
+```
+
+Note that the multivariate normal is realised as a series of conditionally dependent draws from normal distributions.
+The model can be saved via
+
+```{R}
+adapted_proposal$model$write("SIR.bi")
+````
+
+The steps above are exactly the steps used to create the proposal blocks in the file `SIR.bi` contained in the **RBi** package and used in its vignette.
+
 # Plot libbi objects
 # Compute DIC
 # Recreate `libbi` objects
