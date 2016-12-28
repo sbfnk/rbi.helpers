@@ -135,12 +135,96 @@ adapted_proposal$model$write("SIR.bi")
 The steps above are exactly the steps used to create the proposal blocks in the file `SIR.bi` contained in the **RBi** package and used in its vignette.
 
 # Plot libbi objects
+
+Let us run take 5,000 samples from the posterior distribution of the model using the adapted proposal and number of particles:
+
+```{R}
+posterior <- adapted_proposal$clone(run=TRUE, nsamples=5000, nparticles=16, sample_obs=TRUE)
+```
+
+Note that we used the `sample_obs` option to also generate posterior predictive samples from of the observations.
+
+Instead of using the [coda](https://cran.r-project.org/package=coda) routines for plotting as described in the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html#analysing-an-mcmc-run), one can use the `plot_libbi` function.
+If passed a `libbi` object, it can be called using `plot`.
+
+```{R}
+p <- plot(posterior)
+```
+
+There are various options available for controlling the plots.
+See `?plot_libbi` for a description of all the different available arguments.
+
+The returned object `p` contains a number of different plots:
+
+```{R}
+names(p)
+```
+
+## State trajectories
+
+```{R}
+p$states
+```
+
+Note that this plots the data on top of the observation trajectory, because we have sampled with `sample_obs=TRUE`.
+
+## Trace plot
+
+```{R}
+p$traces
+```
+
+## Posterior densities
+
+```{R}
+p$densities
+```
+
+This plots histograms.
+Smooth density interpolations can be plotted by passing `densities="density"` to `plot_libbi`.
+
+## Pairwise correlation plot
+
+```{R}
+p$correlations
+```
+
+## Pairs plot
+
+```{R}
+p$pairs
+```
+
+## Noise plot
+
+```{R}
+p$noise
+```
+
+## Summary data
+
+All the data used for the different plots are stored in the `data` object:
+
+```{R}
+p$data
+```
+
 # Compute DIC
+
+To compute the [Deviance Information Criterion](https://en.m.wikipedia.org/wiki/Deviance_information_criterion) (DIC), use `compute_DIC`:
+
+```{R}
+compute_DIC(p)
+```
+
 # Recreate `libbi` objects
 
-SIRmodel_prior <- SIRmodel$propose_prior()
-bi_prior <- libbi(SIRmodel_prior, nsamples=100, end_time=16*7, noutputs=16, nparticles=16, obs=SIRdata)
-bi_prior$run()
-adapted <- adapt_particles(bi_prior)
-adapted_proposal <- adapt_mcmc(adapted, min=0.05, max=0.4)
-adapted_proposal$model$write("~/sir.bi")
+To recreate a `libbi` object from a previous R session, use `recreate_libbi`.
+For example, one could use the following code to get the acceptance rate and plots for a *LibBi* run with a given output and model file:
+
+```{R}
+PZ_run_file <- system.file(package="rbi.helpers", "example_run.nc")
+PZ_model_file <- system.file(package="rbi", "PZ.bi")
+PZ_posterior <- recreate_libbi(PZ_model_file, PZ_run_file)
+acceptance_rate(PZ_posterior) 
+```
