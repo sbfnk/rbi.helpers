@@ -2,8 +2,8 @@
 
 S3method(plot,libbi)
 export(acceptance_rate)
-export(adapt_mcmc)
 export(adapt_particles)
+export(adapt_proposal)
 export(compute_DIC)
 export(plot_libbi)
 export(recreate_libbi)
