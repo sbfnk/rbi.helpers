@@ -145,13 +145,10 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         } else if (is.data.frame(x))
         {
             x <- list(.state = x)
-        } else if (is.list(x))
-        {
-            x <- x
         } else if (is.character(x))
         {
             x <- rbi::bi_read(x)
-        } else
+        } else if (!is.list(x))
         {
             stop("'", name, "' must be a 'libbi' object or a list of data frames or a data frame.")
         }
@@ -226,7 +223,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
           if (state %in% names(data) && nrow(data[[state]]) > 0)
             {
                 values <- data[[state]]
-                if ("np" %in% colnames(data[[state]]))
+                if ("np" %in% colnames(data[[state]]) && burn > 0)
                 {
                     values <- values[np >= burn]
                     if (nrow(values) == 0) {
@@ -730,18 +727,21 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                 dp <- NULL
                 tp <- NULL
                 cp <- NULL
+                pp <- NULL
             }
         } else
         {
             dp <- NULL
             tp <- NULL
             cp <- NULL
+            pp <- NULL
         }
     } else
     {
         dp <- NULL
         tp <- NULL
         cp <- NULL
+        pp <- NULL
     }
 
     np <- NULL
@@ -765,10 +765,14 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         {
             if (noise %in% names(data))
             {
-              values <- data[[noise]]
-                if ("np" %in% colnames(data[[noise]]))
+                values <- data[[noise]]
+
+                if ("np" %in% colnames(data[[state]]) && burn > 0)
                 {
                     values <- values[np >= burn]
+                    if (nrow(values) == 0) {
+                        stop("Nothing left after burn-in")
+                    }
                 }
 
                 if (!missing(select))
