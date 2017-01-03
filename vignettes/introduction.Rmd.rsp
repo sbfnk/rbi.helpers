@@ -1,15 +1,14 @@
----
-title: "Introduction to rbi.helpers"
-author: "Sebastian Funk"
-date: "`r Sys.Date()`"
-output:
-  rmarkdown::html_vignette:
-    fig_width: 4
-vignette: >
+<%@meta language="R-vignette" content="--------------------------------
+  DIRECTIVES FOR R:
+
   %\VignetteIndexEntry{Introduction to RBi.helpers}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\usepackage[utf8]{inputenc}
----
+  %\VignetteAuthor{Sebastian Funk}
+  %\VignetteKeyword{rbi.helpers}
+  %\VignetteKeyword{package}
+  %\VignetteKeyword{vignette}
+  %\VignetteTangle{FALSE}
+  %\VignetteEngine{R.rsp::rsp}
+--------------------------------------------------------------------"%>
 
 <style>
 pre {
@@ -20,6 +19,10 @@ pre code {
   white-space: pre;
 }
 </style>
+
+# <%@meta name="title"%>
+
+<%@meta name="author"%> on <%=format(as.Date(Sys.Date()), format="%B %d, %Y")%>
 
 [RBi.helpers](https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [RBi](https://github.com/libbi/RBi), an R interface to [LibBi](https://github.com/libbi/LibBi), a library for Bayesian Inference.
 
@@ -47,7 +50,7 @@ Please see the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignet
 The package name of **RBi.helpers** is `rbi.helpers` (all lowercase).
 The current stable version can be installed using the `devtools` package:
 
-```{r eval=FALSE}
+```{R eval=FALSE}
 # install.packages("devtools")
 library('devtools')
 install_github("sbfnk/rbi.helpers")
@@ -85,11 +88,11 @@ In **RBi**, this can be achieved with
 
 ```{R}
 SIRmodel_prior <- SIRmodel$propose_prior()
-bi_prior <- libbi(SIRmodel_prior, nsamples=1000, end_time=16*7, noutputs=16, nparticles=16, obs=SIRdata, seed=1234)
+bi_prior <- libbi(client="sample", SIRmodel_prior, nsamples=1000, end_time=16*7, noutputs=16, nparticles=16, obs=SIRdata, seed=1234)
 bi_prior$run()
 ```
 
-The first line changes the `bi_model` object called SIRmodel to have the prior distribution as proposal distribution.
+The first line changes the `bi_model` object called `SIRmodel` to have the prior distribution as proposal distribution.
 In other words, when sampling from the posterior the proposals will be drawn independently from the prior distribution.
 The second line performs the sampling.
 Note that we set a seed to make the results reproducible.
@@ -122,7 +125,7 @@ adapted_proposal <- adapt_proposal(adapted, min=0.05, max=0.4)
 The adjusted proposals are stored in the `bi_model` contained in the `libbi` object `adapted_proposal`
 
 ```{R}
-adapted_proposal$model$get_block("proposal_parameters")
+adapted_proposal$model$get_block("proposal_parameter")
 ```
 
 Note that the multivariate normal is realised as a series of conditionally dependent draws from normal distributions.
@@ -166,6 +169,7 @@ names(p)
 p$states
 ```
 
+This is the default plot displayed when `plot_libbi` is called without `plot=FALSE`.
 Note that this plots the data on top of the observation trajectory, because we have sampled with `sample_obs=TRUE`.
 
 ## Trace plot
@@ -214,7 +218,7 @@ p$data
 To compute the [Deviance Information Criterion](https://en.m.wikipedia.org/wiki/Deviance_information_criterion) (DIC), use `compute_DIC`:
 
 ```{R}
-compute_DIC(p)
+compute_DIC(posterior)
 ```
 
 # Recreate `libbi` objects
@@ -226,5 +230,6 @@ For example, one could use the following code to get the acceptance rate and plo
 PZ_run_file <- system.file(package="rbi.helpers", "example_run.nc")
 PZ_model_file <- system.file(package="rbi", "PZ.bi")
 PZ_posterior <- recreate_libbi(PZ_model_file, PZ_run_file)
-acceptance_rate(PZ_posterior) 
+a <- acceptance_rate(PZ_posterior) 
+a
 ```
