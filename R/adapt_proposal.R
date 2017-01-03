@@ -18,7 +18,7 @@
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
-#' @importFrom coda mcmc
+#' @importFrom coda mcmc rejectionRate
 #' @importFrom rbi bi_dim_len get_traces
 #' @examples
 #' example_obs <- bi_read(system.file(package="rbi", "example_output.nc"))
@@ -84,7 +84,7 @@ adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, options, nsampl
       mcmc_obj <- coda::mcmc(rbi::get_traces(adapt_wrapper))
       options[["init-file"]] <- adapt_wrapper$output_file_name
       options[["init-np"]] <- nsamples - 1
-      accRate <- acceptance_rate(adapt_wrapper)
+      accRate <- max(1 - coda::rejectionRate(mcmc_obj))
       iter <- iter + 1
       if (min(accRate) < min) {
         adapt_scale <- adapt_scale / scale
