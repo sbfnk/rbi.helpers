@@ -74,13 +74,11 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
       l <- c(l, a)
     }
 
+    wide <- l[[1]]
     if (length(l) > 1) {
-      wide <- l[[1]]
       for (i in seq(2, length(l))) {
         wide <- merge(wide, l[[i]])
       }
-    } else {
-      wide <- l
     }
     wide[["np"]] <- NULL
 
