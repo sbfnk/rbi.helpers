@@ -217,11 +217,47 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         warning("State(s) ", missing_states, " not found in data.")
     }
 
+    clean_dates <- function(values, time.dim, use_dates, date.unit, date.origin)
+    {
+        if (time.dim %in% colnames(values))
+        {
+            if (use_dates)
+            {
+                if (date.unit == "day")
+                {
+                    values[, time := date.origin + get(time.dim)]
+                    values[, time_next := time + 1]
+                } else if (date.unit == "week")
+                {
+                    values[, time := date.origin + get(time.dim) * 7]
+                    values[, time_next := time + 7]
+                } else if (date.unit == "month")
+                {
+                    values[, time := date.origin %m+% months(as.integer(get(time.dim)))]
+                    values[, time_next := time %m+% months(1)]
+                } else if (date.unit == "year")
+                {
+                    if (missing(date.origin)) {
+                        values[, time := as.Date(paste(get(time.dim), 1, 1, sep = "-"))]
+                        values[, time_next := as.Date(paste(get(time.dim) + 1, 1, 1, sep = "-"))]
+                    } else {
+                        values[, time := date.origin + years(as.integer(get(time.dim)))]
+                        values[, time_next := time %m+% months(12)]
+                    }
+                }
+            } else {
+                values[, time := get(time.dim)]
+                values[, time_next := time + 1]
+            }
+        }
+        return(values)
+    }
+
     if (length(states) > 0)
     {
         for (state in states)
         {
-          if (state %in% names(data) && nrow(data[[state]]) > 0)
+            if (state %in% names(data) && nrow(data[[state]]) > 0)
             {
                 values <- data[[state]]
                 if ("np" %in% colnames(data[[state]]))
@@ -232,37 +268,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                     }
                 }
 
-                if (time.dim %in% colnames(values))
-                {
-                    if (use_dates)
-                    {
-                        if (date.unit == "day")
-                        {
-                            values[, time := date.origin + get(time.dim)]
-                            values[, time_next := time + 1]
-                        } else if (date.unit == "week")
-                        {
-                            values[, time := date.origin + get(time.dim) * 7]
-                            values[, time_next := time + 7]
-                        } else if (date.unit == "month")
-                        {
-                            values[, time := date.origin %m+% months(as.integer(get(time.dim)))]
-                            values[, time_next := time %m+% months(1)]
-                        } else if (date.unit == "year")
-                        {
-                            if (missing(date.origin)) {
-                                values[, time := as.Date(paste(get(time.dim), 1, 1, sep = "-"))]
-                                values[, time_next := as.Date(paste(get(time.dim) + 1, 1, 1, sep = "-"))]
-                            } else {
-                                values[, time := date.origin + years(as.integer(get(time.dim)))]
-                                values[, time_next := time %m+% months(12)]
-                            }
-                        }
-                    } else {
-                        values[, time := get(time.dim)]
-                        values[, time_next := time + 1]
-                    }
-                }
+                values <- clean_dates(values, time.dim, use_dates, date.unit, date.origin)
 
                 if (!missing(select))
                 {
@@ -314,6 +320,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                 warning(paste("State", state, "does not exist"))
             }
         }
+
         ## factorise columns
         sdt <- factorise_columns(sdt, labels)
 
@@ -322,6 +329,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             obs <- obs[names(obs) %in% states]
             dataset <- lapply(names(obs), function(x) {obs[[x]][, state := x]})
             dataset <- rbindlist(dataset, fill=TRUE)
+            dataset <- clean_dates(dataset, time.dim, use_dates, date.unit, date.origin)
             for (col in colnames(dataset))
             {
                 dataset[is.na(get(col)), paste(col) := "n/a"]
@@ -350,15 +358,15 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                     {
                         ## for all states, only retain times with observations
                         sdt <- sdt[time %in% dataset[, time]]
-                    } else
-                    {
-                        for (obs_state in unique(dataset[, state]))
-                        {
-                            ## for states in observations, only retain times with observations
-                            sdt <- sdt[(state != obs_state) |
-                                       (time %in% dataset[state == obs_state, time])]
-                        }
-                    }
+                    }##  else
+                    ## {
+                    ##     for (obs_state in unique(dataset[, state]))
+                    ##     {
+                    ##         ## for states in observations, only retain times with observations
+                    ##         sdt <- sdt[(state != obs_state) |
+                    ##                    (time %in% dataset[state == obs_state, time])]
+                    ##     }
+                    ## }
                 }
                 for (i in seq_along(quantiles))
                 {
