@@ -12,13 +12,12 @@
 #' @param date.unit unit of date (if desired, otherwise the time dimension will be used)
 #' @param time.dim time dimension ("time" by default)
 #' @param obs observations (a named list of data frames, a \code{libbi} object with observations, or a NetCDF file name)
-#' @param id one or more run ids to plot
 #' @param extra.aes extra aesthetics (for ggplot)
 #' @param all.times whether to plot all times (not only ones with observations)
 #' @param hline horizontal marker lines, named vector in format (state = value)
 #' @param burn How many iterations to burn
 #' @param steps whether to plot lines as stepped lines
-#' @param select list of selection criteria
+#' @param select list of selection criteria, as named list of selected elements. If the list contains "np", it is treated specially.
 #' @param shift list of dimensions to be shifted, and by how much
 #' @param obs.colour colour for plotting the observations
 #' @param base.alpha base alpha value for credible intervals
@@ -55,7 +54,7 @@
 plot_libbi <- function(data, model, prior, states, params, noises,
                        quantiles = c(0.5, 0.95),
                        date.origin, date.unit, time.dim = "time",
-                       obs, id, extra.aes,
+                       obs, extra.aes,
                        all.times = FALSE, hline,
                        burn, steps = FALSE, select,
                        shift, obs.colour = "red", base.alpha = 0.5,
@@ -65,6 +64,9 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 {
     use_dates <- FALSE
     summarise_columns <- c("np", "time", "time_next")
+
+    if (!missing(select) && "np" %in% names(select)) select_id <- TRUE
+    else select_id <- FALSE
 
     if (missing(date.origin))
     {
@@ -143,13 +145,10 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         } else if (is.data.frame(x))
         {
             x <- list(.state = x)
-        } else if (is.list(x))
-        {
-            x <- x
         } else if (is.character(x))
         {
             x <- rbi::bi_read(x)
-        } else
+        } else if (!is.list(x))
         {
             stop("'", name, "' must be a 'libbi' object or a list of data frames or a data frame.")
         }
@@ -260,7 +259,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             if (state %in% names(data) && nrow(data[[state]]) > 0)
             {
                 values <- data[[state]]
-                if ("np" %in% colnames(data[[state]]))
+                if ("np" %in% colnames(data[[state]]) && burn > 0)
                 {
                     values <- values[np >= burn]
                     if (nrow(values) == 0) {
@@ -268,22 +267,24 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                     }
                 }
 
-                values <- clean_dates(values, time.dim, use_dates, date.unit, date.origin)
-
                 if (!missing(select))
                 {
                     for (var_name in names(select))
                     {
                         if (var_name %in% colnames(values))
                         {
-                            values <- values[get(var_name) %in% select[[var_name]]]
-                            if (class(values[, get(var_name)]) == "factor")
-                            {
-                                values[, paste(var_name) := factor(get(var_name))]
+                            if (!(var_name == "np") || time.dim %in% colnames(values)) {
+                                values <- values[get(var_name) %in% select[[var_name]]]
+                                if (class(values[, get(var_name)]) == "factor")
+                                {
+                                    values[, paste(var_name) := factor(get(var_name))]
+                                }
                             }
                         }
                     }
                 }
+
+                values <- clean_dates(values, time.dim, use_dates, date.unit, date.origin)
 
                 if (!missing(shift))
                 {
@@ -385,11 +386,6 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         states_n <- sdt[, list(single = (.N == 1)), by = state]
         sdt <- merge(sdt, states_n, by = "state", all.x = TRUE)
 
-        if (!missing(id) && !("all" %in% id))
-        {
-            sdt <- sdt[np %in% id]
-        }
-
         aggregate_values <- NULL
         state.by <- c("state", "single", intersect(setdiff(summarise_columns, "np"), colnames(sdt)))
         if (is.null(trend))
@@ -441,8 +437,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
         if (nrow(aggregate_values) > 0)
         {
-            if (!missing(extra.aes) && "color" %in% names(extra.aes) &&
-                !missing(id))
+            if (!missing(extra.aes) && "color" %in% names(extra.aes) && select_id)
             {
                 sdt <- sdt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
             }
@@ -504,7 +499,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                         p <- p + geom_point(data = aggregate_values[single == TRUE], shape = 4, ...)
                     }
                 }
-                if (!missing(id))
+                if (select_id)
                 {
                     p <- p + line_func(data = sdt[single == FALSE], mapping = aes(group = color_np), alpha = id_alpha, ...)
                     if (nrow(sdt[single == TRUE]) > 0)
@@ -519,7 +514,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                     p <- p + line_func(data = aggregate_values, ...)
                     p <- p + geom_point(data = aggregate_values[single == TRUE], shape = 4, ...)
                 }
-                if (!missing(id))
+                if (select_id)
                 {
                     p <- p + line_func(data = sdt[single == FALSE], aes(group = factor(np)), alpha = id_alpha, ...)
                     p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = id_alpha, shape = 4, ...)
@@ -660,7 +655,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
             if (nrow(pdt[varying == TRUE & distribution == "posterior"]) > 0)
             {
-                if (missing(id))
+                if (!select_id)
                 {
                     break_dist <- 0.4
                     extra_cols <- setdiff(colnames(pdt),
@@ -707,9 +702,9 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                 dp <- dp + ylab("density")
                 dp <- dp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
-                if (!missing(id))
+                if (select_id)
                 {
-                    dp <- dp + geom_vline(data = pdt[np %in% id],
+                    dp <- dp + geom_vline(data = pdt[np %in% select[["np"]]],
                                           aes(xintercept = value))
                 }
 
@@ -726,9 +721,9 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                                       labeller = label_parsed)
                 tp <- tp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
-                if (!missing(id))
+                if (select_id)
                 {
-                    tp <- tp + geom_vline(xintercept = id)
+                    tp <- tp + geom_vline(xintercept = select[["np"]])
                 }
                 if (!missing(brewer.palette))
                 {
@@ -740,18 +735,21 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                 dp <- NULL
                 tp <- NULL
                 cp <- NULL
+                pp <- NULL
             }
         } else
         {
             dp <- NULL
             tp <- NULL
             cp <- NULL
+            pp <- NULL
         }
     } else
     {
         dp <- NULL
         tp <- NULL
         cp <- NULL
+        pp <- NULL
     }
 
     np <- NULL
@@ -775,13 +773,32 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         {
             if (noise %in% names(data))
             {
-              values <- data[[noise]]
-                if ("np" %in% colnames(data[[noise]]))
+                values <- data[[noise]]
+
+                if ("np" %in% colnames(data[[state]]) && burn > 0)
                 {
                     values <- values[np >= burn]
+                    if (nrow(values) == 0) {
+                        stop("Nothing left after burn-in")
+                    }
                 }
 
-              ## values[!is.finite(value), value := 0]
+                if (!missing(select))
+                {
+                    for (var_name in names(select))
+                    {
+                        if (var_name %in% colnames(values))
+                        {
+                            if (!(var_name == "np") || time.dim %in% colnames(values)) {
+                                values <- values[get(var_name) %in% select[[var_name]]]
+                                if (class(values[, get(var_name)]) == "factor")
+                                {
+                                    values[, paste(var_name) := factor(get(var_name))]
+                                }
+                            }
+                        }
+                    }
+                }
 
               if (time.dim %in% colnames(values))
               {
@@ -884,11 +901,6 @@ plot_libbi <- function(data, model, prior, states, params, noises,
           ret_data <- c(ret_data, list(noises = aggregate_noises[, !"single", with = FALSE]))
         }
 
-        if (!missing(id) && !("all" %in% id))
-        {
-            ndt <- ndt[np %in% id]
-        }
-
         if (!missing(obs) && nrow(dataset) > 0 && !all.times)
         {
             ndt <- ndt[(time >= min(dataset[, time])) & (time <= max(dataset[, time]))]
@@ -902,8 +914,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
         if (nrow(ndt) > 0)
         {
-            if (!missing(extra.aes) && "color" %in% names(extra.aes) &&
-                !missing(id))
+            if (!missing(extra.aes) && "color" %in% names(extra.aes) && select_id)
             {
                 ndt <- ndt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
             }
@@ -940,7 +951,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                         np <- np + geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
                     }
                 }
-                if (!missing(id))
+                if (select_id)
                 {
                     np <- np + line_func(data = ndt[single == FALSE], mapping = aes(group = color_np), alpha = id_alpha, ...)
                     if (nrow(ndt[single == TRUE]) > 0)
@@ -955,7 +966,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                     np <- np + line_func(data = aggregate_noises, ...)
                     np <- np + geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
                 }
-                if (!missing(id))
+                if (select_id)
                 {
                     np <- np + line_func(data = ndt[single == FALSE], aes(group = factor(np)), alpha = id_alpha, ...)
                     np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = id_alpha, shape = 4, ...)
@@ -1028,10 +1039,10 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             lp <- lp + facet_wrap(density ~ type, scales = "free")
             lp <- lp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                              legend.position = "top")
-            if (!missing(id))
+            if (select_id)
             {
               lp <- lp + geom_vline(data = data.frame(type = "Trace"),
-                                    xintercept = ldt[np %in% id, value])
+                                    xintercept = ldt[np %in% select[["np"]], value])
             }
         }
     }
