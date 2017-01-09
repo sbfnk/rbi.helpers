@@ -21,6 +21,7 @@
 #' @param shift list of dimensions to be shifted, and by how much
 #' @param obs.colour colour for plotting the observations
 #' @param base.alpha base alpha value for credible intervals
+#' @param np.alpha alpha of trajectories, if 'np' is part of \code{select} (default: 0.35)
 #' @param trend how the trend should be characterised (e.g., mean, median, or NULL for no trend line)
 #' @param densities density geometry (e.g., "histogram" (default) or "density")
 #' @param density_args list of arguments to pass to density geometry
@@ -58,7 +59,8 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                        all.times = FALSE, hline,
                        burn, steps = FALSE, select,
                        shift, obs.colour = "red", base.alpha = 0.5,
-                       trend = "median", densities = "histogram",
+                       np.alpha=0.35, trend = "median",
+                       densities = "histogram",
                        density_args = list(), limit.to.obs = FALSE,
                        labels, brewer.palette, plot = TRUE, ...)
 {
@@ -501,10 +503,10 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                 }
                 if (select_id)
                 {
-                    p <- p + line_func(data = sdt[single == FALSE], mapping = aes(group = color_np), alpha = id_alpha, ...)
+                    p <- p + line_func(data = sdt[single == FALSE], mapping = aes(group = color_np), alpha = np.alpha, ...)
                     if (nrow(sdt[single == TRUE]) > 0)
                     {
-                        p <- p + geom_point(data = aggregate_values[single == TRUE], aes(group = factor(np)), shape = 4, alpha = id_alpha, ...)
+                        p <- p + geom_point(data = aggregate_values[single == TRUE], aes(group = factor(np)), shape = 4, alpha = np.alpha, ...)
                     }
                 }
             } else
@@ -516,8 +518,8 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                 }
                 if (select_id)
                 {
-                    p <- p + line_func(data = sdt[single == FALSE], aes(group = factor(np)), alpha = id_alpha, ...)
-                    p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = id_alpha, shape = 4, ...)
+                    p <- p + line_func(data = sdt[single == FALSE], aes(group = factor(np)), alpha = np.alpha, ...)
+                    p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = np.alpha, shape = 4, ...)
                 }
             }
             p <- p + scale_y_continuous(labels = comma) + ylab("")
@@ -953,10 +955,10 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                 }
                 if (select_id)
                 {
-                    np <- np + line_func(data = ndt[single == FALSE], mapping = aes(group = color_np), alpha = id_alpha, ...)
+                    np <- np + line_func(data = ndt[single == FALSE], mapping = aes(group = color_np), alpha = np.alpha, ...)
                     if (nrow(ndt[single == TRUE]) > 0)
                     {
-                        np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = id_alpha, ...)
+                        np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = np.alpha, ...)
                     }
                 }
             } else
@@ -968,8 +970,8 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                 }
                 if (select_id)
                 {
-                    np <- np + line_func(data = ndt[single == FALSE], aes(group = factor(np)), alpha = id_alpha, ...)
-                    np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = id_alpha, shape = 4, ...)
+                    np <- np + line_func(data = ndt[single == FALSE], aes(group = factor(np)), alpha = np.alpha, ...)
+                    np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = np.alpha, shape = 4, ...)
                 }
             }
             np <- np + scale_y_continuous(labels = comma) + ylab("")
