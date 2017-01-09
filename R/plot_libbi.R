@@ -254,7 +254,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         return(values)
     }
 
-    if (length(states) > 0)
+    if (length(c(states, !missing(obs))) > 0)
     {
         for (state in states)
         {
@@ -329,9 +329,9 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
         if (!missing(obs))
         {
-            obs <- obs[names(obs) %in% states]
-            dataset <- lapply(names(obs), function(x) {obs[[x]][, state := x]})
+          dataset <- lapply(names(obs), function(x) {obs[[x]][, state := x]})
             dataset <- rbindlist(dataset, fill=TRUE)
+            dataset <- factorise_columns(dataset, labels)
             dataset <- clean_dates(dataset, time.dim, use_dates, date.unit, date.origin)
             for (col in colnames(dataset))
             {
@@ -385,22 +385,21 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             }
         }
 
-        states_n <- sdt[, list(single = (.N == 1)), by = state]
-        sdt <- merge(sdt, states_n, by = "state", all.x = TRUE)
-
+        if (nrow(sdt) > 0)
+        {
+          states_n <- sdt[, list(single = (.N == 1)), by = state]
+          sdt <- merge(sdt, states_n, by = "state", all.x = TRUE)
+        }
+        
         aggregate_values <- NULL
         state.by <- c("state", "single", intersect(setdiff(summarise_columns, "np"), colnames(sdt)))
-        if (is.null(trend))
+        if (!is.null(trend) && nrow(sdt) > 0)
         {
-            id_alpha = 1
-        } else
-        {
-            aggregate_values <- sdt[, list(value = do.call(trend, list(value, na.rm = TRUE))),
+           aggregate_values <- sdt[, list(value = do.call(trend, list(value, na.rm = TRUE))),
                                        by = state.by]
-            id_alpha = 0.35
         }
 
-        if (!is.null(quantiles))
+        if (!is.null(quantiles) && nrow(sdt) > 0)
         {
             for (i in seq_along(quantiles))
             {
@@ -429,53 +428,58 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         }
         if (is.null(aggregate_values)) aggregate_values <- sdt
 
-        ret_data <- c(ret_data, list(states = aggregate_values[, !"single", with = FALSE]))
-
+        if (nrow(aggregate_values) > 0)
+        {
+          ret_data <- c(ret_data,
+                        list(states = aggregate_values[, !"single",
+                                                       with = FALSE]))
+        }
         aesthetic <- list(x = "time", y = "value")
         if (!missing(extra.aes))
         {
             aesthetic <- c(aesthetic, extra.aes)
         }
 
+        if (!missing(extra.aes) && "color" %in% names(extra.aes) && select_id && nrow(sdt) > 0)
+        {
+          sdt <- sdt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
+        }
+
+        p <- ggplot(mapping = do.call(aes_string, aesthetic))
+
+        if (!missing(hline))
+        {
+          named <- which(names(hline) != "")
+          if (is.null(names(hline)))
+          {
+            unnamed <- seq_along(hline)
+          } else
+          {
+            unnamed <- which(names(hline) == "")
+          }
+          for (hline_state_id in named)
+          {
+            hline_data <- data.frame(state = names(hline)[hline_state_id],
+                                     yintercept = hline[hline_state_id])
+            p <- p + geom_hline(data = hline_data,
+                                aes(yintercept = yintercept), color = "black")
+          }
+          for (hline_state_id in unnamed)
+          {
+            hline_data <- data.frame(yintercept = hline[hline_state_id])
+            p <- p + geom_hline(data = hline_data,
+                                aes(yintercept = yintercept), color = "black")
+          }
+        }
+
+        if (length(states) > 1)
+        {
+          p <- p + facet_wrap(~ state, scales = "free_y",
+                              ncol = round(sqrt(length(states))),
+                              labeller = label_parsed)
+        }
         if (nrow(aggregate_values) > 0)
         {
-            if (!missing(extra.aes) && "color" %in% names(extra.aes) && select_id)
-            {
-                sdt <- sdt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
-            }
-            p <- ggplot(mapping = do.call(aes_string, aesthetic))
-
-            if (!missing(hline))
-            {
-                named <- which(names(hline) != "")
-                if (is.null(names(hline)))
-                {
-                    unnamed <- seq_along(hline)
-                } else
-                {
-                    unnamed <- which(names(hline) == "")
-                }
-                for (hline_state_id in named)
-                {
-                    hline_data <- data.frame(state = names(hline)[hline_state_id],
-                                             yintercept = hline[hline_state_id])
-                    p <- p + geom_hline(data = hline_data,
-                                        aes(yintercept = yintercept), color = "black")
-                }
-                for (hline_state_id in unnamed)
-                {
-                    hline_data <- data.frame(yintercept = hline[hline_state_id])
-                    p <- p + geom_hline(data = hline_data,
-                                        aes(yintercept = yintercept), color = "black")
-                }
-            }
-
-            if (length(states) > 1)
-            {
-                p <- p + facet_wrap(~ state, scales = "free_y",
-                                    ncol = round(sqrt(length(states))),
-                                    labeller = label_parsed)
-            }
             if (!is.null(quantiles))
             {
                 alpha <- base.alpha
@@ -522,29 +526,29 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                     p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = np.alpha, shape = 4, ...)
                 }
             }
-            p <- p + scale_y_continuous(labels = comma) + ylab("")
-            if (!missing(brewer.palette))
+        }
+        p <- p + scale_y_continuous(labels = comma) + ylab("")
+        if (!missing(brewer.palette))
+        {
+            p <- p + scale_color_brewer(palette = brewer.palette)
+            p <- p + scale_fill_brewer(palette = brewer.palette)
+        }
+        p <- p + expand_limits(y = 0)
+        if (!missing(obs) && nrow(dataset) > 0)
+        {
+            if (!missing(extra.aes) && "color" %in% names(extra.aes))
             {
-                p <- p + scale_color_brewer(palette = brewer.palette)
-                p <- p + scale_fill_brewer(palette = brewer.palette)
-            }
-            p <- p + expand_limits(y = 0)
-            if (!missing(obs) && nrow(dataset) > 0)
+                p <- p + geom_point(data = dataset)
+            } else
             {
-                if (!missing(extra.aes) && "color" %in% names(extra.aes))
-                {
-                    p <- p + geom_point(data = dataset)
-                } else
-                {
-                    p <- p + geom_point(data = dataset, color = obs.colour, size = 2)
-                }
+                p <- p + geom_point(data = dataset, color = obs.colour, size = 2)
             }
-            p <- p + theme(axis.text.x = element_text(angle = 45, hjust = 1),
-                           legend.position = "top")
-            if (use_dates)
-            {
-                p <- p + scale_x_date("")
-            }
+        }
+        p <- p + theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                       legend.position = "top")
+        if (use_dates)
+        {
+            p <- p + scale_x_date("")
         }
     }
 
