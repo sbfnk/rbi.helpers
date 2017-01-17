@@ -112,7 +112,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
     {
         if ("libbi" %in% class(data))
         {
-            warning("'model' overwrites the model given in 'data'.")
+            stop("'model' should not be given if 'data' is a 'libbi' object'.")
         }
         if (is.character(model)) {
             model <- rbi::bi_model(model)
@@ -447,37 +447,6 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
         p <- ggplot(mapping = do.call(aes_string, aesthetic))
 
-        if (!missing(hline))
-        {
-          named <- which(names(hline) != "")
-          if (is.null(names(hline)))
-          {
-            unnamed <- seq_along(hline)
-          } else
-          {
-            unnamed <- which(names(hline) == "")
-          }
-          for (hline_state_id in named)
-          {
-            hline_data <- data.frame(state = names(hline)[hline_state_id],
-                                     yintercept = hline[hline_state_id])
-            p <- p + geom_hline(data = hline_data,
-                                aes(yintercept = yintercept), color = "black")
-          }
-          for (hline_state_id in unnamed)
-          {
-            hline_data <- data.frame(yintercept = hline[hline_state_id])
-            p <- p + geom_hline(data = hline_data,
-                                aes(yintercept = yintercept), color = "black")
-          }
-        }
-
-        if (length(states) > 1)
-        {
-          p <- p + facet_wrap(~ state, scales = "free_y",
-                              ncol = round(sqrt(length(states))),
-                              labeller = label_parsed)
-        }
         if (nrow(aggregate_values) > 0)
         {
             if (!is.null(quantiles))
@@ -549,6 +518,37 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         if (use_dates)
         {
             p <- p + scale_x_date("")
+        }
+        if (!missing(hline))
+        {
+          named <- which(names(hline) != "")
+          if (is.null(names(hline)))
+          {
+            unnamed <- seq_along(hline)
+          } else
+          {
+            unnamed <- which(names(hline) == "")
+          }
+          for (hline_state_id in named)
+          {
+            hline_data <- data.frame(state = names(hline)[hline_state_id],
+                                     yintercept = hline[hline_state_id])
+            p <- p + geom_hline(data = hline_data,
+                                aes(yintercept = yintercept), color = "black")
+          }
+          for (hline_state_id in unnamed)
+          {
+            hline_data <- data.frame(yintercept = hline[hline_state_id])
+            p <- p + geom_hline(data = hline_data,
+                                aes(yintercept = yintercept), color = "black")
+          }
+        }
+
+        if (length(states) > 1)
+        {
+          p <- p + facet_wrap(~ state, scales = "free_y",
+                              ncol = round(sqrt(length(states))),
+                              labeller = label_parsed)
         }
     }
 
