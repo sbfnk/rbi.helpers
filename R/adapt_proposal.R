@@ -32,6 +32,8 @@
 #' @export
 adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, options, nsamples, max_iter = 10, correlations = TRUE, quiet = FALSE, ...) {
 
+  if (min == 0 && max == 1) return(wrapper)
+
   if (missing(options)) {
     options <- list()
   } else if (!is.list(options)) {
