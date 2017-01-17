@@ -34,6 +34,8 @@ adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, options, nsampl
 
   if (min == 0 && max == 1) return(wrapper)
 
+  if (!(max>min)) stop("Must have max>min.")
+
   if (missing(options)) {
     options <- list()
   } else if (!is.list(options)) {
