@@ -42,6 +42,8 @@ adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, options, nsampl
     stop("'options' must be given as list.")
   }
 
+  if (!quiet) message(date(), " Adapting the proposal distribution")
+
   if (!wrapper$run_flag) {
     if (!quiet) message(date(), " Initial trial run")
     wrapper$run(...)

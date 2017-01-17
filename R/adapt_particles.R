@@ -26,17 +26,19 @@
 #' @export
 adapt_particles <- function(wrapper, min = 1, max = 1024, nsamples, target.variance = 1, quiet=FALSE, ...) {
 
-  if (!wrapper$run_flag) {
-    if (!quiet) message(date(), " Initial trial run")
-    wrapper$run(client = "sample", ...)
-  }
-
   if (missing(min) && !is.null(wrapper$options[["nparticles"]]))
   {
     min <- wrapper$options[["nparticles"]]
   }
   if (max <= min) {
     stop("'max' must be less or equal to 'min'")
+  }
+
+  if (!quiet) message(date(), " Adapting the number of particles")
+
+  if (!wrapper$run_flag) {
+    if (!quiet) message(date(), " Initial trial run")
+    wrapper$run(client = "sample", ...)
   }
 
   test <- 2**(seq(floor(log(min, 2)), ceiling(log(max, 2))))
