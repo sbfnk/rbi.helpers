@@ -87,8 +87,7 @@ For the first part (finding the mode), a crude method is to take a fixed number 
 In **RBi**, this can be achieved with
 
 ```{R}
-SIRmodel_prior <- SIRmodel$propose_prior()
-bi_prior <- libbi(client="sample", SIRmodel_prior, nsamples=1000, end_time=16*7, noutputs=16, nparticles=16, obs=SIRdata, seed=1234)
+bi_prior <- libbi(proposal="prior", SIRmodel_prior, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234)
 bi_prior$run()
 ```
 
@@ -119,20 +118,20 @@ The way this is implemented in the `adapt_proposal` function in **RBi.helpers** 
 For example, to adjust the proposal distribution for an acceptance rate between 0.05 and 0.4, we can run:
 
 ```{R}
-adapted_proposal <- adapt_proposal(adapted, min=0.05, max=0.4)
+adapted <- adapt_proposal(adapted, min=0.05, max=0.4)
 ```
 
 The adjusted proposals are stored in the `bi_model` contained in the `libbi` object `adapted_proposal`
 
 ```{R}
-adapted_proposal$model$get_block("proposal_parameter")
+get_block(adapted$model, "proposal_parameter")
 ```
 
 Note that the multivariate normal is realised as a series of conditionally dependent draws from normal distributions.
 The model can be saved via
 
 ```{R}
-adapted_proposal$model$write("SIR.bi")
+write_file(adapted$model, "SIR.bi")
 ````
 
 The steps above are exactly the steps used to create the proposal blocks in the file `SIR.bi` contained in the **RBi** package and used in its vignette.
@@ -142,7 +141,7 @@ The steps above are exactly the steps used to create the proposal blocks in the 
 Let us run take 5,000 samples from the posterior distribution of the model using the adapted proposal and number of particles:
 
 ```{R}
-posterior <- adapted_proposal$clone(run=TRUE, nsamples=5000, nparticles=16, sample_obs=TRUE)
+posterior <- sample(adapted, nsamples=5000, nparticles=16, sample_obs=TRUE)
 ```
 
 Note that we used the `sample_obs` option to also generate posterior predictive samples from of the observations.
@@ -221,15 +220,8 @@ To compute the [Deviance Information Criterion](https://en.m.wikipedia.org/wiki/
 compute_DIC(posterior)
 ```
 
-# Recreate `libbi` objects
+# Create inference chains
 
-To recreate a `libbi` object from a previous R session, use `recreate_libbi`.
-For example, one could use the following code to get the acceptance rate and plots for a *LibBi* run with a given output and model file:
+Chains 
 
 ```{R}
-PZ_run_file <- system.file(package="rbi.helpers", "example_run.nc")
-PZ_model_file <- system.file(package="rbi", "PZ.bi")
-PZ_posterior <- recreate_libbi(PZ_model_file, PZ_run_file)
-a <- acceptance_rate(PZ_posterior) 
-a
-```
