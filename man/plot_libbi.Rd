@@ -5,11 +5,11 @@
 \title{Plot results from libbi}
 \usage{
 plot_libbi(data, model, prior, states, params, noises, quantiles = c(0.5,
-  0.95), date.origin, date.unit, time.dim = "time", obs, id, extra.aes,
+  0.95), date.origin, date.unit, time.dim = "time", obs, extra.aes,
   all.times = FALSE, hline, burn, steps = FALSE, select, shift,
-  obs.colour = "red", base.alpha = 0.5, trend = "median",
-  densities = "histogram", density_args = list(), limit.to.obs = FALSE,
-  labels, brewer.palette, plot = TRUE, ...)
+  obs.colour = "red", base.alpha = 0.5, np.alpha = 0.35,
+  trend = "median", densities = "histogram", density_args = list(),
+  limit.to.obs = FALSE, labels, brewer.palette, plot = TRUE, ...)
 }
 \arguments{
 \item{data}{Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}, or the name of an NetCDF file used as 'output' in a libbi run}
@@ -34,8 +34,6 @@ plot_libbi(data, model, prior, states, params, noises, quantiles = c(0.5,
 
 \item{obs}{observations (a named list of data frames, a \code{libbi} object with observations, or a NetCDF file name)}
 
-\item{id}{one or more run ids to plot}
-
 \item{extra.aes}{extra aesthetics (for ggplot)}
 
 \item{all.times}{whether to plot all times (not only ones with observations)}
@@ -46,13 +44,15 @@ plot_libbi(data, model, prior, states, params, noises, quantiles = c(0.5,
 
 \item{steps}{whether to plot lines as stepped lines}
 
-\item{select}{list of selection criteria}
+\item{select}{list of selection criteria, as named list of selected elements. If the list contains "np", it is treated specially.}
 
 \item{shift}{list of dimensions to be shifted, and by how much}
 
 \item{obs.colour}{colour for plotting the observations}
 
 \item{base.alpha}{base alpha value for credible intervals}
+
+\item{np.alpha}{alpha of trajectories, if 'np' is part of \code{select} (default: 0.35)}
 
 \item{trend}{how the trend should be characterised (e.g., mean, median, or NULL for no trend line)}
 

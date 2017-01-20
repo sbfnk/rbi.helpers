@@ -18,9 +18,9 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
     stop("The model should be run first")
   }
 
-  model <- wrapper$model$clone()
+  model <- wrapper$model
   ## get constant expressions
-  const_lines <- grep("^[[:space:]]*const", model$get_lines(), value = TRUE)
+  const_lines <- grep("^[[:space:]]*const", model[], value = TRUE)
   for (const_line in const_lines) {
     line <-
       gsub(" ", "", sub("^[[:space:]]*const[[:space:]]*", "", const_line))
@@ -36,10 +36,12 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
       warning("Original message: ", cond)
     })
   }
+  for (block in c("parameter", "initial"))
+  {
   ## get parameters
-  param_block <- model$get_block("parameter")
+  param_block <- get_block(model, block)
   ## only go over variable parameters
-  params <- sub("[[:space:]]*~.*$", "", grep("~", param_block, value = TRUE))
+  params <- sub("[[:space:]]*~.*$", "", grep("~", param_block, value = true))
   ## remove any dimensions
   params <- gsub("[[:space:]]*\\[[^]]*\\]", "", params)
   ## read parameters
@@ -67,7 +69,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
 
       a <- lapply(names(a), function(x) {
         for (col in colnames(unique_dims)) {
-          a[[x]][[col]] <- NULL
+          a[[x]][[col]] <- null
         }
         data.table::setnames(a[[x]], "value", x)
       })
@@ -80,15 +82,15 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
         wide <- merge(wide, l[[i]])
       }
     }
-    wide[["np"]] <- NULL
+    wide[["np"]] <- null
 
-    C <- stats::cov(wide)
+    c <- stats::cov(wide)
     if (start) {
-      C[, ] <- 0
+      c[, ] <- 0
     }
 
-    sd_vec <- diag(C) - C[1, ]**2 / C[1, 1]
-    mean_scale <- C[1, ] / C[1, 1]
+    sd_vec <- diag(c) - c[1, ]**2 / c[1, 1]
+    mean_scale <- c[1, ] / c[1, 1]
 
     ## in case machine precision has made something < 0:
     sd_vec[!(is.finite(sd_vec) & sd_vec > 0)] <- 0
@@ -106,12 +108,12 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
     scale_string <- paste0(scale, " * ")
   }
 
-  param_bounds <- sapply(params, function(param) {grep(paste0("^[[:space:]]*", param, "[[[:space:]][^~]*~"), param_block, value = TRUE)})
+  param_bounds <- sapply(params, function(param) {grep(paste0("^[[:space:]]*", param, "[[[:space:]][^~]*~"), param_block, value = true)})
   variable_bounds <- param_bounds[sapply(param_bounds, function(x) {length(x) > 0})]
 
   proposal_lines <- c()
 
-  first <- TRUE
+  first <- true
   for (dim_param in names(sd_vec)) {
     param <- gsub("\\[[^]]*\\]", "", dim_param)
     if (param %in% names(variable_bounds[param]))
@@ -132,7 +134,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
         if (correlations) {
           old_name <- "_old_mean_"
           proposal_lines <- paste("inline", old_name, "=", dim_param)
-          sd <- sqrt(C[dim_param, dim_param])
+          sd <- sqrt(c[dim_param, dim_param])
         } else {
           sd <- sd_vec[[dim_param]]
         }
@@ -155,7 +157,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
                    "mean = ", mean,
                    ", std = ", scale_string, sd, ")"))
       } else {
-        bounds <- c(lower = NA, upper = NA)
+        bounds <- c(lower = na, upper = na)
 
         split_bounds <- strsplit(bounds_string, split = ",")[[1]]
         for (bound in c("lower", "upper")) {
@@ -185,16 +187,16 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
         bounds <- gsub("(lower|upper)[[:space:]]*=[[:space:]]*", "", bounds)
         bounds <- bounds[!is.na(bounds)]
 
-        eval_bounds <- tryCatch(
+        eval_bounds <- trycatch(
         {
           sapply(bounds, function(x) { eval(parse(text = x))})
         },
         error = function(cond)
         {
-          warning("Cannot convert bounds for ", param, "into R expression")
-          warning("Original message: ", cond)
+          warning("cannot convert bounds for ", param, "into r expression")
+          warning("original message: ", cond)
           ret <- bounds
-          ret[] <- NA
+          ret[] <- na
           return(ret)
         })
         bounds <- eval_bounds
@@ -228,13 +230,13 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
 
       if (first && correlations) {
         proposal_lines <- c(proposal_lines, paste("inline", "_old_mean_diff_", "=", dim_param, "-", "_old_mean_"))
-        first <- FALSE
+        first <- false
       }
     }
   }
 
-  model$add_block(name = "proposal_parameter",
-                  lines = proposal_lines)
+  model <- add_block(model, name = "proposal_parameter",
+                     lines = proposal_lines)
 
   return(model)
 }

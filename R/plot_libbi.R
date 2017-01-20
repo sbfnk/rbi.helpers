@@ -98,7 +98,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             ## if obs is missing but a libbi object passed, get obs file from
             ## the object
             obs <- bi_read(data[["options"]][["obs-file"]],
-                           vars=data[["model"]]$get_vars("obs"))
+                           vars=var_names(data[["model"]], "obs"))
         }
     }
 
@@ -202,8 +202,8 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             given_states <- c()
         } else
         {
-            states <- c(model$get_vars("state"), model$get_vars("obs"))
-            given_states <- c()
+          states <- var_names(model, c("state", "obs"))
+          given_states <- c()
         }
     } else
     {
@@ -329,7 +329,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
         if (!missing(obs))
         {
-          dataset <- lapply(names(obs), function(x) {obs[[x]][, state := x]})
+            dataset <- lapply(names(obs), function(x) {obs[[x]][, state := x]})
             dataset <- rbindlist(dataset, fill=TRUE)
             dataset <- factorise_columns(dataset, labels)
             dataset <- clean_dates(dataset, time.dim, use_dates, date.unit, date.origin)
@@ -570,7 +570,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             params <- c()
         } else
         {
-            params <- model$get_vars("param")
+            params <- var_names(model, "param")
         }
     }
 
@@ -767,7 +767,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             noises <- c()
         } else
         {
-            noises <- model$get_vars("noise")
+            noises <- var_names(model, "noise")
         }
     }
 

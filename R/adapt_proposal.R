@@ -16,7 +16,7 @@
 #' @param max_iter maximum of iterations (default: 10)
 #' @param correlations if TRUE (default), take into account correlations
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
-#' @param ... parameters for libbi$run
+#' @param ... parameters for \code{\link{sample}}
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @importFrom coda mcmc rejectionRate
 #' @importFrom rbi bi_dim_len get_traces
@@ -24,7 +24,7 @@
 #' example_obs <- bi_read(system.file(package="rbi", "example_output.nc"))
 #' example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
 #' example_bi <- libbi(model = example_model, obs = example_obs)
-#' obs_states <- example_model$get_vars("obs")
+#' obs_states <- var_names(example_model, "obs")
 #' max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
 #' # adapt to acceptance rate between 0.1 and 0.5
 #' \dontrun{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
@@ -46,15 +46,12 @@ adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, options, nsampl
 
   if (!wrapper$run_flag) {
     if (!quiet) message(date(), " Initial trial run")
-    wrapper$run(...)
+    rbi::sample(wrapper, ...)
   }
 
   ## scale should be > 1 (it's a divider if acceptance rate is too
   ## small, multiplier if the acceptance Rate is too big)
   if (scale < 1) scale <- 1 / scale
-
-  init_file <- wrapper$output_file_name
-  init_np <- rbi::bi_dim_len(init_file, "np") - 1
 
   if (missing(nsamples)) {
     if ("nsamples" %in% names(wrapper$options)) {
@@ -65,8 +62,6 @@ adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, options, nsampl
   } else {
     options[["nsamples"]] <- nsamples
   }
-  options[["init-file"]] <- init_file
-  options[["init-np"]] <- init_np
   accRate <- acceptance_rate(wrapper)
   adapt_wrapper <- wrapper
   shape_adapted <- FALSE
@@ -83,13 +78,13 @@ adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, options, nsampl
                   " with scale ", adapt_scale)
         }
       }
-      model <- output_to_proposal(adapt_wrapper, adapt_scale,
-                                  correlations = (round == 2))
-      adapt_wrapper <-
-        adapt_wrapper$clone(model = model, run = TRUE, options = options, ...)
+      adapt_wrapper$model <-
+        output_to_proposal(adapt_wrapper, adapt_scale,
+                           correlations = (round == 2))
+      adapt_wrapper <- rbi::sample(adapt_wrapper,
+                                   init=adapt_wrapper,
+                                   options = options, chain_init=TRUE, ...)
       mcmc_obj <- coda::mcmc(rbi::get_traces(adapt_wrapper))
-      options[["init-file"]] <- adapt_wrapper$output_file_name
-      options[["init-np"]] <- nsamples - 1
       accRate <- max(1 - coda::rejectionRate(mcmc_obj))
       iter <- iter + 1
       if (min(accRate) < min) {
