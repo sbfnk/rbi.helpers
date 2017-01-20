@@ -11,7 +11,6 @@ It contains:
 - `plot_libbi`, to plot libbi output
 - `compute_DIC`, to compute the DIC of a pMCMC run
 - `acceptance_rate`, to calculate the acceptance rate of a pMCMC run
-- `recreate_libbi`, to create a libbi object from past runs
 
 Installation
 =============
