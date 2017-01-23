@@ -28,7 +28,7 @@ will be inverted.}
 
 \item{quiet}{if set to TRUE, will not provide running output of particle numbers tested}
 
-\item{...}{parameters for libbi$run}
+\item{...}{parameters for \code{\link{sample}}}
 }
 \value{
 a \code{\link{libbi}} with the desired proposal distribution
@@ -43,7 +43,7 @@ This function takes the provided \code{\link{libbi}} object and
 example_obs <- bi_read(system.file(package="rbi", "example_output.nc"))
 example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
 example_bi <- libbi(model = example_model, obs = example_obs)
-obs_states <- example_model$get_vars("obs")
+obs_states <- var_names(example_model, "obs")
 max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
 # adapt to acceptance rate between 0.1 and 0.5
 \dontrun{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
