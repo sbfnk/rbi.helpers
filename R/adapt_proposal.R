@@ -19,7 +19,7 @@
 #' @param ... parameters for \code{\link{sample}}
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @importFrom coda mcmc rejectionRate
-#' @importFrom rbi bi_dim_len get_traces
+#' @importFrom rbi bi_dim_len get_traces sample
 #' @examples
 #' example_obs <- bi_read(system.file(package="rbi", "example_output.nc"))
 #' example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
