@@ -4,17 +4,15 @@
 \alias{adapt_particles}
 \title{Adapt the number of particles}
 \usage{
-adapt_particles(wrapper, min = 1, max = 1024, nsamples,
-  target.variance = 1, quiet = FALSE, ...)
+adapt_particles(x, min = 1, max = 1024, target.variance = 1,
+  quiet = FALSE, ...)
 }
 \arguments{
-\item{wrapper}{\code{\link{libbi}} (which has been run) to study}
+\item{x}{a \code{\link{libbi}} object}
 
 \item{min}{minimum number of particles}
 
 \item{max}{maximum number of particles}
-
-\item{nsamples}{number of samples to generate each iteration; if not give, will use what has been set in \code{wrapper}}
 
 \item{target.variance}{target log-likelihood variance; once this is crossed, the current number of particles will be used}
 
@@ -37,6 +35,6 @@ example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
 example_bi <- libbi(model = example_model, obs = example_obs)
 obs_states <- example_model$get_vars("obs")
 max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
-\dontrun{adapted <- adapt_particles(example_bi, nsamples = 128, end_time = max_time)}
+\dontrun{x <- adapt_particles(example_bi, nsamples = 128, end_time = max_time)}
 }
 
