@@ -11,8 +11,6 @@
 #' @param max maximum acceptance rate
 #' @param scale scale multiplier/divider for the proposal. If >1 this
 #'   will be inverted.
-#' @param options list of additional options
-#' @param nsamples number of samples to generate each iteration
 #' @param max_iter maximum of iterations (default: 10)
 #' @param correlations if TRUE (default), take into account correlations
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
@@ -30,17 +28,11 @@
 #' \dontrun{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
 #'                                min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 #' @export
-adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, options, nsamples, max_iter = 10, correlations = TRUE, quiet = FALSE, ...) {
+adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, max_iter = 10, correlations = TRUE, quiet = FALSE, ...) {
 
   if (min == 0 && max == 1) return(wrapper)
 
   if (!(max>min)) stop("Must have max>min.")
-
-  if (missing(options)) {
-    options <- list()
-  } else if (!is.list(options)) {
-    stop("'options' must be given as list.")
-  }
 
   if (!quiet) message(date(), " Adapting the proposal distribution")
 
@@ -53,15 +45,6 @@ adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, options, nsampl
   ## small, multiplier if the acceptance Rate is too big)
   if (scale < 1) scale <- 1 / scale
 
-  if (missing(nsamples)) {
-    if ("nsamples" %in% names(wrapper$options)) {
-      nsamples <- wrapper$options[["nsamples"]]
-    } else {
-      stop("must provide 'nsamples'")
-    }
-  } else {
-    options[["nsamples"]] <- nsamples
-  }
   accRate <- acceptance_rate(wrapper)
   adapt_wrapper <- wrapper
   shape_adapted <- FALSE
@@ -81,7 +64,7 @@ adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, options, nsampl
       adapt_wrapper$model <-
         output_to_proposal(adapt_wrapper, adapt_scale,
                            correlations = (round == 2))
-      adapt_wrapper <- rbi::sample(adapt_wrapper, options = options, ...)
+      adapt_wrapper <- rbi::sample(adapt_wrapper, chain=TRUE, ...)
       mcmc_obj <- coda::mcmc(rbi::get_traces(adapt_wrapper))
       accRate <- max(1 - coda::rejectionRate(mcmc_obj))
       iter <- iter + 1

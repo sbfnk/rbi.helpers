@@ -5,8 +5,8 @@
 \title{Adapt the proposal distribution of MCMC using the covariance
   of samples}
 \usage{
-adapt_proposal(wrapper, min = 0, max = 1, scale = 2, options, nsamples,
-  max_iter = 10, correlations = TRUE, quiet = FALSE, ...)
+adapt_proposal(wrapper, min = 0, max = 1, scale = 2, max_iter = 10,
+  correlations = TRUE, quiet = FALSE, ...)
 }
 \arguments{
 \item{wrapper}{\code{link{libbi}} (which has been run) to study}
@@ -17,10 +17,6 @@ adapt_proposal(wrapper, min = 0, max = 1, scale = 2, options, nsamples,
 
 \item{scale}{scale multiplier/divider for the proposal. If >1 this
 will be inverted.}
-
-\item{options}{list of additional options}
-
-\item{nsamples}{number of samples to generate each iteration}
 
 \item{max_iter}{maximum of iterations (default: 10)}
 
