@@ -81,9 +81,7 @@ adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, options, nsampl
       adapt_wrapper$model <-
         output_to_proposal(adapt_wrapper, adapt_scale,
                            correlations = (round == 2))
-      adapt_wrapper <- rbi::sample(adapt_wrapper,
-                                   init=adapt_wrapper,
-                                   options = options, chain_init=TRUE, ...)
+      adapt_wrapper <- rbi::sample(adapt_wrapper, options = options, ...)
       mcmc_obj <- coda::mcmc(rbi::get_traces(adapt_wrapper))
       accRate <- max(1 - coda::rejectionRate(mcmc_obj))
       iter <- iter + 1
