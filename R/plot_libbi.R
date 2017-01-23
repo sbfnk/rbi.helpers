@@ -329,6 +329,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
         if (!missing(obs))
         {
+            obs <- obs[intersect(states, names(obs))]
             dataset <- lapply(names(obs), function(x) {obs[[x]][, state := x]})
             dataset <- rbindlist(dataset, fill=TRUE)
             dataset <- factorise_columns(dataset, labels)
