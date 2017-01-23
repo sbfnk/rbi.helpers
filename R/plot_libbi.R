@@ -361,15 +361,15 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                     {
                         ## for all states, only retain times with observations
                         sdt <- sdt[time %in% dataset[, time]]
-                    }##  else
-                    ## {
-                    ##     for (obs_state in unique(dataset[, state]))
-                    ##     {
-                    ##         ## for states in observations, only retain times with observations
-                    ##         sdt <- sdt[(state != obs_state) |
-                    ##                    (time %in% dataset[state == obs_state, time])]
-                    ##     }
-                    ## }
+                    } else
+                    {
+                        for (obs_state in unique(dataset[, state]))
+                        {
+                            ## for states in observations, only retain times with observations
+                            sdt <- sdt[(state != obs_state) |
+                                       (time %in% dataset[state == obs_state, time])]
+                        }
+                    }
                 }
                 for (i in seq_along(quantiles))
                 {
