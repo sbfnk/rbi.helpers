@@ -8,7 +8,6 @@
 #' @param x a \code{\link{libbi}} object
 #' @param min minimum number of particles
 #' @param max maximum number of particles
-#' @param nsamples number of samples to generate each iteration; if not give, will use what has been set in \code{wrapper}
 #' @param target.variance target log-likelihood variance; once this is crossed, the current number of particles will be used
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for libbi$run
@@ -22,7 +21,7 @@
 #' example_bi <- libbi(model = example_model, obs = example_obs)
 #' obs_states <- example_model$get_vars("obs")
 #' max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
-#' \dontrun{x <- adapt_particles(example_bi, nsamples = 128, end_time = max_time)}
+#' \dontrun{adapted <- adapt_particles(example_bi, nsamples = 128, end_time = max_time)}
 #' @export
 adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=FALSE, ...) {
 
