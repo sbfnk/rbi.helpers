@@ -386,18 +386,12 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             }
         }
 
-        if (nrow(sdt) > 0)
-        {
-          states_n <- sdt[, list(single = (.N == 1)), by = state]
-          sdt <- merge(sdt, states_n, by = "state", all.x = TRUE)
-        }
-        
         aggregate_values <- NULL
-        state.by <- c("state", "single", intersect(setdiff(summarise_columns, "np"), colnames(sdt)))
+        state.by <- c("state", intersect(setdiff(summarise_columns, "np"), colnames(sdt)))
+
         if (!is.null(trend) && nrow(sdt) > 0)
         {
-           aggregate_values <- sdt[, list(value = do.call(trend, list(value, na.rm = TRUE))),
-                                       by = state.by]
+           aggregate_values <- sdt[, list(value = do.call(trend, list(value, na.rm = TRUE))), by = state.by]
         }
 
         if (!is.null(quantiles) && nrow(sdt) > 0)
@@ -427,14 +421,20 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                 }
             }
         }
-        if (is.null(aggregate_values)) aggregate_values <- sdt
 
-        if (nrow(aggregate_values) > 0)
+        if (!is.null(aggregate_values))
         {
-          ret_data <- c(ret_data,
-                        list(states = aggregate_values[, !"single",
-                                                       with = FALSE]))
+          states_n <- aggregate_values[, list(single = (.N == 1)), by = state]
+          aggregate_values <- merge(aggregate_values, states_n, by = "state", all.x = TRUE)
+          ret_data <- c(ret_data, list(states = aggregate_values[, !"single", with = FALSE]))
         }
+
+        if (nrow(sdt) > 0)
+        {
+          states_n <- sdt[, list(single = (.N == 1)), by = state]
+          sdt <- merge(sdt, states_n, by = "state", all.x = TRUE)
+        }
+
         aesthetic <- list(x = "time", y = "value")
         if (!missing(extra.aes))
         {
@@ -448,53 +448,50 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
         p <- ggplot(mapping = do.call(aes_string, aesthetic))
 
-        if (nrow(aggregate_values) > 0)
+        if (!is.null(quantiles) && nrow(aggregate_values) > 0)
         {
-            if (!is.null(quantiles))
+            alpha <- base.alpha
+            for (i in seq_along(quantiles))
             {
-                alpha <- base.alpha
-                for (i in seq_along(quantiles))
+                str <- as.list(paste(c("max", "min"), i, sep = "."))
+                names(str) <- c("ymax", "ymin")
+                p <- p + ribbon_func(data = aggregate_values, do.call(aes_string, str), alpha = alpha)
+                alpha <- alpha / 2
+                if (nrow(aggregate_values[single == TRUE]) > 0)
                 {
-                    str <- as.list(paste(c("max", "min"), i, sep = "."))
-                    names(str) <- c("ymax", "ymin")
-                    p <- p + ribbon_func(data = aggregate_values, do.call(aes_string, str), alpha = alpha)
-                    alpha <- alpha / 2
-                    if (nrow(sdt[single == TRUE]) > 0)
-                    {
-                        p <- p + geom_errorbar(data = aggregate_values[single == TRUE], do.call(aes_string, str), ...)
-                    }
+                    p <- p + geom_errorbar(data = aggregate_values[single == TRUE], do.call(aes_string, str), ...)
                 }
             }
-            if ("color" %in% names(aesthetic))
+        }
+        if ("color" %in% names(aesthetic))
+        {
+            if (!is.null(trend) && nrow(aggregate_values) > 0)
             {
-                if (!is.null(trend))
+                p <- p + line_func(data = aggregate_values[single == FALSE], ...)
+                if (nrow(aggregate_values[single == TRUE]) > 0)
                 {
-                    p <- p + line_func(data = aggregate_values, ...)
-                    if (nrow(aggregate_values[single == TRUE]) > 0)
-                    {
-                        p <- p + geom_point(data = aggregate_values[single == TRUE], shape = 4, ...)
-                    }
-                }
-                if (select_id)
-                {
-                    p <- p + line_func(data = sdt[single == FALSE], mapping = aes(group = color_np), alpha = np.alpha, ...)
-                    if (nrow(sdt[single == TRUE]) > 0)
-                    {
-                        p <- p + geom_point(data = aggregate_values[single == TRUE], aes(group = factor(np)), shape = 4, alpha = np.alpha, ...)
-                    }
-                }
-            } else
-            {
-                if (!is.null(trend))
-                {
-                    p <- p + line_func(data = aggregate_values, ...)
                     p <- p + geom_point(data = aggregate_values[single == TRUE], shape = 4, ...)
                 }
-                if (select_id)
+            }
+            if (select_id && nrow(sdt) > 0)
+            {
+                p <- p + line_func(data = sdt[single == FALSE], mapping = aes(group = color_np), alpha = np.alpha, ...)
+                if (nrow(sdt[single == TRUE]) > 0)
                 {
-                    p <- p + line_func(data = sdt[single == FALSE], aes(group = factor(np)), alpha = np.alpha, ...)
-                    p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = np.alpha, shape = 4, ...)
+                    p <- p + geom_point(data = std[single == TRUE], aes(group = factor(np)), shape = 4, alpha = np.alpha, ...)
                 }
+            }
+        } else
+        {
+            if (!is.null(trend) && nrow(aggregate_values) > 0)
+            {
+                p <- p + line_func(data = aggregate_values[single == FALSE], ...)
+                p <- p + geom_point(data = aggregate_values[single == TRUE], shape = 4, ...)
+            }
+            if (select_id && nrow(sdt) > 0)
+            {
+                p <- p + line_func(data = sdt[single == FALSE], aes(group = factor(np)), alpha = np.alpha, ...)
+                p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = np.alpha, shape = 4, ...)
             }
         }
         p <- p + scale_y_continuous(labels = comma) + ylab("")
@@ -862,11 +859,8 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
         ndt <- factorise_columns(ndt, labels)
 
-        noises_n <- ndt[, list(single = (.N == 1)), by = noise]
-        ndt <- merge(ndt, noises_n, by = "noise", all.x = TRUE)
-
         aggregate_noises <- NULL
-        noise.by <- c("noise", "single", intersect(setdiff(summarise_columns, "np"), colnames(ndt)))
+        noise.by <- c("noise", intersect(setdiff(summarise_columns, "np"), colnames(ndt)))
         if (!is.null(trend))
         {
             aggregate_noises <-
@@ -905,10 +899,18 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
         if (!is.null(aggregate_noises))
         {
+          noises_n <- aggregate_noises[, list(single = (.N == 1)), by = noise]
+          aggregate_noises <- merge(aggregate_noises, noises_n, by = "noise", all.x = TRUE)
           ret_data <- c(ret_data, list(noises = aggregate_noises[, !"single", with = FALSE]))
         }
 
-        if (!missing(obs) && nrow(dataset) > 0 && !all.times)
+        if (nrow(ndt) > 0)
+        {
+          noises_n <- ndt[, list(single = (.N == 1)), by = noise]
+          ndt <- merge(ndt, noises_n, by = "noise", all.x = TRUE)
+        }
+
+        if (!missing(obs) && nrow(dataset) > 0 && !all.times && nrow(ndt) > 0)
         {
             ndt <- ndt[(time >= min(dataset[, time])) & (time <= max(dataset[, time]))]
         }
@@ -919,79 +921,76 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             aesthetic <- c(aesthetic, extra.aes)
         }
 
-        if (nrow(ndt) > 0)
-        {
-            if (!missing(extra.aes) && "color" %in% names(extra.aes) && select_id)
-            {
-                ndt <- ndt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
-            }
-            np <- ggplot(mapping = do.call(aes_string, aesthetic))
+        if (!missing(extra.aes) && "color" %in% names(extra.aes) && select_id && nrow(ndt) > 0) {
+            ndt <- ndt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
+        }
 
-            if (length(noises) > 1)
+        np <- ggplot(mapping = do.call(aes_string, aesthetic))
+
+        if (!is.null(quantiles) && nrow(aggregate_noises) > 0)
+        {
+            alpha <- base.alpha
+            for (i in seq_along(quantiles))
             {
-                np <- np + facet_wrap(~ noise, scales = "free_y",
-                                      ncol = round(sqrt(length(states))),
-                                      labeller = label_parsed)
-            }
-            if (!is.null(quantiles))
-            {
-                alpha <- base.alpha
-                for (i in seq_along(quantiles))
+                str <- as.list(paste(c("max", "min"), i, sep = "."))
+                names(str) <- c("ymax", "ymin")
+                np <- np + ribbon_func(data = aggregate_noises, do.call(aes_string, str), alpha = alpha)
+                alpha <- alpha / 2
+                if (nrow(aggregate_noises[single == TRUE]) > 0)
                 {
-                    str <- as.list(paste(c("max", "min"), i, sep = "."))
-                    names(str) <- c("ymax", "ymin")
-                    np <- np + ribbon_func(data = aggregate_noises, do.call(aes_string, str), alpha = alpha)
-                    alpha <- alpha / 2
-                    if (nrow(ndt[single == TRUE]) > 0)
-                    {
-                        np <- np + geom_errorbar(data = aggregate_noises[single == TRUE], do.call(aes_string, str), ...)
-                    }
+                    np <- np + geom_errorbar(data = aggregate_noises[single == TRUE], do.call(aes_string, str), ...)
                 }
             }
-            if ("color" %in% names(aesthetic))
+        }
+        if ("color" %in% names(aesthetic))
+        {
+            if (!is.null(trend) && nrow(aggregate_noises) > 0)
             {
-                if (!is.null(trend))
+                np <- np + line_func(data = aggregate_noises[single == FALSE], ...)
+                if (nrow(aggregate_noises[single == TRUE]) > 0)
                 {
-                    np <- np + line_func(data = aggregate_noises, ...)
-                    if (nrow(aggregate_noises[single == TRUE]) > 0)
-                    {
-                        np <- np + geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
-                    }
-                }
-                if (select_id)
-                {
-                    np <- np + line_func(data = ndt[single == FALSE], mapping = aes(group = color_np), alpha = np.alpha, ...)
-                    if (nrow(ndt[single == TRUE]) > 0)
-                    {
-                        np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = np.alpha, ...)
-                    }
-                }
-            } else
-            {
-                if (!is.null(trend))
-                {
-                    np <- np + line_func(data = aggregate_noises, ...)
                     np <- np + geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
                 }
-                if (select_id)
+            }
+            if (select_id && nrow(ndt) > 0)
+            {
+                np <- np + line_func(data = ndt[single == FALSE], mapping = aes(group = color_np), alpha = np.alpha, ...)
+                if (nrow(ndt[single == TRUE]) > 0)
                 {
-                    np <- np + line_func(data = ndt[single == FALSE], aes(group = factor(np)), alpha = np.alpha, ...)
-                    np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = np.alpha, shape = 4, ...)
+                    np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = np.alpha, ...)
                 }
             }
-            np <- np + scale_y_continuous(labels = comma) + ylab("")
-            if (!missing(brewer.palette))
+        } else
+        {
+            if (!is.null(trend) && nrow(aggregate_noises) > 0)
             {
-                np <- np + scale_color_brewer(palette = brewer.palette)
-                np <- np + scale_fill_brewer(palette = brewer.palette)
+                np <- np + line_func(data = aggregate_noises[single == FALSE], ...)
+                np <- np + geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
             }
-            np <- np + expand_limits(y = 0)
-            np <- np + theme(axis.text.x = element_text(angle = 45, hjust = 1),
-                              legend.position = "top")
-            if (use_dates)
+            if (select_id && nrow(ndt) > 0)
             {
-                np <- np + scale_x_date("")
+                np <- np + line_func(data = ndt[single == FALSE], aes(group = factor(np)), alpha = np.alpha, ...)
+                np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = np.alpha, shape = 4, ...)
             }
+        }
+        np <- np + scale_y_continuous(labels = comma) + ylab("")
+        if (!missing(brewer.palette))
+        {
+            np <- np + scale_color_brewer(palette = brewer.palette)
+            np <- np + scale_fill_brewer(palette = brewer.palette)
+        }
+        np <- np + expand_limits(y = 0)
+        np <- np + theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                         legend.position = "top")
+        if (use_dates)
+        {
+            np <- np + scale_x_date("")
+        }
+        if (length(noises) > 1)
+        {
+            np <- np + facet_wrap(~ noise, scales = "free_y",
+                                  ncol = round(sqrt(length(states))),
+                                  labeller = label_parsed)
         }
     }
 
