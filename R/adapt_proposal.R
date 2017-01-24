@@ -6,7 +6,7 @@
 #'   runs MCMC, adapting the proposal distribution until the desired
 #'   acceptance rate is achieved. If a scale is given, it will be used
 #'   to adapt the proposal at each iteration
-#' @param wrapper \code{link{libbi}} (which has been run) to study
+#' @param x \code{link{libbi}} object
 #' @param min minimum acceptance rate
 #' @param max maximum acceptance rate
 #' @param scale scale multiplier/divider for the proposal. If >1 this
@@ -28,25 +28,25 @@
 #' \dontrun{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
 #'                                min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 #' @export
-adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, max_iter = 10, correlations = TRUE, quiet = FALSE, ...) {
+adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, correlations = TRUE, quiet = FALSE, ...) {
 
-  if (min == 0 && max == 1) return(wrapper)
+  if (min == 0 && max == 1) return(x)
 
   if (!(max>min)) stop("Must have max>min.")
 
   if (!quiet) message(date(), " Adapting the proposal distribution")
 
-  if (!wrapper$run_flag) {
+  if (!x$run_flag) {
     if (!quiet) message(date(), " Initial trial run")
-    rbi::sample(wrapper, ...)
+    x <- rbi::sample(x, ...)
   }
 
   ## scale should be > 1 (it's a divider if acceptance rate is too
   ## small, multiplier if the acceptance Rate is too big)
   if (scale < 1) scale <- 1 / scale
 
-  accRate <- acceptance_rate(wrapper)
-  adapt_wrapper <- wrapper
+  accRate <- acceptance_rate(x)
+  adapted <- x
   shape_adapted <- FALSE
   for (round in seq_len(1 + correlations)) {
     iter <- 1
@@ -61,12 +61,10 @@ adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, max_iter = 10, 
                   " with scale ", adapt_scale)
         }
       }
-      adapt_wrapper$model <-
-        output_to_proposal(adapt_wrapper, adapt_scale,
-                           correlations = (round == 2))
-      adapt_wrapper <- rbi::sample(adapt_wrapper, chain=TRUE, ...)
-      mcmc_obj <- coda::mcmc(rbi::get_traces(adapt_wrapper))
-      accRate <- max(1 - coda::rejectionRate(mcmc_obj))
+      adapted$model <- output_to_proposal(adapted, adapt_scale,
+                                          correlations = (round == 2))
+      adapted <- rbi::sample(adapted, chain=TRUE, ...)
+      accRate <- acceptance_rate(adapted)
       iter <- iter + 1
       if (min(accRate) < min) {
         adapt_scale <- adapt_scale / scale
@@ -83,5 +81,5 @@ adapt_proposal <- function(wrapper, min = 0, max = 1, scale = 2, max_iter = 10, 
     warning("Maximum of iterations reached")
   }
 
-  return(adapt_wrapper)
+  return(adapted)
 }

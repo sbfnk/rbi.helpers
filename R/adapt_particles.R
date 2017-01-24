@@ -42,12 +42,13 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
 
   test <- 2**(seq(floor(log(min, 2)), ceiling(log(max, 2))))
 
+  adapted <- x
   model <- x$model
   model <- rbi::remove(model, "proposal_parameter")
   model <- rbi::remove(model, "proposal_initial")
   model <- rbi::remove(model, "parameter")
 
-  x$model <- model
+  adapted$model <- model
 
   accRate <- c()
   var_loglik <- c()
@@ -55,14 +56,13 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   id <- 0
   while (!found_good && id < length(test)) {
     id <- id + 1
-    x <- rbi::sample(x, nparticles=test[id], chain=TRUE, ...)
+    adapted <- rbi::sample(adapted, nparticles=test[id], chain=TRUE, ...)
 
-    var_loglik <- c(var_loglik, stats::var(rbi::bi_read(x, "loglikelihood")$loglikelihood$value))
+    var_loglik <- c(var_loglik, stats::var(rbi::bi_read(adapted, "loglikelihood")$loglikelihood$value))
 
     if (!quiet) message(date(), " ", test[id], " particles, loglikelihod variance: ", var_loglik[id])
 
     if (var_loglik[id] > 0) {
-      init_x <- x
       if (var_loglik[id] < target.variance) {
       ## choose smallest var-loglikelihood < target.variance
         found_good <- TRUE
@@ -71,10 +71,10 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
     }
   }
 
-  x$options[["nparticles"]] <- test[id]
-  x$model <- x$model
+  adapted$options[["nparticles"]] <- test[id]
+  adapted$model <- x$model
 
   if (!quiet) message(date(), " Choosing ", test[id], " particles.")
 
-  return(x)
+  return(adapted)
 }
