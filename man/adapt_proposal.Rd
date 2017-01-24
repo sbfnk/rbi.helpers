@@ -5,11 +5,11 @@
 \title{Adapt the proposal distribution of MCMC using the covariance
   of samples}
 \usage{
-adapt_proposal(wrapper, min = 0, max = 1, scale = 2, max_iter = 10,
+adapt_proposal(x, min = 0, max = 1, scale = 2, max_iter = 10,
   correlations = TRUE, quiet = FALSE, ...)
 }
 \arguments{
-\item{wrapper}{\code{link{libbi}} (which has been run) to study}
+\item{x}{\code{link{libbi}} object}
 
 \item{min}{minimum acceptance rate}
 

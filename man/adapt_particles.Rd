@@ -35,6 +35,6 @@ example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
 example_bi <- libbi(model = example_model, obs = example_obs)
 obs_states <- example_model$get_vars("obs")
 max_time <- max(sapply(example_obs[obs_states], function(x) { max(x[["time"]])}))
-\dontrun{x <- adapt_particles(example_bi, nsamples = 128, end_time = max_time)}
+\dontrun{adapted <- adapt_particles(example_bi, nsamples = 128, end_time = max_time)}
 }
 
