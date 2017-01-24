@@ -28,6 +28,7 @@
 #' @param limit.to.obs whether to limit the time axis to times with observations
 #' @param labels facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs
 #' @param brewer.palette optional; brewer color palette
+#' @param verbose if set to TRUE, additional output will be displayed
 #' @param plot set to FALSE to suppress plot of trajectories
 #' @param ... options for geom_step / geom_line / geom_point / etc.
 #' @return a list of plots: states, densities, traces, correlations, noises, likelihoods, as well as underlying raw and aggregate data
@@ -62,7 +63,8 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                        np.alpha=0.35, trend = "median",
                        densities = "histogram",
                        density_args = list(), limit.to.obs = FALSE,
-                       labels, brewer.palette, plot = TRUE, ...)
+                       labels, brewer.palette, verbose = FALSE,
+                       plot = TRUE, ...)
 {
     use_dates <- FALSE
     summarise_columns <- c("np", "time", "time_next")
@@ -121,7 +123,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         }
     }
 
-    clean_data <- function(x, name, use.read=TRUE)
+    clean_data <- function(x, name, use.read=TRUE, verbose)
     {
         if ("libbi" %in% class(x))
         {
@@ -131,14 +133,14 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             }
             if (use.read)
             {
-                x <- rbi::bi_read(x)
+                x <- rbi::bi_read(x, verbose=verbose)
             } else
             {
                 opt_name <- paste(name, "file", sep="-")
                 if (!is.null(x[["options"]]) &&
                     !is.null(x[["options"]][[opt_name]]))
                 {
-                    x <- rbi::bi_read(x[[]])
+                    x <- rbi::bi_read(x, verbose=verbose)
                 } else
                 {
                     stop("No ", opt_name, " found.")
@@ -149,7 +151,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             x <- list(.state = x)
         } else if (is.character(x))
         {
-            x <- rbi::bi_read(x)
+            x <- rbi::bi_read(x, verbose=verbose)
         } else if (!is.list(x))
         {
             stop("'", name, "' must be a 'libbi' object or a list of data frames or a data frame.")
@@ -157,9 +159,16 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         x <- lapply(x, function(y) { if (is.data.frame(y)) { data.table::data.table(y) } else {y} })
     }
 
-    data <- clean_data(data, "data")
-    if (!missing(prior)) prior <- clean_data(prior, "prior")
-    if (!missing(obs)) obs <- clean_data(obs, "obs", use.read=FALSE)
+    if (verbose) message(date(), " Reading samples")
+    data <- clean_data(data, "data", verbose=verbose)
+    if (!missing(prior)) {
+        if (verbose) message(date(), " Reading prior samples")
+        prior <- clean_data(prior, "prior", verbose=verbose)
+    }
+    if (!missing(obs)) {
+        if (verbose) message(date(), " Reading observations")
+        obs <- clean_data(obs, "obs", use.read=FALSE, verbose=verbose)
+    }
 
     if (steps)
     {
@@ -256,6 +265,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
     if (length(c(states, !missing(obs))) > 0)
     {
+        if (verbose) message(date(), " State plots")
         for (state in states)
         {
             if (state %in% names(data) && nrow(data[[state]]) > 0)
@@ -576,6 +586,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
     if (length(params) > 0)
     {
+        if (verbose) message(date(), " Parameter plots")
         for (param in params)
         {
             param_values <- list()
@@ -773,6 +784,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
     if (length(noises) > 0)
     {
+        if (verbose) message(date(), " Noise plots")
         for (noise in noises)
         {
             if (noise %in% names(data))
@@ -998,6 +1010,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
     likelihoods <- intersect(names(data), c("loglikelihood", "logprior"))
     if (length(likelihoods) > 0)
     {
+        if (verbose) message(date(), " Likelihood plots")
         ldt <- NULL
         for (ll in likelihoods)
         {
