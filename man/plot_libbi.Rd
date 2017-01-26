@@ -4,26 +4,22 @@
 \alias{plot_libbi}
 \title{Plot results from libbi}
 \usage{
-plot_libbi(data, model, prior, states, params, noises, quantiles = c(0.5,
-  0.95), date.origin, date.unit, time.dim = "time", obs, extra.aes,
-  all.times = FALSE, hline, burn, steps = FALSE, select, shift,
-  obs.colour = "red", base.alpha = 0.5, np.alpha = 0.35,
-  trend = "median", densities = "histogram", density_args = list(),
-  limit.to.obs = FALSE, labels, brewer.palette, verbose = FALSE,
-  plot = TRUE, ...)
+plot_libbi(x, model, prior, type = c("state", "obs", "param", "noise",
+  "logeval"), quantiles = c(0.5, 0.95), date.origin, date.unit,
+  time.dim = "time", data, extra.aes, all.times = FALSE, hline, burn,
+  steps = FALSE, select, data.colour = "red", base.alpha = 0.5,
+  np.alpha = 0.35, trend = "median", densities = "histogram",
+  density_args = list(), limit.to.data = FALSE, labels, brewer.palette,
+  verbose = FALSE, plot = TRUE, ...)
 }
 \arguments{
-\item{data}{Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}, or the name of an NetCDF file used as 'output' in a libbi run}
+\item{x}{Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}, or the name of an NetCDF file used as 'output' in a libbi run}
 
 \item{model}{model file or a \code{bi_model} object (if \code{data} is not a \code{libbi} object)}
 
 \item{prior}{optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}}
 
-\item{states}{states to plot (if not given, all states will be plotted; if empty vector is passed, no states are plotted)}
-
-\item{params}{parameters to plot (if not given, all states will be plotted; if empty vector is passed, no parameters are plotted)}
-
-\item{noises}{noises to plot (if not given, all noises will be plotted; if empty vector is passed, no noises are plotted)}
+\item{type}{character vector determining which plots to generate; options are: "state", "obs", "param", "noise", "logevals"; by default, all will be generated; more specific selections of variables can be given as arguments with the name of the type containing character vectors of variables, e.g. \code{param="alpha"} to just plot parameter alpha (requiring "param" to be given as one of "type")}
 
 \item{quantiles}{if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)}
 
@@ -33,7 +29,7 @@ plot_libbi(data, model, prior, states, params, noises, quantiles = c(0.5,
 
 \item{time.dim}{time dimension ("time" by default)}
 
-\item{obs}{observations (a named list of data frames, a \code{libbi} object with observations, or a NetCDF file name)}
+\item{data}{observations (a named list of data frames, a \code{libbi} object with observations, or a NetCDF file name)}
 
 \item{extra.aes}{extra aesthetics (for ggplot)}
 
@@ -47,9 +43,7 @@ plot_libbi(data, model, prior, states, params, noises, quantiles = c(0.5,
 
 \item{select}{list of selection criteria, as named list of selected elements. If the list contains "np", it is treated specially.}
 
-\item{shift}{list of dimensions to be shifted, and by how much}
-
-\item{obs.colour}{colour for plotting the observations}
+\item{data.colour}{colour for plotting the data}
 
 \item{base.alpha}{base alpha value for credible intervals}
 
@@ -61,7 +55,7 @@ plot_libbi(data, model, prior, states, params, noises, quantiles = c(0.5,
 
 \item{density_args}{list of arguments to pass to density geometry}
 
-\item{limit.to.obs}{whether to limit the time axis to times with observations}
+\item{limit.to.data}{whether to limit the time axis to times with observations}
 
 \item{labels}{facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs}
 
@@ -71,10 +65,18 @@ plot_libbi(data, model, prior, states, params, noises, quantiles = c(0.5,
 
 \item{plot}{set to FALSE to suppress plot of trajectories}
 
-\item{...}{options for geom_step / geom_line / geom_point / etc.}
+\item{...}{more specific selection of variables to plot (see the \code{type} option); any other options will be interpreted as options for geom_step / geom_line / geom_point / etc. when plotting states/noises/observations, e.g. lwd or others}
+
+\item{states}{states to plot; if not given, all states will be plotted}
+
+\item{params}{parameters to plot; if not given, all states will be plotted}
+
+\item{noises}{noises to plot; if not given, all noises will be plotted}
+
+\item{logevals}{logged density evaluations (e.g., loglikelihood, logprior, logweights, logevidence) to plot; if not given, all logged density evaluations will be plotted}
 }
 \value{
-a list of plots: states, densities, traces, correlations, noises, likelihoods, as well as underlying raw and aggregate data
+a list of plots: states, densities, traces, correlations, noises, logdensities, as well as underlying raw and aggregate data
 }
 \description{
 Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
@@ -87,12 +89,14 @@ example_bi <- recreate_libbi(example_model_file, example_run_file)
 plot(example_bi) # just plot trajectories
 p <- plot(example_bi, plot = FALSE) # get whole suite of plots
 
-p$states
-p$densities
-p$traces
-p$correlations
-p$noises
-p$likelihoods
+p$state
+p$obs
+p$noise
+p$param$correlation
+p$param$pair
+p$param$density
+p$param$trace
+p$logeval
 }
 \author{
 Sebastian Funk

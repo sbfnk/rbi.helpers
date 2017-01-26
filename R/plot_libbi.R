@@ -1,36 +1,35 @@
 #' Plot results from libbi
 #'
 #' Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
-#' @param data Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}, or the name of an NetCDF file used as 'output' in a libbi run
+#' @param x Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}, or the name of an NetCDF file used as 'output' in a libbi run
 #' @param model model file or a \code{bi_model} object (if \code{data} is not a \code{libbi} object)
 #' @param prior optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
-#' @param states states to plot (if not given, all states will be plotted; if empty vector is passed, no states are plotted)
-#' @param params parameters to plot (if not given, all states will be plotted; if empty vector is passed, no parameters are plotted)
-#' @param noises noises to plot (if not given, all noises will be plotted; if empty vector is passed, no noises are plotted)
+#' @param type character vector determining which plots to generate; options are: "state", "obs", "param", "noise", "logevals"; by default, all will be plotted; more specific selections of variables can be given as arguments with the name of the type containing character vectors of variables, e.g. \code{param="alpha"} to just plot parameter alpha (requiring "param" to be given as one of "type")
+#' @param logevals logged density evaluations (e.g., loglikelihood, logprior, logweights, logevidence) to plot; if not given, all logged density evaluations will be plotted
 #' @param quantiles if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)
 #' @param date.origin date of origin (if dates are to be calculated)
 #' @param date.unit unit of date (if desired, otherwise the time dimension will be used)
 #' @param time.dim time dimension ("time" by default)
-#' @param obs observations (a named list of data frames, a \code{libbi} object with observations, or a NetCDF file name)
+#' @param data observations (a named list of data frames, a \code{libbi} object with observations, or a NetCDF file name)
 #' @param extra.aes extra aesthetics (for ggplot)
 #' @param all.times whether to plot all times (not only ones with observations)
 #' @param hline horizontal marker lines, named vector in format (state = value)
 #' @param burn How many iterations to burn
 #' @param steps whether to plot lines as stepped lines
 #' @param select list of selection criteria, as named list of selected elements. If the list contains "np", it is treated specially.
-#' @param obs.colour colour for plotting the observations
+#' @param data.colour colour for plotting the data
 #' @param base.alpha base alpha value for credible intervals
 #' @param np.alpha alpha of trajectories, if 'np' is part of \code{select} (default: 0.35)
 #' @param trend how the trend should be characterised (e.g., mean, median, or NULL for no trend line)
 #' @param densities density geometry (e.g., "histogram" (default) or "density")
 #' @param density_args list of arguments to pass to density geometry
-#' @param limit.to.obs whether to limit the time axis to times with observations
+#' @param limit.to.data whether to limit the time axis to times with observations
 #' @param labels facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs
 #' @param brewer.palette optional; brewer color palette
 #' @param verbose if set to TRUE, additional output will be displayed
 #' @param plot set to FALSE to suppress plot of trajectories
-#' @param ... options for geom_step / geom_line / geom_point / etc.
-#' @return a list of plots: states, densities, traces, correlations, noises, likelihoods, as well as underlying raw and aggregate data
+#' @param ... more specific selection of variables to plot (see the \code{type} option); any other options will be interpreted as options for geom_step / geom_line / geom_point / etc. when plotting states/noises/observations, e.g. lwd or others 
+#' @return a list of plots: states, densities, traces, correlations, noises, logdensities, as well as underlying raw and aggregate data
 #' @import ggplot2 scales data.table
 #' @importFrom lubridate %m+% years
 #' @importFrom rbi bi_read bi_model
@@ -45,28 +44,48 @@
 #' plot(example_bi) # just plot trajectories
 #' p <- plot(example_bi, plot = FALSE) # get whole suite of plots
 #'
-#' p$states
+#' p$trajectories
+#' p$correlations
+#' p$pairs
 #' p$densities
 #' p$traces
-#' p$correlations
-#' p$noises
-#' p$likelihoods
+#' p$logevals
 #' @author Sebastian Funk
-plot_libbi <- function(data, model, prior, states, params, noises,
+plot_libbi <- function(x, model, prior,
+                       type = c("state", "obs", "param", "logeval"),
                        quantiles = c(0.5, 0.95),
                        date.origin, date.unit, time.dim = "time",
-                       obs, extra.aes,
+                       data, extra.aes,
                        all.times = FALSE, hline,
                        burn, steps = FALSE, select,
-                       obs.colour = "red", base.alpha = 0.5,
+                       data.colour = "red", base.alpha = 0.5,
                        np.alpha=0.35, trend = "median",
                        densities = "histogram",
-                       density_args = list(), limit.to.obs = FALSE,
+                       density_args = list(), limit.to.data = FALSE,
                        labels, brewer.palette, verbose = FALSE,
                        plot = TRUE, ...)
 {
+    plots <- list() ## list holding the plots to be returned
+    ret_data <- list() ## list holding data to be returned
+
+    dot_options <- list(...)
+
     use_dates <- FALSE
     summarise_columns <- c("np", "time", "time_next")
+
+    all_types <- eval(formals(plot_libbi)[["type"]])
+    missing_types <- setdiff(type, all_types)
+    if (length(missing_types) > 0) {
+        stop("Invalid 'type' argument(s): ", paste(missing_types) )
+    }
+
+    given_vars <- list()
+    for (type.loop in intersect(names(dot_options), all_types)) {
+        given_vars[[type.loop]] <- dot_options[[type.loop]]
+        dot_options[[type.loop]] <- NULL
+    }
+
+    ## check plots: https://stat.ethz.ch/pipermail/r-help/2007-December/149117.html
 
     if (!missing(select) && "np" %in% names(select)) select_id <- TRUE
     else select_id <- FALSE
@@ -88,32 +107,30 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
     if (missing(labels)) labels <- c()
 
-    ret_data <- list()
-
-    if (missing(obs))
+    if (missing(data))
     {
-        if ("libbi" %in% class(data) &&
-            !is.null(data[["options"]]) &&
-            !is.null(data[["options"]][["obs-file"]]))
+        if ("libbi" %in% class(x) &&
+            !is.null(x[["options"]]) &&
+            !is.null(x[["options"]][["obs-file"]]))
         {
             ## if obs is missing but a libbi object passed, get obs file from
             ## the object
-            obs <- bi_read(data[["options"]][["obs-file"]],
-                           vars=var_names(data[["model"]], "obs"))
+            data <- bi_read(x[["options"]][["obs-file"]],
+                            vars=var_names(x[["model"]], "obs"))
         }
     }
 
     if (missing(model))
     {
-        if ("libbi" %in% class(data))
+        if ("libbi" %in% class(x))
         {
-            model <- data$model
+            model <- x$model
         }
     } else
     {
-        if ("libbi" %in% class(data))
+        if ("libbi" %in% class(x))
         {
-            stop("'model' should not be given if 'data' is a 'libbi' object'.")
+            stop("'model' should not be given if 'x' is a 'libbi' object'.")
         }
         if (is.character(model)) {
             model <- rbi::bi_model(model)
@@ -152,61 +169,78 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
     if (missing(burn)) burn <- 0
 
-    sdt <- NULL
-
-    p <- NULL
-    if (missing(states))
-    {
-        if (missing(model))
-        {
-            states <- c()
-            given_states <- c()
-        } else
-        {
-          states <- var_names(model, c("state", "obs"))
-          given_states <- c()
-        }
-    } else
-    {
-        given_states <- states
-    }
-
-    if ("libbi" %in% class(data) || "character" %in% class(data)) {
-      existing_vars <- bi_contents(data)
+   if ("libbi" %in% class(x) || "character" %in% class(x)) {
+      existing_vars <- bi_contents(x)
     } else {
-      existing_vars <- names(data)
+      existing_vars <- names(x)
     }
 
-    clean_data <- function(x, name, use.read=TRUE, ...)
+    vars <- list()
+    for (type.loop in type)
     {
-        if ("libbi" %in% class(x))
+        if (!(type.loop %in% names(given_vars)))
         {
-            if (use.read)
+            if (missing(model))
             {
-                x <- rbi::bi_read(x, ...)
+                given_vars[[type.loop]] <- c()
             } else
             {
-                opt_name <- paste(name, "file", sep="-")
-                if (!is.null(x[["options"]]) &&
-                    !is.null(x[["options"]][[opt_name]]))
+                if (type.loop == "logeval")
                 {
-                    x <- rbi::bi_read(x, ...)
+                    given_vars[[type.loop]] <- intersect(existing_vars, c("loglikelihood", "logprior", "logweight", "logevidence"))
+                } else
+                {
+                    given_vars[[type.loop]] <- intersect(existing_vars, var_names(model, type.loop))
+                }
+            }
+        }
+        vars[[type.loop]] <- intersect(given_vars[[type.loop]], existing_vars)
+        missing_vars <- setdiff(given_vars[[type.loop]], vars[[type.loop]])
+        if (length(missing_vars) > 0)
+        {
+            warning("Variable(s) ", missing_vars, " not found in given 'x'.")
+        }
+    }
+
+    missing_types <- setdiff(names(given_vars), type)
+    if (length(missing_types) > 0) {
+        warning("Variables given for type(s) ", paste(missing_types), ", but not included in 'type' variable. Will not plot these")
+    }
+
+    trajectory_vars <- c("state", "obs", "noise")
+    vars[["trajectories"]] <- unname(unlist(vars[trajectory_vars]))
+    vars[trajectory_vars] <- NULL
+
+    clean_data <- function(y, name, file_name, ...)
+    {
+        if ("libbi" %in% class(y))
+        {
+            if (missing(file_name))
+            {
+                y <- rbi::bi_read(y, ...)
+            } else
+            {
+                opt_name <- paste(file_name, "file", sep="-")
+                if (!is.null(y[["options"]]) &&
+                    !is.null(y[["options"]][[opt_name]]))
+                {
+                    y <- rbi::bi_read(y, ...)
                 } else
                 {
                     stop("No ", opt_name, " found.")
                 }
             }
-        } else if (is.data.frame(x))
+        } else if (is.data.frame(y))
         {
-            x <- list(.state = x)
-        } else if (is.character(x))
+            y <- list(.var = y)
+        } else if (is.character(y))
         {
-            x <- rbi::bi_read(x, ...)
-        } else if (!is.list(x))
+            y <- rbi::bi_read(y, ...)
+        } else if (!is.list(y))
         {
             stop("'", name, "' must be a 'libbi' object or a list of data frames or a data frame.")
         }
-        x <- lapply(x, function(y) { if (is.data.frame(y)) { data.table::data.table(y) } else {y} })
+        y <- lapply(y, function(z) { if (is.data.frame(z)) { data.table::data.table(z) } else {z} })
     }
 
     clean_dates <- function(values, time.dim, use_dates, date.unit, date.origin)
@@ -245,34 +279,30 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         return(values)
     }
 
-    states <- intersect(states, existing_vars)
-
-    missing_states <- setdiff(given_states, states)
-    if (length(missing_states) > 0)
+    ## plot trajectories
+    if (length(intersect(type, c("state", "obs", "noise"))) > 0)
     {
-        warning("State(s) ", missing_states, " not found in data.")
-    }
-
-    if (length(c(states, !missing(obs))) > 0)
-    {
-        if (verbose) message(date(), " Getting samples")
-        samples <- clean_data(data, "data", verbose=verbose, vars=states)
+        vdt <- NULL
+        if (length(vars[["trajectories"]]) > 0) {
+            if (verbose) message(date(), " Getting trajectory samples")
+            samples <- clean_data(x, "x", verbose=verbose, vars=vars[["trajectories"]])
+        }
         if (!missing(prior)) {
             if (verbose) message(date(), " Getting prior samples")
             prior <- clean_data(prior, "prior", verbose=verbose)
         }
-        if (!missing(obs)) {
+        if (!missing(data)) {
             if (verbose) message(date(), " Getting observations")
-            obs <- clean_data(obs, "obs", use.read=FALSE, verbose=verbose)
+            data <- clean_data(data, "data", "obs", verbose=verbose)
         }
 
-        if (verbose) message(date(), " State plots")
-        for (state in states)
+        if (verbose) message(date(), " Generating trajectory plots")
+        for (var in vars[["trajectories"]])
         {
-            if (state %in% names(samples) && nrow(samples[[state]]) > 0)
+            if (var %in% names(samples) && nrow(samples[[var]]) > 0)
             {
-                values <- samples[[state]]
-                if ("np" %in% colnames(samples[[state]]) && burn > 0)
+                values <- samples[[var]]
+                if ("np" %in% colnames(samples[[var]]) && burn > 0)
                 {
                     values <- values[np >= burn]
                     if (nrow(values) == 0) {
@@ -308,27 +338,27 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                     values[, paste(wo) := "n/a"]
                 }
 
-                new_states <- data.table::data.table(state = rep(state, nrow(values)), values)
-                if (is.null(sdt))
+                new_vars <- data.table::data.table(var = rep(var, nrow(values)), values)
+                if (is.null(vdt))
                 {
-                    sdt <- new_states
+                    vdt <- new_vars
                 } else
                 {
-                    sdt <- rbind(sdt, new_states)
+                    vdt <- rbind(vdt, new_vars)
                 }
-            } else if (state != ".state")
+            } else if (var != ".var")
             {
-                warning(paste("State", state, "does not exist"))
+                warning(paste("Variable", var, "does not exist"))
             }
         }
 
         ## factorise columns
-        sdt <- factorise_columns(sdt, labels)
+        if (!is.null(vdt)) vdt <- factorise_columns(vdt, labels)
 
-        if (!missing(obs))
+        if (!missing(data))
         {
-            obs <- obs[intersect(states, names(obs))]
-            dataset <- lapply(names(obs), function(x) {obs[[x]][, state := x]})
+            data <- data[intersect(vars[["trajectories"]], names(data))]
+            dataset <- lapply(names(data), function(y) {data[[y]][, var := y]})
             dataset <- rbindlist(dataset, fill=TRUE)
             dataset <- factorise_columns(dataset, labels)
             dataset <- clean_dates(dataset, time.dim, use_dates, date.unit, date.origin)
@@ -354,19 +384,19 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                     }
                 }
 
-                if (!all.times && nrow(sdt) > 0)
+                if (!all.times && !is.null(vdt) && nrow(vdt) > 0)
                 {
-                    if (limit.to.obs)
+                    if (limit.to.data)
                     {
                         ## for all states, only retain times with observations
-                        sdt <- sdt[time %in% dataset[, time]]
+                        vdt <- vdt[time %in% dataset[, time]]
                     } else
                     {
-                        for (obs_state in unique(dataset[, state]))
+                        for (data_var in unique(dataset[, var]))
                         {
                             ## for states in observations, only retain times with observations
-                            sdt <- sdt[(state != obs_state) |
-                                       (time %in% dataset[state == obs_state, time])]
+                            vdt <- vdt[(var != data_var) |
+                                       (time %in% dataset[var == data_var, time])]
                         }
                     }
                 }
@@ -376,61 +406,61 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                     dataset[, paste("max", i, sep = ".") := 0]
                 }
 
-                for (missing_column in setdiff(colnames(sdt), colnames(dataset)))
+                for (missing_column in setdiff(colnames(vdt), colnames(dataset)))
                 {
                     dataset[, paste(missing_column) := "n/a"]
                 }
-                ret_data <- c(ret_data, list(obs = dataset))
             }
         }
 
         aggregate_values <- NULL
-        state.by <- c("state", intersect(setdiff(summarise_columns, "np"), colnames(sdt)))
+        if (!is.null(vdt) && nrow(vdt) > 0) {
+            var.by <- c("var", intersect(setdiff(summarise_columns, "np"), colnames(vdt)))
 
-        if (!is.null(trend) && nrow(sdt) > 0)
-        {
-           aggregate_values <- sdt[, list(value = do.call(trend, list(value, na.rm = TRUE))), by = state.by]
-        }
-
-        if (!is.null(quantiles) && nrow(sdt) > 0)
-        {
-            for (i in seq_along(quantiles))
+            if (!is.null(trend))
             {
-                quantile_values <-
-                    sdt[, list(max = stats::quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
-                                  min = stats::quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
-                        by = state.by]
-                data.table::setnames(quantile_values, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
-                if (is.null(aggregate_values))
-                {
-                    aggregate_values <- quantile_values
-                } else
-                {
-                    aggregate_values <- merge(aggregate_values, quantile_values, by = state.by)
-                }
+                aggregate_values <- vdt[, list(value = do.call(trend, list(value, na.rm = TRUE))), by = var.by]
             }
-            if (steps)
+
+            if (!is.null(quantiles))
             {
-                max.time <- aggregate_values[, max(time)]
                 for (i in seq_along(quantiles))
                 {
-                    aggregate_values[time == max.time, paste("min", i, sep = ".") := NA]
-                    aggregate_values[time == max.time, paste("max", i, sep = ".") := NA]
+                    quantile_values <-
+                        vdt[, list(max = stats::quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
+                                   min = stats::quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
+                            by = var.by]
+                    data.table::setnames(quantile_values, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
+                    if (is.null(aggregate_values))
+                    {
+                        aggregate_values <- quantile_values
+                    } else
+                    {
+                        aggregate_values <- merge(aggregate_values, quantile_values, by = var.by)
+                    }
                 }
+                if (steps)
+                {
+                    max.time <- aggregate_values[, max(time)]
+                    for (i in seq_along(quantiles))
+                    {
+                        aggregate_values[time == max.time, paste("min", i, sep = ".") := NA]
+                        aggregate_values[time == max.time, paste("max", i, sep = ".") := NA]
+                    }
+                }
+            }
+            if (!is.null(aggregate_values))
+            {
+                vars_n <- aggregate_values[, list(single = (.N == 1)), by = var]
+                aggregate_values <- merge(aggregate_values, vars_n, by = "var", all.x = TRUE)
+                ret_data[["trajectories"]] <- aggregate_values[, !"single", with = FALSE]
             }
         }
 
-        if (!is.null(aggregate_values))
+        if (!is.null(vdt) && nrow(vdt) > 0)
         {
-          states_n <- aggregate_values[, list(single = (.N == 1)), by = state]
-          aggregate_values <- merge(aggregate_values, states_n, by = "state", all.x = TRUE)
-          ret_data <- c(ret_data, list(states = aggregate_values[, !"single", with = FALSE]))
-        }
-
-        if (nrow(sdt) > 0)
-        {
-          states_n <- sdt[, list(single = (.N == 1)), by = state]
-          sdt <- merge(sdt, states_n, by = "state", all.x = TRUE)
+          vars_n <- vdt[, list(single = (.N == 1)), by = var]
+          vdt <- merge(vdt, vars_n, by = "var", all.x = TRUE)
         }
 
         aesthetic <- list(x = "time", y = "value")
@@ -439,14 +469,14 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             aesthetic <- c(aesthetic, extra.aes)
         }
 
-        if (!missing(extra.aes) && "color" %in% names(extra.aes) && select_id && nrow(sdt) > 0)
+        if (!missing(extra.aes) && "color" %in% names(extra.aes) && select_id && !is.null(vdt) && nrow(vdt) > 0)
         {
-          sdt <- sdt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
+          vdt <- vdt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
         }
 
         p <- ggplot(mapping = do.call(aes_string, aesthetic))
 
-        if (!is.null(quantiles) && nrow(aggregate_values) > 0)
+        if (!is.null(quantiles) && !is.null(aggregate_values) && nrow(aggregate_values) > 0)
         {
             alpha <- base.alpha
             for (i in seq_along(quantiles))
@@ -455,41 +485,41 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                 names(str) <- c("ymax", "ymin")
                 p <- p + ribbon_func(data = aggregate_values, do.call(aes_string, str), alpha = alpha)
                 alpha <- alpha / 2
-                if (nrow(aggregate_values[single == TRUE]) > 0)
+                if (!is.null(aggregate_values) && nrow(aggregate_values[single == TRUE]) > 0)
                 {
-                    p <- p + geom_errorbar(data = aggregate_values[single == TRUE], do.call(aes_string, str), ...)
+                    p <- p + do.call(geom_errorbar, c(list(data = aggregate_values[single == TRUE], do.call(aes_string, str)), dot_options))
                 }
             }
         }
         if ("color" %in% names(aesthetic))
         {
-            if (!is.null(trend) && nrow(aggregate_values) > 0)
+            if (!is.null(trend) && !is.null(aggregate_values) && nrow(aggregate_values) > 0)
             {
-                p <- p + line_func(data = aggregate_values[single == FALSE], ...)
+                p <- p + do.call(line_func, c(list(data = aggregate_values[single == FALSE]), dot_options))
                 if (nrow(aggregate_values[single == TRUE]) > 0)
                 {
-                    p <- p + geom_point(data = aggregate_values[single == TRUE], shape = 4, ...)
+                    p <- p + do.call(geom_point, c(list(data = aggregate_values[single == TRUE], shape = 4), dot_options))
                 }
             }
-            if (select_id && nrow(sdt) > 0)
+            if (select_id && !is.null(vdt) && nrow(vdt) > 0)
             {
-                p <- p + line_func(data = sdt[single == FALSE], mapping = aes(group = color_np), alpha = np.alpha, ...)
-                if (nrow(sdt[single == TRUE]) > 0)
+                p <- p + do.call(line_func, c(list(data = vdt[single == FALSE], mapping = aes(group = color_np), alpha = np.alpha), dot_options))
+                if (nrow(vdt[single == TRUE]) > 0)
                 {
-                    p <- p + geom_point(data = std[single == TRUE], aes(group = factor(np)), shape = 4, alpha = np.alpha, ...)
+                    p <- p + do.call(geom_point, c(list(data = vdt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = np.alpha), dot_options))
                 }
             }
         } else
         {
-            if (!is.null(trend) && nrow(aggregate_values) > 0)
+            if (!is.null(trend) && !is.null(aggregate_values) && nrow(aggregate_values) > 0)
             {
-                p <- p + line_func(data = aggregate_values[single == FALSE], ...)
-                p <- p + geom_point(data = aggregate_values[single == TRUE], shape = 4, ...)
+                p <- p + do.call(line_func, c(list(data = aggregate_values[single == FALSE]), dot_options))
+                p <- p + do.call(geom_point, c(list(data = aggregate_values[single == TRUE], shape = 4), dot_options))
             }
-            if (select_id && nrow(sdt) > 0)
+            if (select_id && !is.null(vdt) && nrow(vdt) > 0)
             {
-                p <- p + line_func(data = sdt[single == FALSE], aes(group = factor(np)), alpha = np.alpha, ...)
-                p <- p + geom_point(data = sdt[single == TRUE], aes(group = factor(np)), alpha = np.alpha, shape = 4, ...)
+                p <- p + do.call(line_func, c(list(data = vdt[single == FALSE], aes(group = factor(np)), alpha = np.alpha), dot_options))
+                p <- p + do.call(geom_point, c(list(data = vdt[single == TRUE], aes(group = factor(np)), alpha = np.alpha, shape = 4), dot_options))
             }
         }
         p <- p + scale_y_continuous(labels = comma) + ylab("")
@@ -499,14 +529,14 @@ plot_libbi <- function(data, model, prior, states, params, noises,
             p <- p + scale_fill_brewer(palette = brewer.palette)
         }
         p <- p + expand_limits(y = 0)
-        if (!missing(obs) && nrow(dataset) > 0)
+        if (!missing(data) && nrow(dataset) > 0)
         {
             if (!missing(extra.aes) && "color" %in% names(extra.aes))
             {
                 p <- p + geom_point(data = dataset)
             } else
             {
-                p <- p + geom_point(data = dataset, color = obs.colour, size = 2)
+                p <- p + geom_point(data = dataset, color = data.colour, size = 2)
             }
         }
         p <- p + theme(axis.text.x = element_text(angle = 45, hjust = 1),
@@ -525,70 +555,41 @@ plot_libbi <- function(data, model, prior, states, params, noises,
           {
             unnamed <- which(names(hline) == "")
           }
-          for (hline_state_id in named)
+          for (hline_var_id in named)
           {
-            hline_data <- data.frame(state = names(hline)[hline_state_id],
-                                     yintercept = hline[hline_state_id])
+            hline_data <- data.frame(var = names(hline)[hline_var_id],
+                                     yintercept = hline[hline_var_id])
             p <- p + geom_hline(data = hline_data,
                                 aes(yintercept = yintercept), color = "black")
           }
-          for (hline_state_id in unnamed)
+          for (hline_var_id in unnamed)
           {
-            hline_data <- data.frame(yintercept = hline[hline_state_id])
+            hline_data <- data.frame(yintercept = hline[hline_var_id])
             p <- p + geom_hline(data = hline_data,
                                 aes(yintercept = yintercept), color = "black")
           }
         }
 
-        if (length(states) > 1)
+        if (length(vars) > 1)
         {
-          p <- p + facet_wrap(~ state, scales = "free_y",
-                              ncol = round(sqrt(length(states))),
+          p <- p + facet_wrap(~ var, scales = "free_y",
+                              ncol = round(sqrt(length(vars))),
                               labeller = label_parsed)
         }
+
+        plots[["trajectories"]] <- p
     }
 
-    pdt <- data.table::data.table(distribution = character(0),
-                                  parameter = character(0), np = integer(0),
-                                  value = numeric(0))
-    if (!missing(extra.aes))
+    if ("param" %in% type)
     {
-        for (extra in unique(unname(extra.aes)))
-        {
-            pdt[, paste(extra) := character(0)]
+        pdt <- NULL
+        if (length(vars[["param"]]) > 0) {
+            if (verbose) message(date(), " Getting parameters")
+            samples <- clean_data(x, "x", verbose=verbose, vars=vars[["param"]])
         }
-    }
-
-    if (missing(params))
-    {
-        if (missing(model))
-        {
-            params <- c()
-            given_params <- c()
-        } else
-        {
-          params <- var_names(model, c("param"))
-          given_params <- c()
-        }
-    } else
-    {
-        given_params <- params
-    }
-
-    params <- intersect(existing_vars, params)
-    missing_params <- setdiff(given_params, params)
-    if (length(missing_params) > 0)
-    {
-        warning("Param(s) ", missing_params, " not found in data.")
-    }
-
-    if (length(params) > 0)
-    {
-        if (verbose) message(date(), " Getting parameters")
-        samples <- clean_data(data, "data", verbose=verbose, vars=params)
 
         if (verbose) message(date(), " Parameter plots")
-        for (param in params)
+        for (param in vars[["param"]])
         {
             param_values <- list()
             param_values[["posterior"]] <- samples[[param]]
@@ -630,13 +631,18 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                 {
                     values[, paste(wo) := "n/a"]
                 }
-                pdt <- rbind(pdt,
-                             data.table::data.table(distribution = dist,
-                                                    parameter = rep(param, nrow(values)),
-                                                    values))
+
+                new_params <- data.table::data.table(distribution = dist, parameter = rep(param, nrow(values)), values)
+                if (is.null(pdt))
+                {
+                    pdt <- new_params
+                } else
+                {
+                    pdt <- rbind(pdt, new_params)
+                }
             }
         }
-        if (nrow(pdt) > 0)
+        if (!is.null(pdt) && nrow(pdt) > 0)
         {
             ## factorise columns
             pdt <- factorise_columns(pdt, labels)
@@ -669,7 +675,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                 }
             }
 
-            if (nrow(pdt[varying == TRUE & distribution == "posterior"]) > 0)
+            if (!is.null(pdt) && nrow(pdt[varying == TRUE & distribution == "posterior"]) > 0)
             {
                 if (!select_id)
                 {
@@ -692,10 +698,9 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                         wpdt[, paste(extra_cols) := NULL]
                     }
                     cp <- GGally::ggcorr(wpdt)
+                    plots[["correlation"]] <- cp
                     pp <- GGally::ggpairs(wpdt)
-                } else {
-                    cp <- NULL
-                    pp <- NULL
+                    plots[["pair"]] <- pp
                 }
 
                 density_data <- pdt[varying == TRUE]
@@ -723,6 +728,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                     dp <- dp + geom_vline(data = pdt[np %in% select[["np"]]],
                                           aes(xintercept = value))
                 }
+                plots[["density"]] <- dp
 
                 aesthetic <- list(x = "np", y = "value")
 
@@ -746,291 +752,21 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                     tp <- tp + scale_color_brewer(palette = brewer.palette)
                     tp <- tp + scale_fill_brewer(palette = brewer.palette)
                 }
-            } else
-            {
-                dp <- NULL
-                tp <- NULL
-                cp <- NULL
-                pp <- NULL
+                plots[["trace"]] <- tp
             }
-        } else
-        {
-            dp <- NULL
-            tp <- NULL
-            cp <- NULL
-            pp <- NULL
-        }
-    } else
-    {
-        dp <- NULL
-        tp <- NULL
-        cp <- NULL
-        pp <- NULL
-    }
-
-    np <- NULL
-    ndt <- NULL
-
-    if (missing(noises))
-    {
-        if (missing(model))
-        {
-            noises <- c()
-            given_noises <- c()
-        } else
-        {
-          noises <- var_names(model, c("noise"))
-          given_noises <- c()
-        }
-    } else
-    {
-        given_noises <- noises
-    }
-
-    noises <- intersect(existing_vars, noises)
-    missing_noises <- setdiff(given_states, states)
-    if (length(missing_noises) > 0)
-    {
-        warning("Noise(s) ", missing_noises, " not found in data.")
-    }
-
-    if (length(noises) > 0)
-    {
-        if (verbose) message(date(), " Getting noises")
-        samples <- clean_data(data, "data", verbose=verbose, vars=noises)
-
-        if (verbose) message(date(), " Noise plots")
-        for (noise in noises)
-        {
-            if (noise %in% names(samples))
-            {
-                values <- samples[[noise]]
-
-                if ("np" %in% colnames(samples[[state]]) && burn > 0)
-                {
-                    values <- values[np >= burn]
-                    if (nrow(values) == 0) {
-                        stop("Nothing left after burn-in")
-                    }
-                }
-
-                if (!missing(select))
-                {
-                    for (var_name in names(select))
-                    {
-                        if (var_name %in% colnames(values))
-                        {
-                            if (!(var_name == "np") || time.dim %in% colnames(values)) {
-                                values <- values[get(var_name) %in% select[[var_name]]]
-                                if (class(values[, get(var_name)]) == "factor")
-                                {
-                                    values[, paste(var_name) := factor(get(var_name))]
-                                }
-                            }
-                        }
-                    }
-                }
-
-              if (time.dim %in% colnames(values))
-              {
-                if (use_dates)
-                {
-                  if (date.unit == "day")
-                  {
-                    values[, time := date.origin + get(time.dim)]
-                    values[, time_next := time + 1]
-                  } else if (date.unit == "week")
-                  {
-                    values[, time := date.origin + get(time.dim) * 7]
-                    values[, time_next := time + 7]
-                  } else if (date.unit == "month")
-                  {
-                    values[, time := date.origin %m+% months(as.integer(get(time.dim)))]
-                    values[, time_next := time %m+% months(1)]
-                  } else if (date.unit == "year")
-                  {
-                    if (missing(date.origin)) {
-                      values[, time := as.Date(paste(get(time.dim), 1, 1, sep = "-"))]
-                      values[, time_next := as.Date(paste(get(time.dim) + 1, 1, 1, sep = "-"))]
-                    } else {
-                      values[, time := date.origin + years(as.integer(get(time.dim)))]
-                      values[, time_next := time %m+% months(12)]
-                    }
-                  }
-                } else {
-                  values[, time := get(time.dim)]
-                  values[, time_next := time + 1]
-                }
-              }
-
-              sum.by <- intersect(summarise_columns, colnames(values))
-              values <- values[, list(value = sum(value)), by = sum.by]
-
-              state.wo <- setdiff(setdiff(summarise_columns, "np"),
-                                  colnames(values))
-              for (wo in state.wo)
-              {
-                values[, paste(wo) := "n/a"]
-              }
-
-              new_noises <- data.table::data.table(noise = rep(noise, nrow(values)), values)
-              if (is.null(ndt))
-              {
-                ndt <- new_noises
-              } else
-              {
-                ndt <- rbind(ndt, new_noises)
-              }
-            }
-        }
-
-        ndt <- factorise_columns(ndt, labels)
-
-        aggregate_noises <- NULL
-        noise.by <- c("noise", intersect(setdiff(summarise_columns, "np"), colnames(ndt)))
-        if (!is.null(trend))
-        {
-            aggregate_noises <-
-                ndt[, list(value = do.call(trend,
-                                           list(value, na.rm = TRUE))),
-                    by = noise.by]
-        }
-
-        if (!is.null(quantiles))
-        {
-            for (i in seq_along(quantiles))
-            {
-                quantile_values <-
-                    ndt[, list(max = stats::quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
-                               min = stats::quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
-                        by = noise.by]
-                data.table::setnames(quantile_values, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
-                if (is.null(aggregate_noises))
-                {
-                    aggregate_noises <- quantile_values
-                } else
-                {
-                    aggregate_noises <- merge(aggregate_noises, quantile_values, by = noise.by)
-                }
-            }
-            if (steps)
-            {
-                max.time <- aggregate_noises[, max(time)]
-                for (i in seq_along(quantiles))
-                {
-                    aggregate_noises[time == max.time, paste("min", i, sep = ".") := NA]
-                    aggregate_noises[time == max.time, paste("max", i, sep = ".") := NA]
-                }
-            }
-        }
-
-        if (!is.null(aggregate_noises))
-        {
-          noises_n <- aggregate_noises[, list(single = (.N == 1)), by = noise]
-          aggregate_noises <- merge(aggregate_noises, noises_n, by = "noise", all.x = TRUE)
-          ret_data <- c(ret_data, list(noises = aggregate_noises[, !"single", with = FALSE]))
-        }
-
-        if (nrow(ndt) > 0)
-        {
-          noises_n <- ndt[, list(single = (.N == 1)), by = noise]
-          ndt <- merge(ndt, noises_n, by = "noise", all.x = TRUE)
-        }
-
-        if (!missing(obs) && nrow(dataset) > 0 && !all.times && nrow(ndt) > 0)
-        {
-            ndt <- ndt[(time >= min(dataset[, time])) & (time <= max(dataset[, time]))]
-        }
-
-        aesthetic <- list(x = "time", y = "value")
-        if (!missing(extra.aes))
-        {
-            aesthetic <- c(aesthetic, extra.aes)
-        }
-
-        if (!missing(extra.aes) && "color" %in% names(extra.aes) && select_id && nrow(ndt) > 0) {
-            ndt <- ndt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
-        }
-
-        np <- ggplot(mapping = do.call(aes_string, aesthetic))
-
-        if (!is.null(quantiles) && nrow(aggregate_noises) > 0)
-        {
-            alpha <- base.alpha
-            for (i in seq_along(quantiles))
-            {
-                str <- as.list(paste(c("max", "min"), i, sep = "."))
-                names(str) <- c("ymax", "ymin")
-                np <- np + ribbon_func(data = aggregate_noises, do.call(aes_string, str), alpha = alpha)
-                alpha <- alpha / 2
-                if (nrow(aggregate_noises[single == TRUE]) > 0)
-                {
-                    np <- np + geom_errorbar(data = aggregate_noises[single == TRUE], do.call(aes_string, str), ...)
-                }
-            }
-        }
-        if ("color" %in% names(aesthetic))
-        {
-            if (!is.null(trend) && nrow(aggregate_noises) > 0)
-            {
-                np <- np + line_func(data = aggregate_noises[single == FALSE], ...)
-                if (nrow(aggregate_noises[single == TRUE]) > 0)
-                {
-                    np <- np + geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
-                }
-            }
-            if (select_id && nrow(ndt) > 0)
-            {
-                np <- np + line_func(data = ndt[single == FALSE], mapping = aes(group = color_np), alpha = np.alpha, ...)
-                if (nrow(ndt[single == TRUE]) > 0)
-                {
-                    np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = np.alpha, ...)
-                }
-            }
-        } else
-        {
-            if (!is.null(trend) && nrow(aggregate_noises) > 0)
-            {
-                np <- np + line_func(data = aggregate_noises[single == FALSE], ...)
-                np <- np + geom_point(data = aggregate_noises[single == TRUE], shape = 4, ...)
-            }
-            if (select_id && nrow(ndt) > 0)
-            {
-                np <- np + line_func(data = ndt[single == FALSE], aes(group = factor(np)), alpha = np.alpha, ...)
-                np <- np + geom_point(data = ndt[single == TRUE], aes(group = factor(np)), alpha = np.alpha, shape = 4, ...)
-            }
-        }
-        np <- np + scale_y_continuous(labels = comma) + ylab("")
-        if (!missing(brewer.palette))
-        {
-            np <- np + scale_color_brewer(palette = brewer.palette)
-            np <- np + scale_fill_brewer(palette = brewer.palette)
-        }
-        np <- np + expand_limits(y = 0)
-        np <- np + theme(axis.text.x = element_text(angle = 45, hjust = 1),
-                         legend.position = "top")
-        if (use_dates)
-        {
-            np <- np + scale_x_date("")
-        }
-        if (length(noises) > 1)
-        {
-            np <- np + facet_wrap(~ noise, scales = "free_y",
-                                  ncol = round(sqrt(length(states))),
-                                  labeller = label_parsed)
         }
     }
 
-    lp <- NULL
-
-    likelihoods <- intersect(existing_vars, c("loglikelihood", "logprior"))
-    if (length(likelihoods) > 0)
+    if ("logeval" %in% type)
     {
-        if (verbose) message(date(), " Getting likelihoods")
-        samples <- clean_data(data, "data", verbose=verbose, vars=likelihoods)
-        if (verbose) message(date(), " Likelihood plots")
         ldt <- NULL
-        for (ll in likelihoods)
+        if (length(vars[["logeval"]]) > 0) {
+            if (verbose) message(date(), " Getting logevals")
+            samples <- clean_data(x, "x", verbose=verbose, vars=vars[["logeval"]])
+        }
+
+        if (verbose) message(date(), " Logeval plots")
+        for (ll in vars[["logeval"]])
         {
             values <- samples[[ll]]
             if ("np" %in% colnames(samples[[ll]]))
@@ -1060,13 +796,13 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         trace_aesthetic <- list(x = "np", y = "value")
         density_aesthetic <- list(x = "value")
 
-        ret_data <- c(ret_data, list(likelihoods = ldt))
-
-        likelihood_dummy_plot <-
-            data.frame(expand.grid(type = c("Density", "Trace"),
-                                   density = c("loglikelihood", "logprior")))
-        if (nrow(ldt) > 0)
+        if (!is.null(ldt) && nrow(ldt) > 0)
         {
+            ret_data <- c(ret_data, list(likelihoods = ldt))
+
+            likelihood_dummy_plot <-
+                data.frame(expand.grid(type = c("Density", "Trace"),
+                                       density = vars[["logeval"]]))
             lp <- ggplot(likelihood_dummy_plot)
             lp <- lp + geom_line(data = data.frame(ldt, type = "Trace"),
                                  mapping = do.call(aes_string, trace_aesthetic))
@@ -1078,24 +814,22 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                              legend.position = "top")
             if (select_id)
             {
-              lp <- lp + geom_vline(data = data.frame(type = "Trace"),
-                                    xintercept = ldt[np %in% select[["np"]], value])
+                lp <- lp + geom_vline(data = data.frame(type = "Trace"),
+                                      xintercept = ldt[np %in% select[["np"]], value])
             }
+            plots[["logeval"]] <- lp
         }
     }
 
-    ## plot state trajectories unless told otherwise
-    if (plot) print(p)
+    ## plot first plot if requested
+    if (plot)
+    {
+        print(plots[[1]])
+    }
+    plots[["data"]] <- ret_data
 
     ## return all plots invisibly
-    invisible(list(states = p,
-                   densities = dp,
-                   traces = tp,
-                   correlations = cp,
-                   pairs = pp,
-                   noises = np,
-                   likelihoods = lp,
-                   data = ret_data))
+    invisible(plots)
 }
 
 ##' Plot routing for \code{libbi} objects
