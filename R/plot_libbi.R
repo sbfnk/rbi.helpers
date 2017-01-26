@@ -123,53 +123,6 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         }
     }
 
-    clean_data <- function(x, name, use.read=TRUE, verbose)
-    {
-        if ("libbi" %in% class(x))
-        {
-            if (!x$run_flag)
-            {
-                stop("The model in '", name, "'should be run first")
-            }
-            if (use.read)
-            {
-                x <- rbi::bi_read(x, verbose=verbose)
-            } else
-            {
-                opt_name <- paste(name, "file", sep="-")
-                if (!is.null(x[["options"]]) &&
-                    !is.null(x[["options"]][[opt_name]]))
-                {
-                    x <- rbi::bi_read(x, verbose=verbose)
-                } else
-                {
-                    stop("No ", opt_name, " found.")
-                }
-            }
-        } else if (is.data.frame(x))
-        {
-            x <- list(.state = x)
-        } else if (is.character(x))
-        {
-            x <- rbi::bi_read(x, verbose=verbose)
-        } else if (!is.list(x))
-        {
-            stop("'", name, "' must be a 'libbi' object or a list of data frames or a data frame.")
-        }
-        x <- lapply(x, function(y) { if (is.data.frame(y)) { data.table::data.table(y) } else {y} })
-    }
-
-    if (verbose) message(date(), " Reading samples")
-    data <- clean_data(data, "data", verbose=verbose)
-    if (!missing(prior)) {
-        if (verbose) message(date(), " Reading prior samples")
-        prior <- clean_data(prior, "prior", verbose=verbose)
-    }
-    if (!missing(obs)) {
-        if (verbose) message(date(), " Reading observations")
-        obs <- clean_data(obs, "obs", use.read=FALSE, verbose=verbose)
-    }
-
     if (steps)
     {
         ribbon_func <- function(mapping, ...)
@@ -219,12 +172,42 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         given_states <- states
     }
 
-    states <- intersect(states, names(data))
+    if ("libbi" %in% class(data) || "character" %in% class(data)) {
+      existing_vars <- bi_contents(data)
+    } else {
+      existing_vars <- names(data)
+    }
 
-    missing_states <- setdiff(given_states, states)
-    if (length(missing_states) > 0)
+    clean_data <- function(x, name, use.read=TRUE, ...)
     {
-        warning("State(s) ", missing_states, " not found in data.")
+        if ("libbi" %in% class(x))
+        {
+            if (use.read)
+            {
+                x <- rbi::bi_read(x, ...)
+            } else
+            {
+                opt_name <- paste(name, "file", sep="-")
+                if (!is.null(x[["options"]]) &&
+                    !is.null(x[["options"]][[opt_name]]))
+                {
+                    x <- rbi::bi_read(x, ...)
+                } else
+                {
+                    stop("No ", opt_name, " found.")
+                }
+            }
+        } else if (is.data.frame(x))
+        {
+            x <- list(.state = x)
+        } else if (is.character(x))
+        {
+            x <- rbi::bi_read(x, ...)
+        } else if (!is.list(x))
+        {
+            stop("'", name, "' must be a 'libbi' object or a list of data frames or a data frame.")
+        }
+        x <- lapply(x, function(y) { if (is.data.frame(y)) { data.table::data.table(y) } else {y} })
     }
 
     clean_dates <- function(values, time.dim, use_dates, date.unit, date.origin)
@@ -263,15 +246,34 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         return(values)
     }
 
+    states <- intersect(states, existing_vars)
+
+    missing_states <- setdiff(given_states, states)
+    if (length(missing_states) > 0)
+    {
+        warning("State(s) ", missing_states, " not found in data.")
+    }
+
     if (length(c(states, !missing(obs))) > 0)
     {
+        if (verbose) message(date(), " Getting samples")
+        samples <- clean_data(data, "data", verbose=verbose, vars=states)
+        if (!missing(prior)) {
+            if (verbose) message(date(), " Getting prior samples")
+            prior <- clean_data(prior, "prior", verbose=verbose)
+        }
+        if (!missing(obs)) {
+            if (verbose) message(date(), " Getting observations")
+            obs <- clean_data(obs, "obs", use.read=FALSE, verbose=verbose)
+        }
+
         if (verbose) message(date(), " State plots")
         for (state in states)
         {
-            if (state %in% names(data) && nrow(data[[state]]) > 0)
+            if (state %in% names(samples) && nrow(samples[[state]]) > 0)
             {
-                values <- data[[state]]
-                if ("np" %in% colnames(data[[state]]) && burn > 0)
+                values <- samples[[state]]
+                if ("np" %in% colnames(samples[[state]]) && burn > 0)
                 {
                     values <- values[np >= burn]
                     if (nrow(values) == 0) {
@@ -576,22 +578,35 @@ plot_libbi <- function(data, model, prior, states, params, noises,
         if (missing(model))
         {
             params <- c()
+            given_params <- c()
         } else
         {
-            params <- var_names(model, "param")
+          params <- var_names(model, c("param"))
+          given_params <- c()
         }
+    } else
+    {
+        given_params <- params
     }
 
-    params <- intersect(names(data), params)
+    params <- intersect(existing_vars, params)
+    missing_params <- setdiff(given_params, params)
+    if (length(missing_params) > 0)
+    {
+        warning("Param(s) ", missing_params, " not found in data.")
+    }
 
     if (length(params) > 0)
     {
+        if (verbose) message(date(), " Getting parameters")
+        samples <- clean_data(data, "data", verbose=verbose, vars=params)
+
         if (verbose) message(date(), " Parameter plots")
         for (param in params)
         {
             param_values <- list()
-            param_values[["posterior"]] <- data[[param]]
-            if ("np" %in% colnames(data[[param]]))
+            param_values[["posterior"]] <- samples[[param]]
+            if ("np" %in% colnames(samples[[param]]))
             {
                 param_values[["posterior"]] <-
                     param_values[["posterior"]][np >= burn]
@@ -769,29 +784,43 @@ plot_libbi <- function(data, model, prior, states, params, noises,
 
     np <- NULL
     ndt <- NULL
+
     if (missing(noises))
     {
         if (missing(model))
         {
             noises <- c()
+            given_noises <- c()
         } else
         {
-            noises <- var_names(model, "noise")
+          noises <- var_names(model, c("noise"))
+          given_noises <- c()
         }
+    } else
+    {
+        given_noises <- noises
     }
 
-    noises <- intersect(names(data), noises)
+    noises <- intersect(existing_vars, noises)
+    missing_noises <- setdiff(given_states, states)
+    if (length(missing_noises) > 0)
+    {
+        warning("Noise(s) ", missing_noises, " not found in data.")
+    }
 
     if (length(noises) > 0)
     {
+        if (verbose) message(date(), " Getting noises")
+        samples <- clean_data(data, "data", verbose=verbose, vars=noises)
+
         if (verbose) message(date(), " Noise plots")
         for (noise in noises)
         {
-            if (noise %in% names(data))
+            if (noise %in% names(samples))
             {
-                values <- data[[noise]]
+                values <- samples[[noise]]
 
-                if ("np" %in% colnames(data[[state]]) && burn > 0)
+                if ("np" %in% colnames(samples[[state]]) && burn > 0)
                 {
                     values <- values[np >= burn]
                     if (nrow(values) == 0) {
@@ -1007,15 +1036,18 @@ plot_libbi <- function(data, model, prior, states, params, noises,
     }
 
     lp <- NULL
-    likelihoods <- intersect(names(data), c("loglikelihood", "logprior"))
+
+    likelihoods <- intersect(existing_vars, c("loglikelihood", "logprior"))
     if (length(likelihoods) > 0)
     {
+        if (verbose) message(date(), " Getting likelihoods")
+        samples <- clean_data(data, "data", verbose=verbose, vars=likelihoods)
         if (verbose) message(date(), " Likelihood plots")
         ldt <- NULL
         for (ll in likelihoods)
         {
-            values <- data[[ll]]
-            if ("np" %in% colnames(data[[ll]]))
+            values <- samples[[ll]]
+            if ("np" %in% colnames(samples[[ll]]))
             {
                 values <- values[np >= burn]
             }
