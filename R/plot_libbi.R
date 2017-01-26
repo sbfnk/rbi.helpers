@@ -18,7 +18,6 @@
 #' @param burn How many iterations to burn
 #' @param steps whether to plot lines as stepped lines
 #' @param select list of selection criteria, as named list of selected elements. If the list contains "np", it is treated specially.
-#' @param shift list of dimensions to be shifted, and by how much
 #' @param obs.colour colour for plotting the observations
 #' @param base.alpha base alpha value for credible intervals
 #' @param np.alpha alpha of trajectories, if 'np' is part of \code{select} (default: 0.35)
@@ -59,7 +58,7 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                        obs, extra.aes,
                        all.times = FALSE, hline,
                        burn, steps = FALSE, select,
-                       shift, obs.colour = "red", base.alpha = 0.5,
+                       obs.colour = "red", base.alpha = 0.5,
                        np.alpha=0.35, trend = "median",
                        densities = "histogram",
                        density_args = list(), limit.to.obs = FALSE,
@@ -299,19 +298,6 @@ plot_libbi <- function(data, model, prior, states, params, noises,
                 }
 
                 values <- clean_dates(values, time.dim, use_dates, date.unit, date.origin)
-
-                if (!missing(shift))
-                {
-                    for (var_name in names(shift))
-                    {
-                        if (var_name %in% colnames(values))
-                        {
-                            values <- values[get(var_name) >= shift[[var_name]]]
-                            values[, paste(var_name) := get(var_name) - shift[[var_name]]]
-                        }
-                    }
-                }
-
                 sum.by <- intersect(summarise_columns, colnames(values))
                 values <- values[, list(value = sum(value)), by = sum.by]
 
