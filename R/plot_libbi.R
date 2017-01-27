@@ -698,9 +698,9 @@ plot_libbi <- function(x, model, prior,
                         wpdt[, paste(extra_cols) := NULL]
                     }
                     cp <- GGally::ggcorr(wpdt)
-                    plots[["correlation"]] <- cp
+                    plots[["correlations"]] <- cp
                     pp <- GGally::ggpairs(wpdt)
-                    plots[["pair"]] <- pp
+                    plots[["pairs"]] <- pp
                 }
 
                 density_data <- pdt[varying == TRUE]
@@ -728,7 +728,7 @@ plot_libbi <- function(x, model, prior,
                     dp <- dp + geom_vline(data = pdt[np %in% select[["np"]]],
                                           aes(xintercept = value))
                 }
-                plots[["density"]] <- dp
+                plots[["densities"]] <- dp
 
                 aesthetic <- list(x = "np", y = "value")
 
@@ -752,7 +752,7 @@ plot_libbi <- function(x, model, prior,
                     tp <- tp + scale_color_brewer(palette = brewer.palette)
                     tp <- tp + scale_fill_brewer(palette = brewer.palette)
                 }
-                plots[["trace"]] <- tp
+                plots[["traces"]] <- tp
             }
         }
     }
@@ -817,7 +817,7 @@ plot_libbi <- function(x, model, prior,
                 lp <- lp + geom_vline(data = data.frame(type = "Trace"),
                                       xintercept = ldt[np %in% select[["np"]], value])
             }
-            plots[["logeval"]] <- lp
+            plots[["logevals"]] <- lp
         }
     }
 
