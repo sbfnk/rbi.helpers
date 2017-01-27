@@ -8,7 +8,7 @@
 factorise_columns <- function(df, labels)
 {
     dt <- data.table::copy(data.table::data.table(df))
-    column_classes <- sapply(names(dt), function(x) {class(dt[[x]])})
+    column_classes <- vapply(names(dt), function(x) {class(dt[[x]])}, "")
     for (column in colnames(dt)[which(column_classes %in% c("character", "factor"))])
     {
         if (class(dt[[column]]) == "factor")

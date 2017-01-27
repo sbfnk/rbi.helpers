@@ -100,9 +100,9 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
         mean_scale[!(is.finite(mean_scale))] <- 0
         sd_vec <- sqrt(sd_vec)
       } else {
-        sd_vec <- sapply(params, function(p) {
+        sd_vec <- vapply(params, function(p) {
           ifelse(length(res[[p]]) == 1, 0, sd(res[[p]]$value))
-        })
+        }, 0)
       }
 
       if (missing(scale)) {
@@ -111,8 +111,8 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
         scale_string <- paste0(scale, " * ")
       }
 
-      param_bounds <- sapply(params, function(param) {grep(paste0("^[[:space:]]*", param, "[[[:space:]][^~]*~"), param_block, value = TRUE)})
-      variable_bounds <- param_bounds[sapply(param_bounds, function(x) {length(x) > 0})]
+      param_bounds <- vapply(params, function(param) {grep(paste0("^[[:space:]]*", param, "[[[:space:]][^~]*~"), param_block, value = TRUE)}, "")
+      variable_bounds <- param_bounds[vapply(param_bounds, function(x) {length(x) > 0}, "")]
 
       proposal_lines <- c()
 
@@ -192,7 +192,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
 
             eval_bounds <- tryCatch(
             {
-              sapply(bounds, function(x) { eval(parse(text = x))})
+              vapply(bounds, function(x) { eval(parse(text = x))}, "")
             },
             error = function(cond)
             {
