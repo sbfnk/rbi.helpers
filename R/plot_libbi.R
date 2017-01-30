@@ -358,7 +358,7 @@ plot_libbi <- function(x, model, prior,
         if (!missing(data))
         {
             data <- data[intersect(vars[["trajectories"]], names(data))]
-            dataset <- lapply(names(data), function(y) {data[[y]][, var := y]})
+            dataset <- lapply(names(data), function(y) {data.table::data.table(data[[y]])[, var := y]})
             dataset <- rbindlist(dataset, fill=TRUE)
             dataset <- factorise_columns(dataset, labels)
             dataset <- clean_dates(dataset, time.dim, use_dates, date.unit, date.origin)
