@@ -13,13 +13,10 @@ before_install:
     fi
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
       git clone https://github.com/Linuxbrew/brew.git ~/.linuxbrew;
-      echo "$LD_LIBRARY_PATH";
       export PATH="$HOME/.linuxbrew/bin:$PATH";
-      echo "$LD_LIBRARY_PATH";
+      export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH | sed 's/:$//');
       brew tap homebrew/science;
-      echo "$LD_LIBRARY_PATH";
       brew install homebrew/science/libbi;
-      echo "$LD_LIBRARY_PATH";
     fi
 
 brew_packages:
