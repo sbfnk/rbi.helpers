@@ -222,6 +222,7 @@ compute_DIC(posterior)
 
 # Create inference chains
 
-Chains 
+In combination with the `magrittr` package, the it is possible to construct
 
 ```{R}
+```
