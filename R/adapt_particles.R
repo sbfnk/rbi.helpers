@@ -13,7 +13,7 @@
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @importFrom coda mcmc rejectionRate effectiveSize
-#' @importFrom rbi bi_model bi_dim_len bi_read sample remove
+#' @importFrom rbi bi_model bi_dim_len bi_read sample remove_lines
 #' @importFrom stats var
 #' @examples
 #' example_obs <- bi_read(system.file(package="rbi", "example_output.nc"))
@@ -44,9 +44,9 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
 
   adapted <- x
   model <- x$model
-  model <- rbi::remove(model, "proposal_parameter")
-  model <- rbi::remove(model, "proposal_initial")
-  model <- rbi::remove(model, "parameter")
+  model <- rbi::remove_lines(model, "proposal_parameter")
+  model <- rbi::remove_lines(model, "proposal_initial")
+  model <- rbi::remove_lines(model, "parameter")
 
   adapted$model <- model
 
