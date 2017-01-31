@@ -115,8 +115,10 @@ plot_libbi <- function(x, model, prior,
         {
             ## if obs is missing but a libbi object passed, get obs file from
             ## the object
+            vars_in_obs_file <- bi_contents(x[["options"]][["obs-file"]])
             data <- bi_read(x[["options"]][["obs-file"]],
-                            vars=var_names(x[["model"]], "obs"))
+                            vars=intersect(var_names(x[["model"]], "obs"),
+                                           vars_in_obs_file))
         }
     }
 

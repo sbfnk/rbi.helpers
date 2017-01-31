@@ -112,7 +112,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
       }
 
       param_bounds <- vapply(params, function(param) {grep(paste0("^[[:space:]]*", param, "[[[:space:]][^~]*~"), param_block, value = TRUE)}, "")
-      variable_bounds <- param_bounds[vapply(param_bounds, function(x) {length(x) > 0}, "")]
+      variable_bounds <- param_bounds[vapply(param_bounds, function(x) {length(x) > 0}, TRUE)]
 
       proposal_lines <- c()
 
@@ -192,7 +192,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
 
             eval_bounds <- tryCatch(
             {
-              vapply(bounds, function(x) { eval(parse(text = x))}, "")
+              vapply(bounds, function(x) {as.character(eval(parse(text = x)))}, "")
             },
             error = function(cond)
             {
