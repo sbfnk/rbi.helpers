@@ -4,13 +4,13 @@
 \alias{plot_libbi}
 \title{Plot results from libbi}
 \usage{
-plot_libbi(x, model, prior, type = c("state", "obs", "param", "noise",
-  "logeval"), quantiles = c(0.5, 0.95), date.origin, date.unit,
-  time.dim = "time", data, extra.aes, all.times = FALSE, hline, burn,
-  steps = FALSE, select, data.colour = "red", base.alpha = 0.5,
-  np.alpha = 0.35, trend = "median", densities = "histogram",
-  density_args = list(), limit.to.data = FALSE, labels, brewer.palette,
-  verbose = FALSE, plot = TRUE, ...)
+plot_libbi(x, model, prior, type = c("state", "obs", "param", "logeval"),
+  quantiles = c(0.5, 0.95), date.origin, date.unit, time.dim = "time", data,
+  extra.aes, all.times = FALSE, hline, burn, steps = FALSE, select,
+  data.colour = "red", base.alpha = 0.5, np.alpha = 0.35,
+  trend = "median", densities = "histogram", density_args = list(),
+  limit.to.data = FALSE, labels, brewer.palette, verbose = FALSE,
+  plot = TRUE, ...)
 }
 \arguments{
 \item{x}{Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}, or the name of an NetCDF file used as 'output' in a libbi run}
@@ -19,7 +19,7 @@ plot_libbi(x, model, prior, type = c("state", "obs", "param", "noise",
 
 \item{prior}{optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}}
 
-\item{type}{character vector determining which plots to generate; options are: "state", "obs", "param", "noise", "logevals"; by default, all will be generated; more specific selections of variables can be given as arguments with the name of the type containing character vectors of variables, e.g. \code{param="alpha"} to just plot parameter alpha (requiring "param" to be given as one of "type")}
+\item{type}{character vector determining which plots to generate; options are: "state", "obs", "param", "noise", "logevals"; by default, all will be plotted; more specific selections of variables can be given as arguments with the name of the type containing character vectors of variables, e.g. \code{param="alpha"} to just plot parameter alpha (requiring "param" to be given as one of "type")}
 
 \item{quantiles}{if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)}
 
@@ -67,12 +67,6 @@ plot_libbi(x, model, prior, type = c("state", "obs", "param", "noise",
 
 \item{...}{more specific selection of variables to plot (see the \code{type} option); any other options will be interpreted as options for geom_step / geom_line / geom_point / etc. when plotting states/noises/observations, e.g. lwd or others}
 
-\item{states}{states to plot; if not given, all states will be plotted}
-
-\item{params}{parameters to plot; if not given, all states will be plotted}
-
-\item{noises}{noises to plot; if not given, all noises will be plotted}
-
 \item{logevals}{logged density evaluations (e.g., loglikelihood, logprior, logweights, logevidence) to plot; if not given, all logged density evaluations will be plotted}
 }
 \value{
@@ -89,14 +83,12 @@ example_bi <- recreate_libbi(example_model_file, example_run_file)
 plot(example_bi) # just plot trajectories
 p <- plot(example_bi, plot = FALSE) # get whole suite of plots
 
-p$state
-p$obs
-p$noise
-p$param$correlation
-p$param$pair
-p$param$density
-p$param$trace
-p$logeval
+p$trajectories
+p$correlations
+p$pairs
+p$densities
+p$traces
+p$logevals
 }
 \author{
 Sebastian Funk
