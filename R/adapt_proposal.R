@@ -19,7 +19,7 @@
 #' @importFrom coda mcmc rejectionRate
 #' @importFrom rbi bi_dim_len get_traces sample
 #' @examples
-#' example_obs <- bi_read(system.file(package="rbi", "example_output.nc"))
+#' example_obs <- bi_read(system.file(package="rbi", "example_dataset.nc"))
 #' example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
 #' example_bi <- libbi(model = example_model, obs = example_obs)
 #' obs_states <- var_names(example_model, "obs")

@@ -16,10 +16,10 @@
 #' @importFrom rbi bi_model bi_dim_len bi_read sample remove_lines
 #' @importFrom stats var
 #' @examples
-#' example_obs <- bi_read(system.file(package="rbi", "example_output.nc"))
+#' example_obs <- bi_read(system.file(package="rbi", "example_dataset.nc"))
 #' example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
 #' example_bi <- libbi(model = example_model, obs = example_obs)
-#' obs_states <- example_model$get_vars("obs")
+#' obs_states <- var_names(example_model, "obs")
 #' max_time <- max(vapply(example_obs[obs_states], function(x) { max(x[["time"]])}, 0))
 #' \dontrun{adapted <- adapt_particles(example_bi, nsamples = 128, end_time = max_time)}
 #' @export

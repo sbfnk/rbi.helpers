@@ -23,4 +23,5 @@ This function takes the provided \code{\link{libbi}} which has been
 run and returns a new model which has the proposal constructed from
 the sample mean and standard deviation.
 }
+\keyword{internal}
 

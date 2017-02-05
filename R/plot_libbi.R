@@ -28,7 +28,7 @@
 #' @param brewer.palette optional; brewer color palette
 #' @param verbose if set to TRUE, additional output will be displayed
 #' @param plot set to FALSE to suppress plot of trajectories
-#' @param ... more specific selection of variables to plot (see the \code{type} option); any other options will be interpreted as options for geom_step / geom_line / geom_point / etc. when plotting states/noises/observations, e.g. lwd or others 
+#' @param ... more specific selection of variables to plot (see the \code{type} option); any other options will be interpreted as options for geom_step / geom_line / geom_point / etc. when plotting states/noises/observations, e.g. lwd or others
 #' @return a list of plots: states, densities, traces, correlations, noises, logdensities, as well as underlying raw and aggregate data
 #' @import ggplot2 scales data.table
 #' @importFrom lubridate %m+% years
@@ -37,7 +37,7 @@
 #' @importFrom GGally ggcorr
 #' @export
 #' @examples
-#' example_run_file <- system.file(package="rbi.helpers", "example_run.nc")
+#' example_run_file <- system.file(package="rbi", "example_output.nc")
 #' example_model_file <- system.file(package="rbi", "PZ.bi")
 #' example_bi <- add_output(libbi(example_model_file), example_run_file)
 #'
@@ -574,9 +574,10 @@ plot_libbi <- function(x, model, prior,
 
         if (length(vars[["trajectories"]]) > 1)
         {
-          p <- p + facet_wrap(~ var, scales = "free_y",
-                              ncol = round(sqrt(length(unlist(vars)))),
-                              labeller = label_parsed)
+          p <- p +
+            facet_wrap(~ var, scales = "free_y",
+                       ncol = round(sqrt(length(vars[["trajectories"]]))),
+                       labeller = label_parsed)
         }
 
         plots[["trajectories"]] <- p

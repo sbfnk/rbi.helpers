@@ -76,7 +76,7 @@ a list of plots: states, densities, traces, correlations, noises, logdensities, 
 Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
 }
 \examples{
-example_run_file <- system.file(package="rbi.helpers", "example_run.nc")
+example_run_file <- system.file(package="rbi", "example_output.nc")
 example_model_file <- system.file(package="rbi", "PZ.bi")
 example_bi <- add_output(libbi(example_model_file), example_run_file)
 

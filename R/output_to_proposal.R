@@ -12,6 +12,7 @@
 #' @importFrom data.table setnames
 #' @importFrom stats cov
 #' @return the updated bi model
+#' @keywords internal
 output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FALSE) {
 
   if (!wrapper$run_flag) {
