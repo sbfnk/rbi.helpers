@@ -4,13 +4,13 @@
 \alias{plot_libbi}
 \title{Plot results from libbi}
 \usage{
-plot_libbi(x, model, prior, type = c("state", "obs", "param", "logeval"),
-  quantiles = c(0.5, 0.95), date.origin, date.unit, time.dim = "time", data,
-  extra.aes, all.times = FALSE, hline, burn, steps = FALSE, select,
-  data.colour = "red", base.alpha = 0.5, np.alpha = 0.35,
-  trend = "median", densities = "histogram", density_args = list(),
-  limit.to.data = FALSE, labels, brewer.palette, verbose = FALSE,
-  plot = TRUE, ...)
+plot_libbi(x, model, prior, type = c("state", "noise", "obs", "param",
+  "logeval"), quantiles = c(0.5, 0.95), date.origin, date.unit,
+  time.dim = "time", data, extra.aes, all.times = FALSE, hline, burn,
+  steps = FALSE, select, data.colour = "red", base.alpha = 0.5,
+  np.alpha = 0.35, trend = "median", densities = "histogram",
+  density_args = list(), limit.to.data = FALSE, labels, brewer.palette,
+  verbose = FALSE, plot = TRUE, ...)
 }
 \arguments{
 \item{x}{Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}, or the name of an NetCDF file used as 'output' in a libbi run}
@@ -78,7 +78,7 @@ Plots state trajectories (unless plot = FALSE) and invisibly returns a list of s
 \examples{
 example_run_file <- system.file(package="rbi.helpers", "example_run.nc")
 example_model_file <- system.file(package="rbi", "PZ.bi")
-example_bi <- recreate_libbi(example_model_file, example_run_file)
+example_bi <- add_output(libbi(example_model_file), example_run_file)
 
 plot(example_bi) # just plot trajectories
 p <- plot(example_bi, plot = FALSE) # get whole suite of plots

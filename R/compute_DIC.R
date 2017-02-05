@@ -10,7 +10,7 @@
 ##' @examples
 ##' example_run_file <- system.file(package="rbi.helpers", "example_run.nc")
 ##' example_model_file <- system.file(package="rbi", "PZ.bi")
-##' example_bi <- recreate_libbi(example_model_file, example_run_file)
+##' example_bi <- add_output(libbi(example_model_file), example_run_file)
 ##' compute_DIC(example_bi)
 ##' @author Sebastian Funk
 compute_DIC <- function(read, burn, bootstrap = 0)
