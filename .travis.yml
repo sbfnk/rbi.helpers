@@ -30,6 +30,7 @@ r_binary_packages:
 
 r_github_packages:
   - jimhester/covr
+  - libbi/rbi
 
 after_success:
   - Rscript -e 'library(covr); covr::codecov()'
@@ -56,7 +57,7 @@ before_install:
       brew install --with-libidn gmp;
       brew install sbfnk/libbi/libbi;
       mkdir -p ~/.R;
-      printf "CC=/usr/bin/gcc\nCXX=/usr/bin/g++\nCFLAGS=-std=c99 $CFLAGS\nCXXFLAGS=-std=c++99 $CXXFLAGS"  > ~/.R/Makevars;
+      printf "CC=/usr/bin/gcc\nCXX=/usr/bin/g++\nCFLAGS=-std=c99 $CFLAGS"  > ~/.R/Makevars;
     fi
 
 

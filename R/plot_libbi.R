@@ -52,7 +52,7 @@
 #' p$logevals
 #' @author Sebastian Funk
 plot_libbi <- function(x, model, prior,
-                       type = c("state", "obs", "param", "logeval"),
+                       type = c("state", "noise", "obs", "param", "logeval"),
                        quantiles = c(0.5, 0.95),
                        date.origin, date.unit, time.dim = "time",
                        data, extra.aes,
@@ -575,7 +575,7 @@ plot_libbi <- function(x, model, prior,
         if (length(vars[["trajectories"]]) > 1)
         {
           p <- p + facet_wrap(~ var, scales = "free_y",
-                              ncol = round(sqrt(length(vars))),
+                              ncol = round(sqrt(length(unlist(vars)))),
                               labeller = label_parsed)
         }
 
