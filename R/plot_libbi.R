@@ -572,7 +572,7 @@ plot_libbi <- function(x, model, prior,
           }
         }
 
-        if (length(vars) > 1)
+        if (length(vars[["trajectories"]]) > 1)
         {
           p <- p + facet_wrap(~ var, scales = "free_y",
                               ncol = round(sqrt(length(vars))),
