@@ -1,28 +1,62 @@
 language: r
+cache: packages
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+    - os: osx
+  allow_failures:
+    - os: linux
+
+r_binary_packages:
+  - magrittr
+  - lazyeval
+  - mime
+  - curl
+  - openssl
+  - R6
+  - jsonlite
+  - httr
+  - crayon
+  - reshape2
+  - ncdf4
+  - data.table
+  - coda
+  - testthat
+  - digest
+  - praise
+
+r_github_packages:
+  - jimhester/covr
+
+after_success:
+  - Rscript -e 'library(covr); covr::codecov()'
 
 before_install:
   - if [ -f ".git/shallow" ]; then travis_retry git fetch --unshallow; fi
   - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
       sudo chown -R $USER $(brew --repo);
-      brew update
-      mkdir -p $(brew --repo)/Library/Taps
-      ln -s $PWD $(brew --repo)/Library/Taps/travis-testtap
-      brew tap --repair;
+      sudo chown -R $USER $(brew --prefix);
       brew tap homebrew/science;
-      brew update;
+      brew install gcc;
+      brew link --overwrite gcc;
+      brew install libbi;
     fi
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-      git clone https://github.com/Linuxbrew/brew.git ~/.linuxbrew;
-      export PATH="$HOME/.linuxbrew/bin:$PATH";
+      sudo mkdir -p /home/linuxbrew;
+      sudo chown "$USER" /home/linuxbrew;
+      LINUXBREW=/home/linuxbrew/.linuxbrew;
+      git clone https://github.com/Linuxbrew/brew.git "$LINUXBREW";
+      export PATH="$LINUXBREW/bin:$PATH";
       export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH | sed 's/:$//');
       brew tap homebrew/science;
-      brew install homebrew/science/libbi;
+      brew install --with-libidn curl;
+      brew install --with-libidn gmp;
+      brew install sbfnk/libbi/libbi;
+      mkdir -p ~/.R;
+      printf "CC=/usr/bin/gcc\nCXX=/usr/bin/g++\nCFLAGS=-std=c99 $CFLAGS\nCXXFLAGS=-std=c++99 $CXXFLAGS"  > ~/.R/Makevars;
     fi
 
-brew_packages:
-  - homebrew/science/libbi
-
-apt_packages:
-  - libnetcdf-dev
-  - netcdf-bin
 
