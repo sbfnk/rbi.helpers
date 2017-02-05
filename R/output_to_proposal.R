@@ -11,6 +11,7 @@
 #' @param start whether this is the first attempt, in which case we'll use 1/10 of every bound, and 1 otherwise
 #' @importFrom data.table setnames
 #' @importFrom stats cov
+#' @importFrom rbi get_block add_block
 #' @return the updated bi model
 #' @keywords internal
 output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FALSE) {
@@ -133,8 +134,6 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
 
       first <- TRUE ## we're at the first parameter
       for (dim_param in names(sd_vec)) { ## loop over all parameters
-        ##:ess-bp-start::browser@nil:##
-browser(expr=is.null(.ESSBP.[["@12@"]]));##:ess-bp-end:##
         ## create dimensionless parameter
         param <- gsub("\\[[^]]*\\]", "", dim_param)
         ## check if it's variable

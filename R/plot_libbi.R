@@ -5,7 +5,6 @@
 #' @param model model file or a \code{bi_model} object (if \code{data} is not a \code{libbi} object)
 #' @param prior optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
 #' @param type character vector determining which plots to generate; options are: "state", "obs", "param", "noise", "logevals"; by default, all will be plotted; more specific selections of variables can be given as arguments with the name of the type containing character vectors of variables, e.g. \code{param="alpha"} to just plot parameter alpha (requiring "param" to be given as one of "type")
-#' @param logevals logged density evaluations (e.g., loglikelihood, logprior, logweights, logevidence) to plot; if not given, all logged density evaluations will be plotted
 #' @param quantiles if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)
 #' @param date.origin date of origin (if dates are to be calculated)
 #' @param date.unit unit of date (if desired, otherwise the time dimension will be used)
@@ -32,7 +31,7 @@
 #' @return a list of plots: states, densities, traces, correlations, noises, logdensities, as well as underlying raw and aggregate data
 #' @import ggplot2 scales data.table
 #' @importFrom lubridate %m+% years
-#' @importFrom rbi bi_read bi_model
+#' @importFrom rbi bi_read bi_model bi_contents var_names
 #' @importFrom stats quantile as.formula
 #' @importFrom GGally ggcorr
 #' @export
