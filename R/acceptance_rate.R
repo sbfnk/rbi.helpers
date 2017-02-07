@@ -18,7 +18,11 @@
 acceptance_rate <- function(...) {
 
   mcmc_obj <- coda::mcmc(rbi::get_traces(...))
-  accRate <- max(1 - coda::rejectionRate(mcmc_obj))
+  if (nrow(mcmc_obj) > 1) {
+    accRate <- max(1 - coda::rejectionRate(mcmc_obj))
+  } else {
+    stop("Cannot compute acceptance rate from just one sample. Try setting 'nsamples'")
+  }
 
   return(accRate)
 }
