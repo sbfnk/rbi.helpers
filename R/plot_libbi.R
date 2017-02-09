@@ -571,7 +571,9 @@ plot_libbi <- function(x, model, prior,
           }
         }
 
-        if (length(vars[["trajectories"]]) > 1)
+        if (length(vars[["trajectories"]]) > 1 &&
+            ((!is.null(aggregate_values) && nrow(aggregate_values) > 0) ||
+             (!is.null(vdt) && nrow(vdt) > 0)))
         {
           p <- p +
             facet_wrap(~ var, scales = "free_y",
