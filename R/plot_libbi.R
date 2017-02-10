@@ -484,7 +484,7 @@ plot_libbi <- function(x, model, prior,
             {
                 str <- as.list(paste(c("max", "min"), i, sep = "."))
                 names(str) <- c("ymax", "ymin")
-                p <- p + ribbon_func(data = aggregate_values, do.call(aes_string, str), alpha = alpha)
+                p <- p + ribbon_func(data = aggregate_values[single == FALSE], do.call(aes_string, str), alpha = alpha)
                 alpha <- alpha / 2
                 if (!is.null(aggregate_values) && nrow(aggregate_values[single == TRUE]) > 0)
                 {
