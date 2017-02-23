@@ -55,7 +55,7 @@ plot_libbi(x, model, prior, type = c("state", "noise", "obs", "param",
 
 \item{density_args}{list of arguments to pass to density geometry}
 
-\item{limit.to.data}{whether to limit the time axis to times with observations}
+\item{limit.to.data}{whether to limit the time axis to times with observations (default: FALSE)}
 
 \item{labels}{facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs}
 

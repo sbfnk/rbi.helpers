@@ -22,7 +22,7 @@
 #' @param trend how the trend should be characterised (e.g., mean, median, or NULL for no trend line)
 #' @param densities density geometry (e.g., "histogram" (default) or "density")
 #' @param density_args list of arguments to pass to density geometry
-#' @param limit.to.data whether to limit the time axis to times with observations
+#' @param limit.to.data whether to limit the time axis to times with observations (default: FALSE)
 #' @param labels facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs
 #' @param brewer.palette optional; brewer color palette
 #' @param verbose if set to TRUE, additional output will be displayed
@@ -133,10 +133,12 @@ plot_libbi <- function(x, model, prior,
         {
             stop("'model' should not be given if 'x' is a 'libbi' object'.")
         }
-        if (is.character(model)) {
-            model <- rbi::bi_model(model)
-        } else if (!("bi_model" %in% class(model))) {
-            stop("'model' must be either a 'bi_model' object or a path to a valid model file in LibBi's syntax")
+        if (!("bi_model" %in% class(model))) {
+            if (is.character(model)) {
+                model <- rbi::bi_model(model)
+            } else {
+                stop("'model' must be either a 'bi_model' object or a path to a valid model file in LibBi's syntax")
+            }
         }
     }
 
@@ -280,6 +282,12 @@ plot_libbi <- function(x, model, prior,
         return(values)
     }
 
+    if (!missing(select) && time.dim %in% names(select)) {
+      temp_time_df <- data.table(time=select[[time.dim]])
+      temp_time_df <- clean_dates(temp_time_df, time.dim, use_dates, date.unit, date.origin)
+      select[[time.dim]] <- temp_time_df[[time.dim]]
+    }
+
     ## plot trajectories
     if (length(intersect(type, c("state", "obs", "noise"))) > 0)
     {
@@ -311,6 +319,8 @@ plot_libbi <- function(x, model, prior,
                     }
                 }
 
+                values <- clean_dates(values, time.dim, use_dates, date.unit, date.origin)
+
                 if (!missing(select))
                 {
                     for (var_name in names(select))
@@ -328,7 +338,6 @@ plot_libbi <- function(x, model, prior,
                     }
                 }
 
-                values <- clean_dates(values, time.dim, use_dates, date.unit, date.origin)
                 sum.by <- intersect(summarise_columns, colnames(values))
                 values <- values[, list(value = sum(value)), by = sum.by]
 
@@ -558,10 +567,12 @@ plot_libbi <- function(x, model, prior,
           }
           for (hline_var_id in named)
           {
-            hline_data <- data.frame(var = names(hline)[hline_var_id],
-                                     yintercept = hline[hline_var_id])
-            p <- p + geom_hline(data = hline_data,
-                                aes(yintercept = yintercept), color = "black")
+            if (names(hline)[hline_var_id] %in% vars$trajectories) {
+              hline_data <- data.frame(var = names(hline)[hline_var_id],
+                                       yintercept = hline[hline_var_id])
+              p <- p + geom_hline(data = hline_data,
+                                  aes(yintercept = yintercept), color = "black")
+            }
           }
           for (hline_var_id in unnamed)
           {
@@ -826,9 +837,9 @@ plot_libbi <- function(x, model, prior,
     }
 
     ## plot first plot if requested
-    if (plot)
+    if (plot && length(plots) > 0)
     {
-        print(plots[[1]])
+      print(plots[[1]])
     }
     plots[["data"]] <- ret_data
 
