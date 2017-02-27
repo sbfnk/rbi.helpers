@@ -603,6 +603,12 @@ plot_libbi <- function(x, model, prior,
             samples <- clean_data(x, "x", verbose=verbose, vars=vars[["param"]])
         }
 
+        if (!missing(prior)) { ## clean again in case trajectories weren't asked
+          ## for 
+          if (verbose) message(date(), " Getting prior parameter samples")
+          prior <- clean_data(prior, "prior", verbose=verbose)
+        }
+
         if (verbose) message(date(), " Parameter plots")
         for (param in vars[["param"]])
         {
@@ -616,7 +622,7 @@ plot_libbi <- function(x, model, prior,
 
             if (!missing(prior) && param %in% names(prior))
             {
-                param_values[["prior"]] <- prior[[param]]
+              param_values[["prior"]] <- prior[[param]]
             }
 
             for (dist in names(param_values))
