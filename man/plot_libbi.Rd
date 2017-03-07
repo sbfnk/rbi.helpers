@@ -10,7 +10,7 @@ plot_libbi(x, model, prior, type = c("state", "noise", "obs", "param",
   steps = FALSE, select, data.colour = "red", base.alpha = 0.5,
   np.alpha = 0.35, trend = "median", densities = "histogram",
   density_args = list(), limit.to.data = FALSE, labels, brewer.palette,
-  verbose = FALSE, plot = TRUE, ...)
+  pairs = TRUE, correlations = TRUE, verbose = FALSE, plot = TRUE, ...)
 }
 \arguments{
 \item{x}{Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}, or the name of an NetCDF file used as 'output' in a libbi run}
@@ -60,6 +60,10 @@ plot_libbi(x, model, prior, type = c("state", "noise", "obs", "param",
 \item{labels}{facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs}
 
 \item{brewer.palette}{optional; brewer color palette}
+
+\item{pairs}{logical: whether to generate a pair plot}
+
+\item{correlations}{logical: whether to generate a correlations plot}
 
 \item{verbose}{if set to TRUE, additional output will be displayed}
 
