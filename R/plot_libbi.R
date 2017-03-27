@@ -699,8 +699,8 @@ plot_libbi <- function(x, model, prior,
                 {
                     aesthetic <- c(aesthetic, list(color = "distribution", fill = "distribution"))
                 }
-                if (!("alpha" %in% names(density(args)))) {
-                    density[["alpha"]] <- 0.5
+                if (!("alpha" %in% names(density_args))) {
+                    density_args[["alpha"]] <- 0.5
                 }
             }
 
