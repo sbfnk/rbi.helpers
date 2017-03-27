@@ -51,6 +51,15 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
       params <- gsub("[[:space:]]*\\[[^]]*\\]", "", params)
       ## read parameters
       res <- bi_read(wrapper$output_file_name, vars = params)
+      ## get initial time
+      if (block == "initial") {
+        res <- lapply(res, function(x) {
+          min_time <- min(x$time)
+          x <- x[x$time == min_time, ]
+          x$time <- NULL
+          x
+        })
+      }
 
       if (correlations) { ## adapt to full covariance matrix
         l <- list()
