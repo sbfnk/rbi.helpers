@@ -62,7 +62,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
 
   if (correlations && length(all_params) > 1) {
     ## adapt to full covariance matrix
-    if (!("__diff_" %in% var_names(model, "param"))) {
+    if (!("__diff_" %in% var_names(model, "param", aux=TRUE))) {
       model <-
         insert_lines(model, "param __diff_ (has_output=0, has_input=0)",
                      after = 1)
