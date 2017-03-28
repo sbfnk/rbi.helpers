@@ -184,6 +184,7 @@ plot_libbi <- function(x, model, prior,
     }
 
     vars <- list()
+    init_vars <- c()
     for (type.loop in type)
     {
         if (!(type.loop %in% names(given_vars)))
@@ -198,7 +199,18 @@ plot_libbi <- function(x, model, prior,
                     given_vars[[type.loop]] <- intersect(existing_vars, c("loglikelihood", "logprior", "logweight", "logevidence"))
                 } else
                 {
-                    given_vars[[type.loop]] <- intersect(existing_vars, var_names(model, type.loop))
+                  type_vars <- var_names(model, type.loop)
+                  if (type.loop == "param")
+                  {
+                    init_vars <-
+                      sub("[[:space:]]*~.*$", "",
+                          grep("~", get_block(model, "proposal_initial"),
+                               value=TRUE))
+                    init_vars <- setdiff(init_vars, paste0(type_vars, "_0"))
+                    type_vars <- c(type_vars, init_vars)
+                  }
+                  given_vars[[type.loop]] <-
+                    intersect(existing_vars, type_vars)
                 }
             }
         }
@@ -248,7 +260,9 @@ plot_libbi <- function(x, model, prior,
         {
             stop("'", name, "' must be a 'libbi' object or a list of data frames or a data frame.")
         }
-        y <- lapply(y, function(z) { if (is.data.frame(z)) { data.table::data.table(z) } else {z} })
+        y <- lapply(y, function(z) {
+          if (is.data.frame(z)) { data.table::data.table(z) } else {z}
+        })
     }
 
     clean_dates <- function(values, time.dim, use_dates, date.unit, date.origin)
@@ -658,7 +672,9 @@ plot_libbi <- function(x, model, prior,
                     values[, paste(wo) := "n/a"]
                 }
 
-                new_params <- data.table::data.table(distribution = dist, parameter = rep(param, nrow(values)), values)
+                param_label <- param
+                if (param %in% init_vars) param_label <- paste0(param, "_0")
+                new_params <- data.table::data.table(distribution = dist, parameter = rep(param_label, nrow(values)), values)
                 if (is.null(pdt))
                 {
                     pdt <- new_params
