@@ -607,7 +607,8 @@ plot_libbi <- function(x, model, prior,
         {
           p <- p +
             facet_wrap(~ var, scales = "free_y",
-                       ncol = round(sqrt(length(vars[["trajectories"]]))))
+                       ncol = round(sqrt(length(vars[["trajectories"]]))), 
+                       labeller = label_parsed)
         }
 
         plots[["trajectories"]] <- p
@@ -757,7 +758,8 @@ plot_libbi <- function(x, model, prior,
                     density_data <- density_data[distribution == "posterior"]
                 }
                 dp <- ggplot()
-                dp <- dp + facet_wrap(~ parameter, scales = "free")
+                dp <- dp + facet_wrap(~ parameter, scales = "free",
+                                      labeller=label_parsed)
                 dp <- dp + do.call(paste0("geom_", densities), c(list(mapping = do.call(aes_string, aesthetic), data = density_data, position = "identity"),
                                                                  density_args))
                 if (black_prior) {
@@ -787,7 +789,8 @@ plot_libbi <- function(x, model, prior,
 
                 tp <- ggplot(mapping = do.call(aes_string, aesthetic))
                 tp <- tp + geom_line(data = pdt[varying == TRUE & distribution == "posterior"])
-                tp <- tp + facet_wrap(~ parameter, scales = "free_y")
+                tp <- tp + facet_wrap(~ parameter, scales = "free_y",
+                                      labeller=label_parsed)
                 tp <- tp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
                                  legend.position = "top")
                 if (select_id)
