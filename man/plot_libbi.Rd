@@ -70,8 +70,6 @@ plot_libbi(x, model, prior, type = c("state", "noise", "obs", "param",
 \item{plot}{set to FALSE to suppress plot of trajectories}
 
 \item{...}{more specific selection of variables to plot (see the \code{type} option); any other options will be interpreted as options for geom_step / geom_line / geom_point / etc. when plotting states/noises/observations, e.g. lwd or others}
-
-\item{grids}{logical: whether to plot grids}
 }
 \value{
 a list of plots: states, densities, traces, correlations, noises, logdensities, as well as underlying raw and aggregate data

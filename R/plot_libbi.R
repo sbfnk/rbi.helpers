@@ -27,7 +27,6 @@
 #' @param brewer.palette optional; brewer color palette
 #' @param pairs logical: whether to generate a pair plot
 #' @param correlations logical: whether to generate a correlations plot
-#' @param grids logical: whether to plot grids
 #' @param verbose if set to TRUE, additional output will be displayed
 #' @param plot set to FALSE to suppress plot of trajectories
 #' @param ... more specific selection of variables to plot (see the \code{type} option); any other options will be interpreted as options for geom_step / geom_line / geom_point / etc. when plotting states/noises/observations, e.g. lwd or others
