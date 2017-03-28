@@ -604,13 +604,14 @@ plot_libbi <- function(x, model, prior,
         pdt <- NULL
         if (length(vars[["param"]]) > 0) {
             if (verbose) message(date(), " Getting parameters")
-            samples <- clean_data(x, "x", verbose=verbose, vars=vars[["param"]])
+            samples <- clean_data(x, "x", verbose=verbose,
+                                  vars=vars[["param"]], init.to.param=TRUE)
         }
 
         if (!missing(prior)) { ## clean again in case trajectories weren't asked
-          ## for 
           if (verbose) message(date(), " Getting prior parameter samples")
-          prior <- clean_data(prior, "prior", verbose=verbose)
+          prior <- clean_data(prior, "prior", verbose=verbose,
+                              init.to.param=TRUE)
         }
 
         if (verbose) message(date(), " Parameter plots")

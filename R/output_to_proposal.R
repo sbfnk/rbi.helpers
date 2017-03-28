@@ -57,16 +57,8 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
   all_params <- unname(unlist(params))
 
   ## read parameters
-  res <- bi_read(wrapper$output_file_name, vars = all_params)
-  ## get initial time
-  res <- lapply(res, function(x) {
-    if ("time" %in% names(x)) {
-      min_time <- min(x$time)
-      x <- x[x$time == min_time, ]
-      x$time <- NULL
-    }
-    x
-  })
+  res <- bi_read(wrapper$output_file_name, vars = all_params,
+                 init.to.param=TRUE)
 
   if (correlations && length(all_params) > 1) {
     ## adapt to full covariance matrix
