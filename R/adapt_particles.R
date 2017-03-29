@@ -40,6 +40,8 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
     x <- rbi::sample(x, ...)
   }
 
+  thin <- x$thin ## no thinning when adapting particles
+
   test <- 2**(seq(floor(log(min, 2)), ceiling(log(max, 2))))
 
   adapted <- x
@@ -47,11 +49,14 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   model <- rbi::remove_lines(model, "proposal_parameter")
   model <- rbi::remove_lines(model, "proposal_initial")
   model <- rbi::remove_lines(model, "parameter")
+  model <- rbi::remove_lines(model, "initial")
 
   adapted$model <- model
+  adapted$thin <- 1
 
   accRate <- c()
   var_loglik <- c()
+
   found_good <- FALSE
   id <- 0
   while (!found_good && id < length(test)) {
@@ -62,17 +67,15 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
 
     if (!quiet) message(date(), " ", test[id], " particles, loglikelihod variance: ", var_loglik[id])
 
-    if (var_loglik[id] > 0) {
-      if (var_loglik[id] < target.variance) {
+    if (var_loglik[id] < target.variance) {
       ## choose smallest var-loglikelihood < target.variance
-        found_good <- TRUE
-        if (id > 1) id <- id - 1
-      }
+      found_good <- TRUE
     }
   }
 
   adapted$options[["nparticles"]] <- test[id]
   adapted$model <- x$model
+  adapted$thin <- thin
 
   if (!quiet) message(date(), " Choosing ", test[id], " particles.")
 

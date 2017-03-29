@@ -41,12 +41,15 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, correl
     x <- rbi::sample(x, ...)
   }
 
+  thin <- x$thin ## no thinning when adapting proposal
+
   ## scale should be > 1 (it's a divider if acceptance rate is too
   ## small, multiplier if the acceptance Rate is too big)
   if (scale < 1) scale <- 1 / scale
 
   accRate <- acceptance_rate(x)
   adapted <- x
+  adapted$thin <- 1
   shape_adapted <- FALSE
   for (round in seq_len(1 + correlations)) {
     iter <- 1
@@ -80,6 +83,8 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, correl
   if (iter > max_iter) {
     warning("Maximum of iterations reached")
   }
+
+  adapted$thin <- thin
 
   return(adapted)
 }
