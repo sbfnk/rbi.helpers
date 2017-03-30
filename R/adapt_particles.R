@@ -48,8 +48,7 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   model <- x$model
   model <- rbi::remove_lines(model, "proposal_parameter")
   model <- rbi::remove_lines(model, "parameter")
-  chain <- "param"
-  if ("with-transform-initial-to-param" %in% x$options) {
+  if ("with-transform-initial-to-param" %in% names(x$options)) {
     model <- rbi::remove_lines(model, "proposal_initial")
     model <- rbi::remove_lines(model, "initial")
   }
