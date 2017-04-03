@@ -121,7 +121,8 @@ plot_libbi <- function(x, model, prior,
             vars_in_obs_file <- bi_contents(x[["options"]][["obs-file"]])
             data <- bi_read(x[["options"]][["obs-file"]],
                             vars=intersect(var_names(x[["model"]], "obs"),
-                                           vars_in_obs_file))
+                                           vars_in_obs_file),
+                            dims=x[["dims"]])
         }
     }
 
