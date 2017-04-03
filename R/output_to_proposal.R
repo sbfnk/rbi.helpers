@@ -200,7 +200,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
       ## impose bounds on gamma and beta distributions
       if (dist == "beta") {
         bounds_string <- "lower = 0, upper = 1"
-      } else if (dist == "gamma") {
+      } else if (dist %in% c("gamma", "poisson", "negbin", "binomial")) {
         bounds_string <- "lower = 0"
       }
 
