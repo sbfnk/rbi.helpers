@@ -28,7 +28,7 @@
 #' \dontrun{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
 #'                                min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 #' @export
-adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, correlations = TRUE, quiet = FALSE, ...) {
+adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, size = TRUE, correlations = TRUE, quiet = FALSE, ...) {
 
   if (min == 0 && max == 1) return(x)
 
@@ -51,7 +51,10 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, correl
   adapted <- x
   adapted$thin <- 1
   shape_adapted <- FALSE
-  for (round in seq_len(1 + correlations)) {
+  rounds <- c()
+  if (size) rounds <- c(rounds, 1)
+  if (correlations) rounds <- c(rounds, 2)
+  for (round in rounds) {
     iter <- 1
     adapt_scale <- 1
     while ((round == 2 && !shape_adapted) ||
