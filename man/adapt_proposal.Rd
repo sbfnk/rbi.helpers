@@ -6,7 +6,7 @@
   of samples}
 \usage{
 adapt_proposal(x, min = 0, max = 1, scale = 2, max_iter = 10,
-  correlations = TRUE, quiet = FALSE, ...)
+  size = TRUE, correlations = TRUE, quiet = FALSE, ...)
 }
 \arguments{
 \item{x}{\code{link{libbi}} object}
