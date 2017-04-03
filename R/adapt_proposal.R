@@ -12,6 +12,7 @@
 #' @param scale scale multiplier/divider for the proposal. If >1 this
 #'   will be inverted.
 #' @param max_iter maximum of iterations (default: 10)
+#' @param size if TRUE (default), the size of the (diagonal multivariate normal) proposal distribution will be adapted before taking into account correlations
 #' @param correlations if TRUE (default), take into account correlations
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for \code{\link{sample}}

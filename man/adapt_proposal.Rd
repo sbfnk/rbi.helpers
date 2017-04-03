@@ -20,6 +20,8 @@ will be inverted.}
 
 \item{max_iter}{maximum of iterations (default: 10)}
 
+\item{size}{if TRUE (default), the size of the (diagonal multivariate normal) proposal distribution will be adapted before taking into account correlations}
+
 \item{correlations}{if TRUE (default), take into account correlations}
 
 \item{quiet}{if set to TRUE, will not provide running output of particle numbers tested}
