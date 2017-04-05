@@ -1,0 +1,3 @@
+in plot_libbi, if there's one dim and no demand for colour, use the dim
+chain: check if init is in (and perhaps set noutputs to something by default)
+perhaps allow to save additional data in save_libbi?
