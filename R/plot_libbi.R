@@ -7,7 +7,7 @@
 #' @param type character vector determining which plots to generate; options are: "state", "obs", "param", "noise", "logevals"; by default, all will be plotted; more specific selections of variables can be given as arguments with the name of the type containing character vectors of variables, e.g. \code{param="alpha"} to just plot parameter alpha (requiring "param" to be given as one of "type")
 #' @param quantiles if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)
 #' @param date.origin date of origin (if dates are to be calculated)
-#' @param date.unit unit of date (if desired, otherwise the time dimension will be used)
+#' @param date.unit unit of date (if desired, otherwise the time dimension will be used); possible options: "day", "week", "biweek", "month", "year"
 #' @param time.dim time dimension ("time" by default)
 #' @param data observations (a named list of data frames, a \code{libbi} object with observations, or a NetCDF file name)
 #' @param extra.aes extra aesthetics (for ggplot)
@@ -279,6 +279,10 @@ plot_libbi <- function(x, model, prior,
                 {
                     values[, time := date.origin + get(time.dim) * 7]
                     values[, time_next := time + 7]
+                } else if (date.unit == "biweek")
+                {
+                    values[, time := date.origin + get(time.dim) * 14]
+                    values[, time_next := time + 14]
                 } else if (date.unit == "month")
                 {
                     values[, time := date.origin %m+% months(as.integer(get(time.dim)))]
