@@ -58,7 +58,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
 
   ## read parameters
   init_params <- ("with-transform-initial-to-param" %in% names(wrapper$options))
-  res <- bi_read(wrapper$output_file_name, vars = all_params, init.to.param = init_params)
+  res <- bi_read(wrapper, vars = all_params, init.to.param = init_params)
 
   if (correlations && length(all_params) > 1) {
     ## adapt to full covariance matrix
