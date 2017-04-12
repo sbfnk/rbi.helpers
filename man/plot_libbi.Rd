@@ -25,7 +25,7 @@ plot_libbi(x, model, prior, type = c("state", "noise", "obs", "param",
 
 \item{date.origin}{date of origin (if dates are to be calculated)}
 
-\item{date.unit}{unit of date (if desired, otherwise the time dimension will be used)}
+\item{date.unit}{unit of date (if desired, otherwise the time dimension will be used); possible options: "day", "week", "biweek", "month", "year"}
 
 \item{time.dim}{time dimension ("time" by default)}
 
