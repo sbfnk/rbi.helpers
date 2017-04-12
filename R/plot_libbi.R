@@ -444,6 +444,7 @@ plot_libbi <- function(x, model, prior,
                     dataset[, paste(missing_column) := "n/a"]
                 }
             }
+            ret_data[["observations"]] <- dataset
         }
 
         aggregate_values <- NULL
