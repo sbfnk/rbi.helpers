@@ -257,7 +257,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
         },
         error = function(cond)
         {
-          warning("cannot convert bounds for ", param, "into r expression")
+          warning("cannot convert bounds for ", param, " into r expression")
           warning("original message: ", cond)
           ret <- bounds
           ret[] <- NA
