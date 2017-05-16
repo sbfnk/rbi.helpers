@@ -72,7 +72,8 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
     for (param in names(res)) {
       y <- copy(res[[param]])
       ## extract columns that are dimensions
-      unique_dims <- unique(y[setdiff(colnames(y), c("np", "value"))])
+      dim_colnames <- setdiff(colnames(y), c("np", "value"))
+      unique_dims <- unique(y[dim_colnames])
       if (sum(dim(unique_dims)) > 0)
       {
         ## for parameters with dimensions, create a parameter for each
@@ -80,6 +81,9 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
         a <- apply(unique_dims, 1, function(x) {
           merge(t(x), y)
         })
+        ## convert factor to integer
+        unique_dims[dim_colnames] <-
+          as.integer(unique_dims[dim_colnames]) - 1
         ## create correct parameter names (including the dimensions)
         if (length(a))
           names(a) <- unname(apply(unique_dims, 1, function(x) {
@@ -259,8 +263,31 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
         {
           warning("cannot convert bounds for ", param, " into r expression")
           warning("original message: ", cond)
-          ret <- bounds
-          return(ret)
+          ## preserve adapted dimensions
+          if (param != dim_param) {
+            orig_param_dims <- sub("^.*\\[(.*)\\]$", "\\1", param_string)
+            orig_param_dims <- unlist(strsplit(orig_param_dims, ","))
+            new_param_dims <- sub("^.*\\[(.*)\\]$", "\\1", dim_param)
+            new_param_dims <- unlist(strsplit(new_param_dims, ","))
+            names(new_param_dims) <- orig_param_dims
+            for (bound in names(bounds))
+            {
+              orig_bound_dims <- sub("^.*\\[(.*)\\]$", "\\1", bounds[bound])
+              bound_dims <- unlist(strsplit(orig_bound_dims, ","))
+              matching_dims <- which(bound_dims %in% names(new_param_dims))
+              if (length(matching_dims) > 0)
+              {
+                bound_dims[matching_dims] <-
+                  new_param_dims[bound_dims[bound_dims %in% names(new_param_dims)]]
+              }
+              bounds[bound] <-
+                sub(paste0("\\[", orig_bound_dims, "\\]"),
+                    paste0("[",paste(bound_dims, collapse=","), "]"),
+                    bounds[bound])
+            }
+            ret <- bounds
+            return(ret)
+          }
         })
         bounds <- eval_bounds
 
