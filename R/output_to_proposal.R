@@ -33,9 +33,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
     },
     error = function(cond)
     {
-      warning("Cannot convert const expression for ", assignemnt[1],
-              "into R expression")
-      warning("Original message: ", cond)
+      assign(assignment[1], assignment[2])
     })
   }
 
@@ -261,8 +259,6 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
         },
         error = function(cond)
         {
-          warning("cannot convert bounds for ", param, " into r expression")
-          warning("original message: ", cond)
           ## preserve adapted dimensions
           if (param != dim_param) {
             orig_param_dims <- sub("^.*\\[(.*)\\]$", "\\1", param_string)
