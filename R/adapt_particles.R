@@ -29,8 +29,8 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   {
     min <- x$options[["nparticles"]]
   }
-  if (max <= min) {
-    stop("'max' must be less or equal to 'min'")
+  if (max < min) {
+    stop("'max' must be greater or equal to 'min'")
   }
 
   if (!quiet) message(date(), " Adapting the number of particles")
