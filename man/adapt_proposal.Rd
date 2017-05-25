@@ -47,4 +47,3 @@ max_time <- max(vapply(example_obs[obs_states], function(x) { max(x[["time"]])},
 \dontrun{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
                                min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 }
-
