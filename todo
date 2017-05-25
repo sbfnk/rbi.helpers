@@ -2,3 +2,4 @@ in plot_libbi, if there's one dim and no demand for colour, use the dim
 chain: check if init is in (and perhaps set noutputs to something by default)
 perhaps allow to save additional data in save_libbi (i.e., data not used by libbi)?
 output-every options, i.e. every 1 time step
+better interaction with true dates, convret to times internally (as plot_libbi does already)
