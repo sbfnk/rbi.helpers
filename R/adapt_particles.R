@@ -78,6 +78,7 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   adapted$options[["nparticles"]] <- test[id]
   adapted$model <- x$model
   adapted$thin <- thin
+  adapted$run_flag <- FALSE
 
   if (!quiet) message(date(), " Choosing ", test[id], " particles.")
 
