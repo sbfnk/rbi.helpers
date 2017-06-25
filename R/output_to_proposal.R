@@ -80,13 +80,15 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
           merge(t(x), y)
         })
         ## convert factor to integer
-        unique_dims[dim_colnames] <-
-          as.integer(unique_dims[dim_colnames]) - 1
+        for (dim_colname in dim_colnames) {
+          unique_dims[[dim_colname]] <-
+            as.integer(unique_dims[[dim_colname]]) - 1
+        }
         ## create correct parameter names (including the dimensions)
         if (length(a))
           names(a) <- unname(apply(unique_dims, 1, function(x) {
             paste0(param, "[", paste(rev(x), collapse = ","), "]")
-          }))
+        }))
       } else
       {
         a <- list(y)
