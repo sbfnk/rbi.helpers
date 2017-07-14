@@ -16,6 +16,7 @@
 #' @param burn How many iterations to burn
 #' @param steps whether to plot lines as stepped lines
 #' @param select list of selection criteria, as named list of selected elements. If the list contains "np", it is treated specially.
+#' @param threshold thresholds for any of the trajectory variables; named list of named vector with a "lower" and/or "upper" threshold; any values outside this range for the variable with the name of the list element will not be plotted
 #' @param data.colour colour for plotting the data
 #' @param base.alpha base alpha value for credible intervals
 #' @param np.alpha alpha of trajectories, if 'np' is part of \code{select} (default: 0.35)
@@ -58,7 +59,7 @@ plot_libbi <- function(x, model, prior,
                        date.origin, date.unit, time.dim = "time",
                        data, extra.aes,
                        all.times = FALSE, hline,
-                       burn, steps = FALSE, select,
+                       burn, steps = FALSE, select, threshold,
                        data.colour = "red", base.alpha = 0.5,
                        np.alpha=0.35, trend = "median",
                        densities = "histogram",
@@ -312,6 +313,7 @@ plot_libbi <- function(x, model, prior,
     }
 
     ## plot trajectories
+    remove_times <- list()
     if (length(intersect(type, c("state", "obs", "noise"))) > 0)
     {
         vdt <- NULL
@@ -361,6 +363,20 @@ plot_libbi <- function(x, model, prior,
                     }
                 }
 
+                if (!missing(threshold) && (var %in% names(threshold)))
+                {
+                    if ("lower" %in% names(threshold[[var]]))
+                    {
+                        lower <- threshold[[var]][["lower"]]
+                        remove_times[[var]] <- values[value < lower]
+                    }
+                    if ("upper" %in% names(threshold[[var]]))
+                    {
+                        upper <- threshold[[var]][["upper"]]
+                        remove_times[[var]] <- values[value > upper]
+                    }
+                }
+
                 sum.by <- intersect(summarise_columns, colnames(values))
                 values <- values[, list(value = sum(value)), by = sum.by]
 
@@ -387,6 +403,17 @@ plot_libbi <- function(x, model, prior,
 
         ## factorise columns
         if (!is.null(vdt)) vdt <- factorise_columns(vdt, labels)
+
+        if (!is.null(vdt) && nrow(vdt) > 0 && length(remove_times) > 0)
+        {
+            remove_times <- rbindlist(remove_times)
+            remove_times <- unique(remove_times)
+            remove_times[, value := NULL]
+            remove_times[, remove := TRUE]
+            vdt <- merge(vdt, remove_times, all.x=TRUE)
+            vdt <- vdt[is.na(remove)]
+            vdt[, remove := NULL]
+        }
 
         if (!missing(data))
         {
