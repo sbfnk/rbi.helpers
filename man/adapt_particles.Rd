@@ -37,3 +37,4 @@ obs_states <- var_names(example_model, "obs")
 max_time <- max(vapply(example_obs[obs_states], function(x) { max(x[["time"]])}, 0))
 \dontrun{adapted <- adapt_particles(example_bi, nsamples = 128, end_time = max_time)}
 }
+

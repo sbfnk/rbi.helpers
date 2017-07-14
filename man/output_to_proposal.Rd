@@ -24,3 +24,4 @@ run and returns a new model which has the proposal constructed from
 the sample mean and standard deviation.
 }
 \keyword{internal}
+

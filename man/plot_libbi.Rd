@@ -7,7 +7,7 @@
 plot_libbi(x, model, prior, type = c("state", "noise", "obs", "param",
   "logeval"), quantiles = c(0.5, 0.95), date.origin, date.unit,
   time.dim = "time", data, extra.aes, all.times = FALSE, hline, burn,
-  steps = FALSE, select, data.colour = "red", base.alpha = 0.5,
+  steps = FALSE, select, threshold, data.colour = "red", base.alpha = 0.5,
   np.alpha = 0.35, trend = "median", densities = "histogram",
   density_args = list(), limit.to.data = FALSE, labels, brewer.palette,
   pairs = TRUE, correlations = TRUE, verbose = FALSE, plot = TRUE, ...)
@@ -42,6 +42,8 @@ plot_libbi(x, model, prior, type = c("state", "noise", "obs", "param",
 \item{steps}{whether to plot lines as stepped lines}
 
 \item{select}{list of selection criteria, as named list of selected elements. If the list contains "np", it is treated specially.}
+
+\item{threshold}{thresholds for any of the trajectory variables; named list of named vector with a "lower" and/or "upper" threshold; any values outside this range for the variable with the name of the list element will not be plotted}
 
 \item{data.colour}{colour for plotting the data}
 
@@ -95,3 +97,4 @@ p$logevals
 \author{
 Sebastian Funk
 }
+
