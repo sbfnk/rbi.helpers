@@ -97,4 +97,3 @@ p$logevals
 \author{
 Sebastian Funk
 }
-
