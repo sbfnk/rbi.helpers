@@ -6,7 +6,7 @@
   of samples}
 \usage{
 adapt_proposal(x, min = 0, max = 1, scale = 2, max_iter = 10,
-  size = TRUE, correlations = TRUE, quiet = FALSE, ...)
+  size = FALSE, correlations = TRUE, quiet = FALSE, ...)
 }
 \arguments{
 \item{x}{\code{link{libbi}} object}
@@ -20,7 +20,7 @@ will be inverted.}
 
 \item{max_iter}{maximum of iterations (default: 10)}
 
-\item{size}{if TRUE (default), the size of the (diagonal multivariate normal) proposal distribution will be adapted before taking into account correlations}
+\item{size}{if TRUE (default: FALSE), the size of the (diagonal multivariate normal) proposal distribution will be adapted before taking into account correlations}
 
 \item{correlations}{if TRUE (default), take into account correlations}
 
@@ -47,4 +47,3 @@ max_time <- max(vapply(example_obs[obs_states], function(x) { max(x[["time"]])},
 \dontrun{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
                                min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 }
-

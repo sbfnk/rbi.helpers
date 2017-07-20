@@ -12,7 +12,7 @@
 #' @param scale scale multiplier/divider for the proposal. If >1 this
 #'   will be inverted.
 #' @param max_iter maximum of iterations (default: 10)
-#' @param size if TRUE (default), the size of the (diagonal multivariate normal) proposal distribution will be adapted before taking into account correlations
+#' @param size if TRUE (default: FALSE), the size of the (diagonal multivariate normal) proposal distribution will be adapted before taking into account correlations
 #' @param correlations if TRUE (default), take into account correlations
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for \code{\link{sample}}
@@ -29,7 +29,7 @@
 #' \dontrun{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
 #'                                min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 #' @export
-adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, size = TRUE, correlations = TRUE, quiet = FALSE, ...) {
+adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, size = FALSE, correlations = TRUE, quiet = FALSE, ...) {
 
   if (min == 0 && max == 1) return(x)
 

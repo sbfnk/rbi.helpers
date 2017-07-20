@@ -28,4 +28,3 @@ compute_DIC(example_bi)
 \author{
 Sebastian Funk
 }
-

@@ -25,4 +25,3 @@ acceptance_rate(example_bi)
 \author{
 Sebastian Funk
 }
-

@@ -18,4 +18,3 @@ a data.table with updated columns
 Optionally, can give new labels
 }
 \keyword{internal}
-
