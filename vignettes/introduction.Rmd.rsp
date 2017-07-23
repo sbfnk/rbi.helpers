@@ -26,9 +26,9 @@ pre code {
 
 [RBi.helpers](https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [RBi](https://github.com/libbi/RBi), an R interface to [LibBi](https://github.com/libbi/LibBi), a library for Bayesian Inference.
 
-### Latest Version: _0.2.0_  &nbsp; <small>(5 May 2016)</small>
+### Latest Version: _0.3.0_  &nbsp; <small>(24 July 2017)</small>
 
-This vignette builds on the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html), applying the higher-level functions contained in **RBi.helpers** to the same model introduced there.
+This vignette builds on the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html), applying the higher-level functions contained in **RBi.helpers** to the same model introduced there.
 For the lower-level functions to run **LibBi** and read the results, please refer to the documentation and vignette that comes with **RBi**.
 
 # Installation
@@ -45,7 +45,7 @@ The **RBi.helpers** package requires `R` (>= 3.2.0) as well as the packages:
 - `GGally`
 
 Most functions also require a working installation of **LibBi**.
-Please see the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html) for how to get one via homebrew or linuxbrew.
+Please see the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html) for how to get one via homebrew or linuxbrew.
 
 The package name of **RBi.helpers** is `rbi.helpers` (all lowercase).
 The current stable version can be installed using the `devtools` package:
@@ -67,7 +67,7 @@ to load the package.
 
 # Loading the model and generating a synthetic dataset
 
-These steps are reproduced from the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html), where there is more information on the individual steps
+These steps are reproduced from the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html), where there is more information on the individual steps
 
 ```{R}
 model_file <- system.file(package="rbi", "SIR.bi") # get full file name from package
@@ -77,7 +77,7 @@ SIRdata <- bi_generate_dataset(SIRmodel, end_time=16*7, noutputs=16, seed=123456
 
 # Adapt the number of particles
 
-In the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html), a [stochastic SIR model](https://raw.githubusercontent.com/libbi/RBi/master/inst/SIR.bi) was fitted to simulated data from the same model using particle Markov-chain Monte Carlo with 16 particles.
+In the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html), a [stochastic SIR model](https://raw.githubusercontent.com/libbi/RBi/master/inst/SIR.bi) was fitted to simulated data from the same model using particle Markov-chain Monte Carlo with 16 particles.
 Given a model and data, how do we know how many particles we need?
 This question does not have a simple answer, as the "optimal" number of particles may depend on the state of the Markov chain.
 A possible rule-of-thumb is to choose the number of particles such that the variance of the log-likelihood near the mode is approximately one.
@@ -146,7 +146,7 @@ posterior <- sample(adapted, nsamples=5000, nparticles=16, sample_obs=TRUE)
 
 Note that we used the `sample_obs` option to also generate posterior predictive samples from of the observations.
 
-Instead of using the [coda](https://cran.r-project.org/package=coda) routines for plotting as described in the [RBi vignette](https://cran.r-project.org/web/packages/rbi/vignettes/introduction.html#analysing-an-mcmc-run), one can use the `plot_libbi` function.
+Instead of using the [coda](https://cran.r-project.org/package=coda) routines for plotting as described in the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html#analysing-an-mcmc-run), one can use the `plot_libbi` function.
 If passed a `libbi` object, it can be called using `plot`.
 
 ```{R}

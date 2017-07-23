@@ -1,8 +1,16 @@
-##' Compute DIC for a libbi model
+#' @export
+DIC <- function(x, ...) UseMethod("DIC")
+##' @name DIC
+##' @rdname DIC
+##' @title Compute Deviance Information Criterion (DIC) for a libbi model
 ##'
-##' @param read either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
+##' @description
+##' Computes the DIC of a libbi object containing Monte-Carlo samples. The effective number of parameters is calculated following Gelman et al., Bayesian Data Analysis: Second Edition, 2004, p. 182.
+##'
+##' @param x a \code{libbi} object
 ##' @param burn number of iterations to discard as burn-in (if any)
 ##' @param bootstrap number of bootstrap samples to take, 0 to just take data
+##' @param ... not used
 ##' @return DIC
 ##' @import data.table
 ##' @importFrom stats var
@@ -11,31 +19,11 @@
 ##' example_run_file <- system.file(package="rbi", "example_output.nc")
 ##' example_model_file <- system.file(package="rbi", "PZ.bi")
 ##' example_bi <- add_output(libbi(example_model_file), example_run_file)
-##' compute_DIC(example_bi)
+##' DIC(example_bi)
 ##' @author Sebastian Funk
-compute_DIC <- function(read, burn, bootstrap = 0)
+DIC.libbi <- function(x, burn, bootstrap = 0, ...)
 {
-    wrapper <- NULL
-
-    ## read data
-    if ("libbi" %in% class(read))
-    {
-        if (!read$run_flag)
-        {
-            stop("The model should be run first")
-        }
-        res <- bi_read(read)
-        wrapper <- read
-    } else if (is.data.frame(read))
-    {
-        res <- list(dummy = read)
-    } else if (is.list(read))
-    {
-        res <- read
-    } else
-    {
-        stop("'read' must be a 'libbi' object or a list of data frames or a data frame.")
-    }
+    res <- bi_read(x)
 
     ## convert to data.table
     res <- lapply(res, function(x) { if (is.data.frame(x)) { data.table::data.table(x) } else {x} })
@@ -43,7 +31,9 @@ compute_DIC <- function(read, burn, bootstrap = 0)
     if (!missing(burn))
     {
         burned <- lapply(res, function(x) {
-            if ("np" %in% colnames(x)) { x <- x[np >= burn]}
+            if ("np" %in% colnames(x)) {
+                x <- x[get("np") >= burn]
+            }
         })
     } else
     {

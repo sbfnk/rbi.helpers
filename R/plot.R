@@ -1,9 +1,11 @@
-#' Plot results from libbi
+#' @rdname plot
+#' @name plot
+#' @title Plot results from libbi
 #'
+#' @description
 #' Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
-#' @param x Monte-Carlo samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}, or the name of an NetCDF file used as 'output' in a libbi run
-#' @param model model file or a \code{bi_model} object (if \code{data} is not a \code{libbi} object)
-#' @param prior optional; Prior samples, either a \code{libbi} object or a list of data frames, as returned by \code{bi_read}
+#' @param x A \code{libbi} object containing Monte-Carlo samples
+#' @param prior optional; Prior samples, given as a \code{libbi}
 #' @param type character vector determining which plots to generate; options are: "state", "obs", "param", "noise", "logevals"; by default, all will be plotted; more specific selections of variables can be given as arguments with the name of the type containing character vectors of variables, e.g. \code{param="alpha"} to just plot parameter alpha (requiring "param" to be given as one of "type")
 #' @param quantiles if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)
 #' @param date.origin date of origin (if dates are to be calculated)
@@ -34,7 +36,7 @@
 #' @return a list of plots: states, densities, traces, correlations, noises, logdensities, as well as underlying raw and aggregate data
 #' @import ggplot2 scales data.table
 #' @importFrom lubridate %m+% years
-#' @importFrom rbi bi_read bi_model bi_contents var_names
+#' @importFrom rbi bi_read bi_contents var_names
 #' @importFrom stats quantile as.formula
 #' @importFrom GGally ggcorr
 #' @export
@@ -44,16 +46,16 @@
 #' example_bi <- add_output(libbi(example_model_file), example_run_file)
 #'
 #' plot(example_bi) # just plot trajectories
-#' p <- plot(example_bi, plot = FALSE) # get whole suite of plots
+#' \dontrun{p <- plot(example_bi, plot = FALSE) # get whole suite of plots
 #'
 #' p$trajectories
 #' p$correlations
 #' p$pairs
 #' p$densities
 #' p$traces
-#' p$logevals
+#' p$logevals}
 #' @author Sebastian Funk
-plot_libbi <- function(x, model, prior,
+plot.libbi <- function(x, ..., prior,
                        type = c("state", "noise", "obs", "param", "logeval"),
                        quantiles = c(0.5, 0.95),
                        date.origin, date.unit, time.dim = "time",
@@ -67,7 +69,7 @@ plot_libbi <- function(x, model, prior,
                        labels, brewer.palette,
                        pairs=TRUE, correlations=TRUE,
                        verbose = FALSE,
-                       plot = TRUE, ...)
+                       plot = TRUE)
 {
     plots <- list() ## list holding the plots to be returned
     ret_data <- list() ## list holding data to be returned
@@ -77,7 +79,7 @@ plot_libbi <- function(x, model, prior,
     use_dates <- FALSE
     summarise_columns <- c("np", "time", "time_next")
 
-    all_types <- eval(formals(plot_libbi)[["type"]])
+    all_types <- eval(formals(plot.libbi)[["type"]])
     missing_types <- setdiff(type, all_types)
     if (length(missing_types) > 0) {
         stop("Invalid 'type' argument(s): ", paste(missing_types) )
@@ -113,8 +115,7 @@ plot_libbi <- function(x, model, prior,
 
     if (missing(data))
     {
-        if ("libbi" %in% class(x) &&
-            !is.null(x[["options"]]) &&
+        if (!is.null(x[["options"]]) &&
             !is.null(x[["options"]][["obs-file"]]))
         {
             ## if obs is missing but a libbi object passed, get obs file from
@@ -124,27 +125,6 @@ plot_libbi <- function(x, model, prior,
                             vars=intersect(var_names(x[["model"]], "obs"),
                                            vars_in_obs_file),
                             dims=x[["dims"]])
-        }
-    }
-
-    if (missing(model))
-    {
-        if ("libbi" %in% class(x))
-        {
-            model <- x$model
-        }
-    } else
-    {
-        if ("libbi" %in% class(x))
-        {
-            stop("'model' should not be given if 'x' is a 'libbi' object'.")
-        }
-        if (!("bi_model" %in% class(model))) {
-            if (is.character(model)) {
-                model <- rbi::bi_model(model)
-            } else {
-                stop("'model' must be either a 'bi_model' object or a path to a valid model file in LibBi's syntax")
-            }
         }
     }
 
@@ -178,11 +158,7 @@ plot_libbi <- function(x, model, prior,
 
     if (missing(burn)) burn <- 0
 
-   if ("libbi" %in% class(x) || "character" %in% class(x)) {
-      existing_vars <- bi_contents(x)
-    } else {
-      existing_vars <- names(x)
-    }
+    existing_vars <- bi_contents(x)
 
     vars <- list()
     init_vars <- c()
@@ -190,29 +166,23 @@ plot_libbi <- function(x, model, prior,
     {
         if (!(type.loop %in% names(given_vars)))
         {
-            if (missing(model))
+            if (type.loop == "logeval")
             {
-                given_vars[[type.loop]] <- c()
+                given_vars[[type.loop]] <- intersect(existing_vars, c("loglikelihood", "logprior", "logweight", "logevidence"))
             } else
             {
-                if (type.loop == "logeval")
+                type_vars <- var_names(x[["model"]], type.loop)
+                if (type.loop == "param")
                 {
-                    given_vars[[type.loop]] <- intersect(existing_vars, c("loglikelihood", "logprior", "logweight", "logevidence"))
-                } else
-                {
-                  type_vars <- var_names(model, type.loop)
-                  if (type.loop == "param")
-                  {
                     init_vars <-
-                      sub("[[:space:]]*~.*$", "",
-                          grep("~", get_block(model, "proposal_initial"),
-                               value=TRUE))
+                        sub("[[:space:]]*~.*$", "",
+                            grep("~", get_block(x[["model"]], "proposal_initial"),
+                                 value=TRUE))
                     init_vars <- setdiff(init_vars, paste0(type_vars, "_0"))
                     type_vars <- c(type_vars, init_vars)
-                  }
-                  given_vars[[type.loop]] <-
-                    intersect(existing_vars, type_vars)
                 }
+                given_vars[[type.loop]] <-
+                    intersect(existing_vars, type_vars)
             }
         }
         vars[[type.loop]] <- intersect(given_vars[[type.loop]], existing_vars)
@@ -234,32 +204,20 @@ plot_libbi <- function(x, model, prior,
 
     clean_data <- function(y, name, file_name, ...)
     {
-        if ("libbi" %in% class(y))
+        if (missing(file_name))
         {
-            if (missing(file_name))
+            y <- rbi::bi_read(y, ...)
+        } else
+        {
+            opt_name <- paste(file_name, "file", sep="-")
+            if (!is.null(y[["options"]]) &&
+                !is.null(y[["options"]][[opt_name]]))
             {
                 y <- rbi::bi_read(y, ...)
             } else
             {
-                opt_name <- paste(file_name, "file", sep="-")
-                if (!is.null(y[["options"]]) &&
-                    !is.null(y[["options"]][[opt_name]]))
-                {
-                    y <- rbi::bi_read(y, ...)
-                } else
-                {
-                    stop("No ", opt_name, " found.")
-                }
+                stop("No ", opt_name, " found.")
             }
-        } else if (is.data.frame(y))
-        {
-            y <- list(.var = y)
-        } else if (is.character(y))
-        {
-            y <- rbi::bi_read(y, ...)
-        } else if (!is.list(y))
-        {
-            stop("'", name, "' must be a 'libbi' object or a list of data frames or a data frame.")
         }
         y <- lapply(y, function(z) {
           if (is.data.frame(z)) { data.table::data.table(z) } else {z}
@@ -274,33 +232,33 @@ plot_libbi <- function(x, model, prior,
             {
                 if (date.unit == "day")
                 {
-                    values[, time := date.origin + get(time.dim)]
-                    values[, time_next := time + 1]
+                    values[, paste("time") := date.origin + get(time.dim)]
+                    values[, paste("time_next") := get("time") + 1]
                 } else if (date.unit == "week")
                 {
-                    values[, time := date.origin + get(time.dim) * 7]
-                    values[, time_next := time + 7]
+                    values[, paste("time") := date.origin + get(time.dim) * 7]
+                    values[, paste("time_next") := get("time") + 7]
                 } else if (date.unit == "biweek")
                 {
-                    values[, time := date.origin + get(time.dim) * 14]
-                    values[, time_next := time + 14]
+                    values[, paste("time") := date.origin + get(time.dim) * 14]
+                    values[, paste("time_next") := get("time") + 14]
                 } else if (date.unit == "month")
                 {
-                    values[, time := date.origin %m+% months(as.integer(get(time.dim)))]
-                    values[, time_next := time %m+% months(1)]
+                    values[, paste("time") := date.origin %m+% months(as.integer(get(time.dim)))]
+                    values[, paste("time_next") := get("time") %m+% months(1)]
                 } else if (date.unit == "year")
                 {
                     if (missing(date.origin)) {
-                        values[, time := as.Date(paste(get(time.dim), 1, 1, sep = "-"))]
-                        values[, time_next := as.Date(paste(get(time.dim) + 1, 1, 1, sep = "-"))]
+                        values[, paste("time") := as.Date(paste(get(time.dim), 1, 1, sep = "-"))]
+                        values[, paste("time_next") := as.Date(paste(get(time.dim) + 1, 1, 1, sep = "-"))]
                     } else {
-                        values[, time := date.origin + years(as.integer(get(time.dim)))]
-                        values[, time_next := time %m+% months(12)]
+                        values[, paste("time") := date.origin + years(as.integer(get(time.dim)))]
+                        values[, paste("time_next") := get("time") %m+% months(12)]
                     }
                 }
             } else {
-                values[, time := get(time.dim)]
-                values[, time_next := time + 1]
+                values[, paste("time") := get(time.dim)]
+                values[, paste("time_next") := get("time") + 1]
             }
         }
         return(values)
@@ -338,7 +296,7 @@ plot_libbi <- function(x, model, prior,
                 values <- samples[[var]]
                 if ("np" %in% colnames(samples[[var]]) && burn > 0)
                 {
-                    values <- values[np >= burn]
+                    values <- values[get("np") >= burn]
                     if (nrow(values) == 0) {
                         stop("Nothing left after burn-in")
                     }
@@ -368,17 +326,17 @@ plot_libbi <- function(x, model, prior,
                     if ("lower" %in% names(threshold[[var]]))
                     {
                         lower <- threshold[[var]][["lower"]]
-                        remove_times[[var]] <- values[value < lower]
+                        remove_times[[var]] <- values[get("value") < lower]
                     }
                     if ("upper" %in% names(threshold[[var]]))
                     {
                         upper <- threshold[[var]][["upper"]]
-                        remove_times[[var]] <- values[value > upper]
+                        remove_times[[var]] <- values[get("value") > upper]
                     }
                 }
 
                 sum.by <- intersect(summarise_columns, colnames(values))
-                values <- values[, list(value = sum(value)), by = sum.by]
+                values <- values[, list(value = sum(get("value"))), by = sum.by]
 
                 state.wo <- setdiff(setdiff(summarise_columns, "np"),
                                     colnames(values))
@@ -408,11 +366,11 @@ plot_libbi <- function(x, model, prior,
         {
             remove_times <- rbindlist(remove_times)
             remove_times <- unique(remove_times)
-            remove_times[, value := NULL]
-            remove_times[, remove := TRUE]
+            remove_times[, paste("value") := NULL]
+            remove_times[, paste("remove") := TRUE]
             vdt <- merge(vdt, remove_times, all.x=TRUE)
-            vdt <- vdt[is.na(remove)]
-            vdt[, remove := NULL]
+            vdt <- vdt[is.na(get("remove"))]
+            vdt[, paste("remove") := NULL]
         }
 
         if (!missing(data))
@@ -449,14 +407,14 @@ plot_libbi <- function(x, model, prior,
                     if (limit.to.data)
                     {
                         ## for all states, only retain times with observations
-                        vdt <- vdt[time %in% dataset[, time]]
+                        vdt <- vdt[get("time") %in% dataset[, get("time")]]
                     } else
                     {
                         for (data_var in unique(dataset[, var]))
                         {
                             ## for states in observations, only retain times with observations
                             vdt <- vdt[(var != data_var) |
-                                       (time %in% dataset[var == data_var, time])]
+                                       (get("time") %in% dataset[var == data_var, get("time")])]
                         }
                     }
                 }
@@ -480,7 +438,7 @@ plot_libbi <- function(x, model, prior,
 
             if (!is.null(trend))
             {
-                aggregate_values <- vdt[, list(value = do.call(trend, list(value, na.rm = TRUE))), by = var.by]
+                aggregate_values <- vdt[, list(value = do.call(trend, list(get("value"), na.rm = TRUE))), by = var.by]
             }
 
             if (!is.null(quantiles))
@@ -488,8 +446,8 @@ plot_libbi <- function(x, model, prior,
                 for (i in seq_along(quantiles))
                 {
                     quantile_values <-
-                        vdt[, list(max = stats::quantile(value, 0.5 + quantiles[i] / 2, na.rm = TRUE),
-                                   min = stats::quantile(value, 0.5 - quantiles[i] / 2, na.rm = TRUE)),
+                        vdt[, list(max = stats::quantile(get("value"), 0.5 + quantiles[i] / 2, na.rm = TRUE),
+                                   min = stats::quantile(get("value"), 0.5 - quantiles[i] / 2, na.rm = TRUE)),
                             by = var.by]
                     data.table::setnames(quantile_values, c("min", "max"), paste(c("min",  "max"),  i,  sep = "."))
                     if (is.null(aggregate_values))
@@ -502,11 +460,13 @@ plot_libbi <- function(x, model, prior,
                 }
                 if (steps)
                 {
-                    max.time <- aggregate_values[, max(time)]
+                    max.time <- aggregate_values[, max(get("time"))]
                     for (i in seq_along(quantiles))
                     {
-                        aggregate_values[time == max.time, paste("min", i, sep = ".") := NA]
-                        aggregate_values[time == max.time, paste("max", i, sep = ".") := NA]
+                        aggregate_values[get("time") == max.time,
+                                         paste("min", i, sep = ".") := NA]
+                        aggregate_values[get("time") == max.time,
+                                         paste("max", i, sep = ".") := NA]
                     }
                 }
             }
@@ -532,7 +492,9 @@ plot_libbi <- function(x, model, prior,
 
         if (!missing(extra.aes) && "color" %in% names(extra.aes) && select_id && !is.null(vdt) && nrow(vdt) > 0)
         {
-          vdt <- vdt[, color_np := paste(get(extra.aes["color"]), get("np"), sep = "_")]
+            vdt <- vdt[, paste("color_np") :=
+                             paste(get(extra.aes["color"]),
+                                   get("np"), sep = "_")]
         }
 
         p <- ggplot(mapping = do.call(aes_string, aesthetic))
@@ -564,10 +526,10 @@ plot_libbi <- function(x, model, prior,
             }
             if (select_id && !is.null(vdt) && nrow(vdt) > 0)
             {
-                p <- p + do.call(line_func, c(list(data = vdt[single == FALSE], mapping = aes(group = color_np), alpha = np.alpha), dot_options))
+                p <- p + do.call(line_func, c(list(data = vdt[single == FALSE], mapping = aes_(group =~ color_np), alpha = np.alpha), dot_options))
                 if (nrow(vdt[single == TRUE]) > 0)
                 {
-                    p <- p + do.call(geom_point, c(list(data = vdt[single == TRUE], aes(group = factor(np)), shape = 4, alpha = np.alpha), dot_options))
+                    p <- p + do.call(geom_point, c(list(data = vdt[single == TRUE], aes_(group =~ factor(np)), shape = 4, alpha = np.alpha), dot_options))
                 }
             }
         } else
@@ -579,8 +541,8 @@ plot_libbi <- function(x, model, prior,
             }
             if (select_id && !is.null(vdt) && nrow(vdt) > 0)
             {
-                p <- p + do.call(line_func, c(list(data = vdt[single == FALSE], aes(group = factor(np)), alpha = np.alpha), dot_options))
-                p <- p + do.call(geom_point, c(list(data = vdt[single == TRUE], aes(group = factor(np)), alpha = np.alpha, shape = 4), dot_options))
+                p <- p + do.call(line_func, c(list(data = vdt[single == FALSE], aes_(group =~ factor(np)), alpha = np.alpha), dot_options))
+                p <- p + do.call(geom_point, c(list(data = vdt[single == TRUE], aes_(group =~ factor(np)), alpha = np.alpha, shape = 4), dot_options))
             }
         }
         p <- p + scale_y_continuous(labels = comma) + ylab("")
@@ -622,14 +584,14 @@ plot_libbi <- function(x, model, prior,
               hline_data <- data.frame(var = names(hline)[hline_var_id],
                                        yintercept = hline[hline_var_id])
               p <- p + geom_hline(data = hline_data,
-                                  aes(yintercept = yintercept), color = "black")
+                                  aes_(yintercept =~ yintercept), color = "black")
             }
           }
           for (hline_var_id in unnamed)
           {
             hline_data <- data.frame(yintercept = hline[hline_var_id])
             p <- p + geom_hline(data = hline_data,
-                                aes(yintercept = yintercept), color = "black")
+                                aes_(yintercept =~ yintercept), color = "black")
           }
         }
 
@@ -669,7 +631,7 @@ plot_libbi <- function(x, model, prior,
             if ("np" %in% colnames(samples[[param]]))
             {
                 param_values[["posterior"]] <-
-                    param_values[["posterior"]][np >= burn]
+                    param_values[["posterior"]][get("np") >= burn]
             }
 
             if (!missing(prior) && param %in% names(prior))
@@ -693,11 +655,11 @@ plot_libbi <- function(x, model, prior,
                 param.by <- intersect(by.mean, colnames(values))
                 param.wo <- setdiff(by.mean, colnames(values))
 
-                values <- values[, list(value = value), by = param.by]
+                values <- values[, list(value = get("value")), by = param.by]
 
                 if (!("np" %in% colnames(values)))
                 {
-                    values[, np := 1]
+                    values[, paste("np") := 1]
                 }
 
                 for (wo in setdiff(param.wo, "np"))
@@ -727,7 +689,7 @@ plot_libbi <- function(x, model, prior,
             {
                 by.varying <- c(by.varying, unlist(unique(unname(extra.aes))))
             }
-            pdt[, varying := (length(unique(value)) > 1), by = by.varying]
+            pdt[, paste("varying") := (length(unique(get("value"))) > 1), by = by.varying]
 
             ret_data <- c(ret_data, list(params = pdt))
 
@@ -753,7 +715,7 @@ plot_libbi <- function(x, model, prior,
                 }
             }
 
-            if (!is.null(pdt) && nrow(pdt[varying == TRUE & distribution == "posterior"]) > 0)
+            if (!is.null(pdt) && nrow(pdt[get("varying") == TRUE & get("distribution") == "posterior"]) > 0)
             {
                 if (!select_id)
                 {
@@ -769,8 +731,9 @@ plot_libbi <- function(x, model, prior,
                         cast_formula <- as.formula("np~parameter")
                     }
                     wpdt <-
-                      data.table::data.table(data.table::dcast(pdt[varying == TRUE & distribution == "posterior"], cast_formula, value.var = "value"))
-                    wpdt[, np := NULL]
+                        data.table::data.table(data.table::dcast(pdt[get("varying") == TRUE & get("distribution") == "posterior"],
+                                                                 cast_formula, value.var = "value"))
+                    wpdt[, paste("np") := NULL]
                     if (length(extra_cols) > 0)
                     {
                         wpdt[, paste(extra_cols) := NULL]
@@ -785,17 +748,20 @@ plot_libbi <- function(x, model, prior,
                     }
                 }
 
-                density_data <- pdt[varying == TRUE]
+                density_data <- pdt[get("varying") == TRUE]
                 if (black_prior) {
-                    density_data <- density_data[distribution == "posterior"]
+                    density_data <- density_data[get("distribution") == "posterior"]
                 }
                 dp <- ggplot()
                 dp <- dp + facet_wrap(~ parameter, scales = "free",
                                       labeller=label_parsed)
-                dp <- dp + do.call(paste0("geom_", densities), c(list(mapping = do.call(aes_string, aesthetic), data = density_data, position = "identity"),
-                                                                 density_args))
+                dp <- dp + do.call(paste0("geom_", densities),
+                                   c(list(mapping = do.call(aes_string, aesthetic),
+                                          data = density_data, position = "identity"),
+                                     density_args))
                 if (black_prior) {
-                    dp <- dp + geom_line(data = pdt[varying == TRUE & distribution == "prior"], mapping = aes(x = value), stat = "density", color = "black", adjust = 2)
+                    dp <- dp + geom_line(data = pdt[get("varying") == TRUE & get("distribution") == "prior"],
+                                         mapping = aes_(x =~ value), stat = "density", color = "black", adjust = 2)
                 }
                 if (!missing(brewer.palette))
                 {
@@ -807,8 +773,8 @@ plot_libbi <- function(x, model, prior,
                                  legend.position = "top")
                 if (select_id)
                 {
-                    dp <- dp + geom_vline(data = pdt[np %in% select[["np"]]],
-                                          aes(xintercept = value))
+                    dp <- dp + geom_vline(data = pdt[get("np") %in% select[["np"]]],
+                                          aes_(xintercept =~ value))
                 }
                 plots[["densities"]] <- dp
 
@@ -820,7 +786,7 @@ plot_libbi <- function(x, model, prior,
                 }
 
                 tp <- ggplot(mapping = do.call(aes_string, aesthetic))
-                tp <- tp + geom_line(data = pdt[varying == TRUE & distribution == "posterior"])
+                tp <- tp + geom_line(data = pdt[get("varying") == TRUE & get("distribution") == "posterior"])
                 tp <- tp + facet_wrap(~ parameter, scales = "free_y",
                                       labeller=label_parsed)
                 tp <- tp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
@@ -853,7 +819,7 @@ plot_libbi <- function(x, model, prior,
             values <- samples[[ll]]
             if ("np" %in% colnames(samples[[ll]]))
             {
-                values <- values[np >= burn]
+                values <- values[get("np") >= burn]
             }
 
             if (!("data.frame" %in% class(values)))
@@ -866,7 +832,7 @@ plot_libbi <- function(x, model, prior,
                 data.table::setnames(values, "time", "np")
             }
 
-            values[, density := ll]
+            values[, paste("density") := ll]
             if (is.null(ldt))
             {
                 ldt <- values
@@ -897,7 +863,7 @@ plot_libbi <- function(x, model, prior,
             if (select_id)
             {
                 lp <- lp + geom_vline(data = data.frame(type = "Trace"),
-                                      xintercept = ldt[np %in% select[["np"]], value])
+                                      xintercept = ldt[get("np") %in% select[["np"]], get("value")])
             }
             plots[["logevals"]] <- lp
         }
@@ -914,13 +880,3 @@ plot_libbi <- function(x, model, prior,
     invisible(plots)
 }
 
-##' Plot routing for \code{libbi} objects
-##'
-##' @param x \code{libbi} object
-##' @param ... parameters to \code{\link{plot_libbi}}
-##' @return a list of plots plot (see \code{\link{plot_libbi}})
-##' @export
-plot.libbi <- function(x, ...)
-{
-    plot_libbi(x, ...)
-}

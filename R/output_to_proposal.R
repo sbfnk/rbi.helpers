@@ -11,7 +11,7 @@
 #' @param start whether this is the first attempt, in which case we'll use 1/10 of every bound, and 1 otherwise
 #' @importFrom data.table setnames
 #' @importFrom stats cov
-#' @importFrom rbi get_block add_block
+#' @importFrom rbi get_block add_block insert_lines
 #' @return the updated bi model
 #' @keywords internal
 output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FALSE) {
@@ -62,8 +62,8 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
     ## adapt to full covariance matrix
     if (!("__diff_" %in% var_names(model, "param", aux=TRUE))) {
       model <-
-        insert_lines(model, "param __diff_ (has_output=0, has_input=0)",
-                     after = 1)
+        rbi::insert_lines(model, "param __diff_ (has_output=0, has_input=0)",
+                          after = 1)
     }
 
     l <- list()
