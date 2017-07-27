@@ -113,7 +113,8 @@ plot.libbi <- function(x, ..., prior,
 
     if (missing(labels)) labels <- c()
 
-    if (missing(data))
+    data_missing <- missing(data)
+    if (data_missing)
     {
         if (!is.null(x[["options"]]) &&
             !is.null(x[["options"]][["obs-file"]]))
@@ -283,7 +284,7 @@ plot.libbi <- function(x, ..., prior,
             if (verbose) message(date(), " Getting prior samples")
             prior <- clean_data(prior, "prior", verbose=verbose)
         }
-        if (!missing(data)) {
+        if (!data_missing) {
             if (verbose) message(date(), " Getting observations")
             data <- clean_data(data, "data", "obs", verbose=verbose)
         }
