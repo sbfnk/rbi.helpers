@@ -376,18 +376,35 @@ plot.libbi <- function(x, ..., prior,
 
         if (!missing(data))
         {
-            data <- data[intersect(vars[["trajectories"]], names(data))]
             dataset <- lapply(names(data), function(y) {data.table::data.table(data[[y]])[, var := y]})
             dataset <- rbindlist(dataset, fill=TRUE)
             dataset <- factorise_columns(dataset, labels)
             dataset <- clean_dates(dataset, time.dim, use_dates, date.unit, date.origin)
-            for (col in colnames(dataset))
+
+            if (!all.times && !is.null(vdt) && nrow(vdt) > 0)
             {
-                dataset[is.na(get(col)), paste(col) := "n/a"]
+                if (limit.to.data)
+                {
+                    ## for all states, only retain times with observations
+                    vdt <- vdt[get("time") %in% dataset[, get("time")]]
+                } else
+                {
+                    for (data_var in unique(dataset[, var]))
+                    {
+                        ## for states in observations, only retain times with observations
+                        vdt <- vdt[(var != data_var) |
+                                   (get("time") %in% dataset[var == data_var, get("time")])]
+                    }
+                }
             }
 
+            dataset <- dataset[var %in% vars[["trajectories"]]]
             if (nrow(dataset) > 0)
             {
+                for (col in colnames(dataset))
+                {
+                    dataset[is.na(get(col)), paste(col) := "n/a"]
+                }
                 if (!missing(select))
                 {
                     for (var_name in names(select))
@@ -403,22 +420,6 @@ plot.libbi <- function(x, ..., prior,
                     }
                 }
 
-                if (!all.times && !is.null(vdt) && nrow(vdt) > 0)
-                {
-                    if (limit.to.data)
-                    {
-                        ## for all states, only retain times with observations
-                        vdt <- vdt[get("time") %in% dataset[, get("time")]]
-                    } else
-                    {
-                        for (data_var in unique(dataset[, var]))
-                        {
-                            ## for states in observations, only retain times with observations
-                            vdt <- vdt[(var != data_var) |
-                                       (get("time") %in% dataset[var == data_var, get("time")])]
-                        }
-                    }
-                }
                 for (i in seq_along(quantiles))
                 {
                     dataset[, paste("min", i, sep = ".") := 0]
