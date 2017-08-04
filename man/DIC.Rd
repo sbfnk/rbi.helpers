@@ -25,7 +25,7 @@ Computes the DIC of a libbi object containing Monte-Carlo samples. The effective
 \examples{
 example_run_file <- system.file(package="rbi", "example_output.nc")
 example_model_file <- system.file(package="rbi", "PZ.bi")
-example_bi <- add_output(libbi(example_model_file), example_run_file)
+example_bi <- attach_file(libbi(example_model_file), "output", example_run_file)
 DIC(example_bi)
 }
 \author{
