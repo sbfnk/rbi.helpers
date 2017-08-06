@@ -5,7 +5,7 @@
 #' @description
 #' Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
 #' @param x A \code{libbi} object containing Monte-Carlo samples
-#' @param prior optional; Prior samples, given as a \code{libbi}
+#' @param prior optional; Prior samples, given as a \code{libbi} object
 #' @param type character vector determining which plots to generate; options are: "state", "obs", "param", "noise", "logevals"; by default, all will be plotted; more specific selections of variables can be given as arguments with the name of the type containing character vectors of variables, e.g. \code{param="alpha"} to just plot parameter alpha (requiring "param" to be given as one of "type")
 #' @param quantiles if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)
 #' @param date.origin date of origin (if dates are to be calculated)
@@ -282,7 +282,7 @@ plot.libbi <- function(x, ..., prior,
         }
         if (!missing(prior)) {
             if (verbose) message(date(), " Getting prior samples")
-            prior <- clean_data(prior, "prior", verbose=verbose)
+            prior_samples <- clean_data(prior, "prior", verbose=verbose)
         }
         if (!data_missing) {
             if (verbose) message(date(), " Getting observations")
@@ -621,8 +621,8 @@ plot.libbi <- function(x, ..., prior,
 
         if (!missing(prior)) { ## clean again in case trajectories weren't asked
           if (verbose) message(date(), " Getting prior parameter samples")
-          prior <- clean_data(prior, "prior", verbose=verbose,
-                              init.to.param=TRUE)
+          prior_samples <- clean_data(prior, "prior", verbose=verbose,
+                                      init.to.param=TRUE)
         }
 
         if (verbose) message(date(), " Parameter plots")
@@ -636,9 +636,9 @@ plot.libbi <- function(x, ..., prior,
                     param_values[["posterior"]][get("np") >= burn]
             }
 
-            if (!missing(prior) && param %in% names(prior))
+            if (!missing(prior) && param %in% names(prior_samples))
             {
-              param_values[["prior"]] <- prior[[param]]
+              param_values[["prior"]] <- prior_samples[[param]]
             }
 
             for (dist in names(param_values))
