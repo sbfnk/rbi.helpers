@@ -77,12 +77,14 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
         ## for parameters with dimensions, create a parameter for each
         ## possible dimension(s)
         a <- apply(unique_dims, 1, function(x) {
-          merge(t(x), y)
+          merge(data.table(t(x)), y)
         })
         ## convert factor to integer
         for (dim_colname in dim_colnames) {
-          unique_dims[[dim_colname]] <-
-            as.integer(unique_dims[[dim_colname]]) - 1
+          if (is.factor(unique_dims[[dim_colname]])) {
+            unique_dims[[dim_colname]] <-
+              as.integer(unique_dims[[dim_colname]]) - 1
+          }
         }
         ## create correct parameter names (including the dimensions)
         if (length(a))
@@ -111,7 +113,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, start = FAL
     wide <- l[[1]]
     if (length(l) > 1) {
       for (i in seq(2, length(l))) {
-        wide <- merge(wide, l[[i]])
+        wide <- merge(wide, l[[i]], by=intersect(colnames(wide), colnames(l[[i]])))
       }
     }
     wide[["np"]] <- NULL

@@ -5,7 +5,7 @@
 #' @description
 #' Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
 #' @param x A \code{libbi} object containing Monte-Carlo samples
-#' @param prior optional; Prior samples, given as a \code{libbi}
+#' @param prior optional; Prior samples, given as a \code{libbi} object
 #' @param type character vector determining which plots to generate; options are: "state", "obs", "param", "noise", "logevals"; by default, all will be plotted; more specific selections of variables can be given as arguments with the name of the type containing character vectors of variables, e.g. \code{param="alpha"} to just plot parameter alpha (requiring "param" to be given as one of "type")
 #' @param quantiles if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)
 #' @param date.origin date of origin (if dates are to be calculated)
@@ -43,7 +43,7 @@
 #' @examples
 #' example_run_file <- system.file(package="rbi", "example_output.nc")
 #' example_model_file <- system.file(package="rbi", "PZ.bi")
-#' example_bi <- add_output(libbi(example_model_file), example_run_file)
+#' example_bi <- attach_file(libbi(example_model_file), "output", example_run_file)
 #'
 #' plot(example_bi) # just plot trajectories
 #' \dontrun{p <- plot(example_bi, plot = FALSE) # get whole suite of plots
@@ -125,7 +125,8 @@ plot.libbi <- function(x, ..., prior,
             data <- bi_read(x[["options"]][["obs-file"]],
                             vars=intersect(var_names(x[["model"]], "obs"),
                                            vars_in_obs_file),
-                            dims=x[["dims"]])
+                            dims=x[["dims"]],
+                            coord_dims=x[["coord_dims"]])
         }
     }
 
@@ -282,7 +283,7 @@ plot.libbi <- function(x, ..., prior,
         }
         if (!missing(prior)) {
             if (verbose) message(date(), " Getting prior samples")
-            prior <- clean_data(prior, "prior", verbose=verbose)
+            prior_samples <- clean_data(prior, "prior", verbose=verbose)
         }
         if (!data_missing) {
             if (verbose) message(date(), " Getting observations")
@@ -376,18 +377,35 @@ plot.libbi <- function(x, ..., prior,
 
         if (!missing(data))
         {
-            data <- data[intersect(vars[["trajectories"]], names(data))]
             dataset <- lapply(names(data), function(y) {data.table::data.table(data[[y]])[, var := y]})
             dataset <- rbindlist(dataset, fill=TRUE)
             dataset <- factorise_columns(dataset, labels)
             dataset <- clean_dates(dataset, time.dim, use_dates, date.unit, date.origin)
-            for (col in colnames(dataset))
+
+            if (!all.times && !is.null(vdt) && nrow(vdt) > 0)
             {
-                dataset[is.na(get(col)), paste(col) := "n/a"]
+                if (limit.to.data)
+                {
+                    ## for all states, only retain times with observations
+                    vdt <- vdt[get("time") %in% dataset[, get("time")]]
+                } else
+                {
+                    for (data_var in unique(dataset[, var]))
+                    {
+                        ## for states in observations, only retain times with observations
+                        vdt <- vdt[(var != data_var) |
+                                   (get("time") %in% dataset[var == data_var, get("time")])]
+                    }
+                }
             }
 
+            dataset <- dataset[var %in% vars[["trajectories"]]]
             if (nrow(dataset) > 0)
             {
+                for (col in colnames(dataset))
+                {
+                    dataset[is.na(get(col)), paste(col) := "n/a"]
+                }
                 if (!missing(select))
                 {
                     for (var_name in names(select))
@@ -403,22 +421,6 @@ plot.libbi <- function(x, ..., prior,
                     }
                 }
 
-                if (!all.times && !is.null(vdt) && nrow(vdt) > 0)
-                {
-                    if (limit.to.data)
-                    {
-                        ## for all states, only retain times with observations
-                        vdt <- vdt[get("time") %in% dataset[, get("time")]]
-                    } else
-                    {
-                        for (data_var in unique(dataset[, var]))
-                        {
-                            ## for states in observations, only retain times with observations
-                            vdt <- vdt[(var != data_var) |
-                                       (get("time") %in% dataset[var == data_var, get("time")])]
-                        }
-                    }
-                }
                 for (i in seq_along(quantiles))
                 {
                     dataset[, paste("min", i, sep = ".") := 0]
@@ -620,8 +622,8 @@ plot.libbi <- function(x, ..., prior,
 
         if (!missing(prior)) { ## clean again in case trajectories weren't asked
           if (verbose) message(date(), " Getting prior parameter samples")
-          prior <- clean_data(prior, "prior", verbose=verbose,
-                              init.to.param=TRUE)
+          prior_samples <- clean_data(prior, "prior", verbose=verbose,
+                                      init.to.param=TRUE)
         }
 
         if (verbose) message(date(), " Parameter plots")
@@ -635,9 +637,9 @@ plot.libbi <- function(x, ..., prior,
                     param_values[["posterior"]][get("np") >= burn]
             }
 
-            if (!missing(prior) && param %in% names(prior))
+            if (!missing(prior) && param %in% names(prior_samples))
             {
-              param_values[["prior"]] <- prior[[param]]
+              param_values[["prior"]] <- prior_samples[[param]]
             }
 
             for (dist in names(param_values))

@@ -19,7 +19,7 @@ run, or a bi file, and returns a the acceptance rate
 \examples{
 example_run_file <- system.file(package="rbi.helpers", "example_run.nc")
 example_model_file <- system.file(package="rbi", "PZ.bi")
-example_bi <- add_output(libbi(example_model_file), example_run_file)
+example_bi <- attach_file(libbi(example_model_file), "output", example_run_file)
 acceptance_rate(example_bi)
 }
 \author{
