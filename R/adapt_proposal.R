@@ -51,13 +51,17 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, size =
   accRate <- acceptance_rate(x)
   adapted <- x
   adapted$thin <- 1
-  shape_adapted <- FALSE
   rounds <- c()
-  if (size) rounds <- c(rounds, 1)
+  if (size) {
+    rounds <- c(rounds, 1)
+    shape_adapted <- FALSE
+  } else {
+    shape_adapted <- TRUE
+  }
   if (correlations) rounds <- c(rounds, 2)
   for (round in rounds) {
     iter <- 1
-    adapt_scale <- scale
+    adapt_scale <- 1
     while ((round == 2 && !shape_adapted) ||
            (min(accRate) < min || max(accRate) > max || !is.finite(accRate)) &&
            iter <= max_iter) {
