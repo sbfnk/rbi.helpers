@@ -87,7 +87,7 @@ For the first part (finding the mode), a crude method is to take a fixed number 
 In **RBi**, this can be achieved with
 
 ```{R}
-bi_prior <- libbi(proposal="prior", SIRmodel_prior, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234)
+bi_prior <- libbi(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234)
 bi_prior$run()
 ```
 
