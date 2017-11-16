@@ -112,7 +112,7 @@ adapted$options$nparticles
 
 Having adjusted the number of particles, the second important information to give the posterior sampler is the proposal distribution.
 This can, again, be obtained using a sequence of trial runs, whereby the proposal distribution is sequentially adjusted from previous samples to be proportional to the empirical covariance of the posterior samples.
-The way this is implemented in the `adapt_proposal` function in **RBi.helpers** is that first the /size/ of the proposal distribution is adjusted by adjusting independent normal proposals for each parameter until the acceptance rate lies between a given minimum and maximum (by default, 0.1 and 0.5), before the /shape/ of the distribution is adjusted by changing the proposals to come from a multivariate normal taking into account the full covariance of samples, again until the acceptance rate lies between the given minimum and maximum.
+The way this is implemented in the `adapt_proposal` function in **RBi.helpers** is that the proposal distribution is adjusted to come from a multivariate normal taking into account the covariance of samples obtained so far, until the acceptance rate lies between the given minimum and maximumad.
 For example, to adjust the proposal distribution for an acceptance rate between 0.05 and 0.4, we can run:
 
 ```{R}
