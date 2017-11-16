@@ -87,13 +87,11 @@ For the first part (finding the mode), a crude method is to take a fixed number 
 In **RBi**, this can be achieved with
 
 ```{R}
-bi_prior <- libbi(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234)
-bi_prior$run()
+bi_prior <- sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234)
 ```
 
-The first line changes the `bi_model` object called `SIRmodel` to have the prior distribution as proposal distribution.
+By using `proposal="prior"` we set the prior distribution to be the proposal distribution.
 In other words, when sampling from the posterior the proposals will be drawn independently from the prior distribution.
-The second line performs the sampling.
 Note that we set a seed to make the results reproducible.
 It is worth trying the commands with a different seed and seeing the difference to the results obtained below.
 The location in parameters of the sampler at the end of the 1000 samples will give an approximation of the mode of the posterior distribution.
@@ -162,10 +160,10 @@ The returned object `p` contains a number of different plots:
 names(p)
 ```
 
-## State trajectories
+## Trajectories
 
 ```{R}
-p$states
+p$trajectories
 ```
 
 This is the default plot displayed when `plot_libbi` is called without `plot=FALSE`.
@@ -198,12 +196,6 @@ p$correlations
 p$pairs
 ```
 
-## Noise plot
-
-```{R}
-p$noise
-```
-
 ## Summary data
 
 All the data used for the different plots are stored in the `data` object:
@@ -214,15 +206,19 @@ p$data
 
 # Compute DIC
 
-To compute the [Deviance Information Criterion](https://en.m.wikipedia.org/wiki/Deviance_information_criterion) (DIC), use `compute_DIC`:
+To compute the [Deviance Information Criterion](https://en.m.wikipedia.org/wiki/Deviance_information_criterion) (DIC), use `DIC`:
 
 ```{R}
-compute_DIC(posterior)
+DIC(posterior)
 ```
 
 # Create inference chains
 
-In combination with the `magrittr` package, the it is possible to construct
+In combination with the `magrittr` package, the it is possible to construct inference chains more elegantly. For example, to get posterior samples from adapted Metropolis-Hastings as above, we could simply write
 
 ```{R}
+posterior <- sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234) %>%
+  adapt_particles %>%
+  adapt_proposal(min=0.05, max=0.4) %>%
+  sample(nsamples=5000, nparticles=16, sample_obs=TRUE)
 ```
