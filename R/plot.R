@@ -10,7 +10,6 @@
 #' @param quantiles if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)
 #' @param date.origin date of origin (if dates are to be calculated)
 #' @param date.unit unit of date (if desired, otherwise the time dimension will be used); possible options: "day", "week", "biweek", "month", "year"
-#' @param time.dim time dimension ("time" by default)
 #' @param data observations (a named list of data frames, a \code{libbi} object with observations, or a NetCDF file name)
 #' @param extra.aes extra aesthetics (for ggplot)
 #' @param all.times whether to plot all times (not only ones with observations)
@@ -58,7 +57,7 @@
 plot.libbi <- function(x, ..., prior,
                        type = c("state", "noise", "obs", "param", "logeval"),
                        quantiles = c(0.5, 0.95),
-                       date.origin, date.unit, time.dim = "time",
+                       date.origin, date.unit,
                        data, extra.aes,
                        all.times = FALSE, hline,
                        burn, steps = FALSE, select, threshold,
@@ -110,7 +109,6 @@ plot.libbi <- function(x, ..., prior,
             warning("date.origin given but no date.unit, will use time.dim instead")
         }
     }
-
     if (missing(labels)) labels <- c()
 
     data_missing <- missing(data)
@@ -266,10 +264,10 @@ plot.libbi <- function(x, ..., prior,
         return(values)
     }
 
-    if (!missing(select) && time.dim %in% names(select)) {
-      temp_time_df <- data.table(time=select[[time.dim]])
-      temp_time_df <- clean_dates(temp_time_df, time.dim, use_dates, date.unit, date.origin)
-      select[[time.dim]] <- temp_time_df[[time.dim]]
+    if (!missing(select) && x$time_dim %in% names(select)) {
+      temp_time_df <- data.table(time=select[[x$time_dim]])
+      temp_time_df <- clean_dates(temp_time_df, x$time_dim, use_dates, date.unit, date.origin)
+      select[[x$time_dim]] <- temp_time_df[[x$time_dim]]
     }
 
     ## plot trajectories
@@ -304,7 +302,7 @@ plot.libbi <- function(x, ..., prior,
                     }
                 }
 
-                values <- clean_dates(values, time.dim, use_dates, date.unit, date.origin)
+                values <- clean_dates(values, x$time_dim, use_dates, date.unit, date.origin)
 
                 if (!missing(select))
                 {
@@ -312,7 +310,7 @@ plot.libbi <- function(x, ..., prior,
                     {
                         if (var_name %in% colnames(values))
                         {
-                            if (!(var_name == "np") || time.dim %in% colnames(values)) {
+                            if (!(var_name == "np") || x$time_dim %in% colnames(values)) {
                                 values <- values[get(var_name) %in% select[[var_name]]]
                                 if (class(values[, get(var_name)]) == "factor")
                                 {
@@ -380,7 +378,7 @@ plot.libbi <- function(x, ..., prior,
             dataset <- lapply(names(data), function(y) {data.table::data.table(data[[y]])[, var := y]})
             dataset <- rbindlist(dataset, fill=TRUE)
             dataset <- factorise_columns(dataset, labels)
-            dataset <- clean_dates(dataset, time.dim, use_dates, date.unit, date.origin)
+            dataset <- clean_dates(dataset, x$time_dim, use_dates, date.unit, date.origin)
 
             if (!all.times && !is.null(vdt) && nrow(vdt) > 0)
             {
