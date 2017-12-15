@@ -139,7 +139,7 @@ The steps above are exactly the steps used to create the proposal blocks in the 
 Let us run take 5,000 samples from the posterior distribution of the model using the adapted proposal and number of particles:
 
 ```{R}
-posterior <- sample(adapted, nsamples=5000, nparticles=16, sample_obs=TRUE)
+posterior <- sample(adapted, nsamples=5000, sample_obs=TRUE)
 ```
 
 Note that we used the `sample_obs` option to also generate posterior predictive samples from of the observations.
