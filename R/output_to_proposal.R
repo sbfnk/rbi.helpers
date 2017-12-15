@@ -8,6 +8,7 @@
 #' @param wrapper a \code{\link{libbi}} which has been run
 #' @param scale a factor by which to scale all the standard deviations
 #' @param correlations whether to take into account correlations
+#' @param truncate truncate the multivariate normal proposals
 #' @importFrom data.table setnames
 #' @importFrom stats cov
 #' @importFrom rbi get_block add_block insert_lines
@@ -199,16 +200,14 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
       bounds_string <- "lower = 0"
     }
 
-    if (is.na(bounds_string) || bounds_string == variable_bounds[dim_param]) {
+    if (!truncate || is.na(bounds_string) || bounds_string == variable_bounds[dim_param]) {
       ## no bounds, just use a gaussian
       if (sd == 0) {
         sd <- 1
       }
       proposal_lines[[block]] <-
         c(proposal_lines[[block]],
-          paste0(ifelse(correlations, dim_param, param_string), " ~ gaussian(",
-                 "mean = ", mean,
-                 ", std = ", scale_string, sd, ")"))
+          paste0(dim_param, " ~ gaussian(", "mean = ", mean, ", std = ", scale_string, sd, ")"))
     } else {
       ## there are (potentially) bounds, use a truncated normal
       bounds <- c(lower = NA, upper = NA)
@@ -282,10 +281,13 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
 
       proposal_lines[[block]] <-
         c(proposal_lines[[block]],
-          paste0(ifelse(correlations, dim_param, param_string),
-                 " ~ gaussian(",
-                 "mean = ", mean,
-                 ", std = ", scale_string, sd, ")"))
+          paste0(dim_param, " ~ truncated_gaussian(", "mean = ", mean,
+                 ", std = ", scale_string, sd,
+                 ifelse(length(bounds) > 0,
+                        paste0(", ", paste(names(bounds), "=", bounds,
+                                           sep = " ", collapse = ", "),
+                               ")"),
+                        ")")))
     }
     block_params[[block]] <- union(block_params[[block]], param)
   }

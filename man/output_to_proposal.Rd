@@ -4,7 +4,7 @@
 \alias{output_to_proposal}
 \title{Construct a proposal from run results}
 \usage{
-output_to_proposal(wrapper, scale, correlations = FALSE, start = FALSE)
+output_to_proposal(wrapper, scale, correlations = FALSE, truncate = TRUE)
 }
 \arguments{
 \item{wrapper}{a \code{\link{libbi}} which has been run}
@@ -13,7 +13,7 @@ output_to_proposal(wrapper, scale, correlations = FALSE, start = FALSE)
 
 \item{correlations}{whether to take into account correlations}
 
-\item{start}{whether this is the first attempt, in which case we'll use 1/10 of every bound, and 1 otherwise}
+\item{truncate}{truncate the multivariate normal proposals}
 }
 \value{
 the updated bi model

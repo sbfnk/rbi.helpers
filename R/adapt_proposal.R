@@ -13,12 +13,12 @@
 #'   will be inverted.
 #' @param max_iter maximum of iterations (default: 10)
 #' @param size if TRUE (default: FALSE), the size of the (diagonal multivariate normal) proposal distribution will be adapted before taking into account correlations
-#' @param correlations if TRUE (default), take into account correlations
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for \code{\link{sample}}
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @importFrom coda mcmc rejectionRate
 #' @importFrom rbi bi_dim_len get_traces sample
+#' @inheritParams output_to_proposal
 #' @examples
 #' example_obs <- bi_read(system.file(package="rbi", "example_dataset.nc"))
 #' example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
@@ -29,7 +29,7 @@
 #' \dontrun{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
 #'                                min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 #' @export
-adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, size = FALSE, correlations = TRUE, quiet = FALSE, ...) {
+adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, size = FALSE, correlations = TRUE, truncate = TRUE, quiet = FALSE, ...) {
 
   if (min == 0 && max == 1) return(x)
 

@@ -6,7 +6,8 @@
   of samples}
 \usage{
 adapt_proposal(x, min = 0, max = 1, scale = 2, max_iter = 10,
-  size = FALSE, correlations = TRUE, quiet = FALSE, ...)
+  size = FALSE, correlations = TRUE, truncate = TRUE, quiet = FALSE,
+  ...)
 }
 \arguments{
 \item{x}{\code{link{libbi}} object}
@@ -22,7 +23,9 @@ will be inverted.}
 
 \item{size}{if TRUE (default: FALSE), the size of the (diagonal multivariate normal) proposal distribution will be adapted before taking into account correlations}
 
-\item{correlations}{if TRUE (default), take into account correlations}
+\item{correlations}{whether to take into account correlations}
+
+\item{truncate}{truncate the multivariate normal proposals}
 
 \item{quiet}{if set to TRUE, will not provide running output of particle numbers tested}
 
