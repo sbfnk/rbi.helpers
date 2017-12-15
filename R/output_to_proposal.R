@@ -286,8 +286,8 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
                  " ~ gaussian(",
                  "mean = ", mean,
                  ", std = ", scale_string, sd, ")"))
-      block_params[[block]] <- union(block_params[[block]], param)
     }
+    block_params[[block]] <- union(block_params[[block]], param)
   }
 
   for (block in c("parameter", "initial"))
