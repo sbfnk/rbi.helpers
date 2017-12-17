@@ -210,6 +210,10 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
           sd <- sd_vec[[dim_param]]
         }
 
+        if (sd == 0) {
+          sd <- 1
+        }
+
         ## impose bounds on gamma and beta distributions
         if (dist == "beta") {
           bounds_string <- "lower = 0, upper = 1"
@@ -219,9 +223,6 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
 
         if (!truncate || is.na(bounds_string) || bounds_string == variable_bounds[dim_param]) {
           ## no bounds, just use a gaussian
-          if (sd == 0) {
-            sd <- 1
-          }
           proposal_lines <-
             c(proposal_lines,
               paste0(dim_param, " ~ gaussian(", "mean = ", mean, ", std = ", scale_string, sd, ")"))
