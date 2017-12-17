@@ -37,7 +37,10 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, size =
 
   if (!quiet) message(date(), " Adapting the proposal distribution")
 
-  if (!x$run_flag) {
+  if (x$run_flag) {
+    ## add any passed parameters to x without running the model
+    x <- rbi::run(x, client=character(0), ...)
+  } else {
     if (!quiet) message(date(), " Initial trial run")
     x <- rbi::sample(x, ...)
   }
