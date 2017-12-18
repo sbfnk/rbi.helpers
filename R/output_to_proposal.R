@@ -210,10 +210,6 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
           sd <- sd_vec[[dim_param]]
         }
 
-        if (sd == 0) {
-          sd <- 1
-        }
-
         ## impose bounds on gamma and beta distributions
         if (dist == "beta") {
           bounds_string <- "lower = 0, upper = 1"
@@ -222,6 +218,10 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
         }
 
         if (!truncate || is.na(bounds_string) || bounds_string == variable_bounds[dim_param]) {
+          if (sd == 0) {
+            sd <- 1
+          }
+
           ## no bounds, just use a gaussian
           proposal_lines <-
             c(proposal_lines,
@@ -296,6 +296,16 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
             }
           })
           bounds <- eval_bounds
+
+          if (sd == 0) {
+            ## no variation
+            if (sum(!is.na(as.numeric(bounds))) == 2) {
+              ## range / 10
+              sd <- diff(as.numeric(bounds)) / 10
+            } else {
+              sd <- 1
+            }
+          }
 
           proposal_lines <-
             c(proposal_lines,
