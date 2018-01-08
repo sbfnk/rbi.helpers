@@ -15,7 +15,8 @@ Imports:
     GGally,
     reshape2
 Suggests:
-    R.rsp
+    R.rsp,
+    testthat
 Description: Contains a collection of helper functions to use with rbi, the R
     interface to LibBi. It contains functions to adapt the proposal distribution and
     number of particles in particle Markov-Chain Monte Carlo, as well as a function

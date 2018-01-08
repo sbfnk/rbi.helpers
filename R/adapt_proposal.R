@@ -76,7 +76,7 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, size =
         }
       }
       adapted$model <- output_to_proposal(adapted, adapt_scale,
-                                          correlations = (round == 2))
+                                          correlations = (round == 2), truncate=truncate)
       adapted <- rbi::sample(adapted, chain=TRUE, ...)
       accRate <- acceptance_rate(adapted)
       iter <- iter + 1
