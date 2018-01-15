@@ -75,10 +75,12 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
           }
         }
         ## create correct parameter names (including the dimensions)
-        if (length(a))
+        if (length(a) > 0)
+        {
           names(a) <- unname(apply(unique_dims, 1, function(x) {
-            paste0(param, "[", paste(rev(x), collapse = ","), "]")
+            paste0(param, "[", paste(x, collapse = ","), "]")
           }))
+        }
       } else
       {
         a <- list(y)
@@ -113,7 +115,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
       match <- grep(paste0("^[[:space:]]*", gsub("([][])", "\\\\\\1", param), "[[:space:]][^~]*~"),
                     unlist(param_block), value = TRUE)
       if (length(match) == 0) {
-        param_regex <- gsub("\\[[0-9]*\\]", "[[A-z_].*]", param)
+        param_regex <- gsub("\\[[0-9, ]*\\]", "[[A-z_, ].*]", param)
         match <- grep(paste0("^[[:space:]]*", param_regex, "[[:space:]][^~]*~"),
                       unlist(param_block), value = TRUE)
       }
@@ -130,7 +132,9 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
 
   block_vars <- lapply(names(params), function(x)
   {
-    intersect(params[[x]], names(variable_bounds))
+    variable_names <- names(variable_bounds)
+    bare_variable_names <- sub(" *\\[.*$", "", variable_names)
+    variable_names[bare_variable_names %in% params[[x]]]
   })
   names(block_vars) <- names(params)
 
@@ -168,6 +172,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
       } else {
         param_names <- names(sd_vec[sd_vec > 0])
       }
+      dimless_param_names <- gsub("\\[[^]]*\\]", "", param_names)
 
 
       if (correlations) {
@@ -183,8 +188,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
 
       for (param_id in seq_along(param_names)) { ## loop over all parameters
         dim_param <- param_names[param_id]
-        ## create dimensionless parameter
-        param <- gsub("\\[[^]]*\\]", "", dim_param)
+        param <- dimless_param_names[param_id]
 
         ## extract bounded distribution split from parameters
         param_bounds_string <-
@@ -201,11 +205,10 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
         mean <- dim_param
 
         if (correlations && !is.null(A)) {
-          for (j in seq_along(param_id - 1))
+          for (j in seq_len(param_id - 1))
           {
             mean <- paste0(mean, " + (", Afactors[param_id, j], ") * (",
-                           param_names[param_id], " - ",
-                           sub(param, paste0("__", param), param_names[param_id]),
+                           param_names[j], " - ", paste0("__", param_names[j]),
                            ")")
           }
           sd <- Adiag[[param_id]]
@@ -324,17 +327,20 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
       }
 
       ## HERE: use "param"/"states", not just "param"
-      var_type <- ifelse(block == "parameter", "param", "state")
-      vars <- var_names(model, type=var_type, dim=FALSE)
-      dim_vars <- var_names(model, type=var_type, dim=TRUE)
-      for (loop_dim_param in rev(vars[vars %in% param_names]))
+      if (correlations && !is.null(A))
       {
-        proposal_lines <- c(paste0("__", loop_dim_param, " <- ", loop_dim_param), proposal_lines)
-      }
-      for (loop_dim_param in rev(dim_vars[vars %in% param_names]))
-      {
-        proposal_lines <-
-          c(paste(var_type, paste0("__", loop_dim_param), "(has_output=0)"), proposal_lines)
+        var_type <- ifelse(block == "parameter", "param", "state")
+        vars <- var_names(model, type=var_type, dim=FALSE)
+        dim_vars <- var_names(model, type=var_type, dim=TRUE)
+        for (loop_dim_param in rev(dim_vars[vars %in% unique(dimless_param_names)]))
+        {
+          proposal_lines <- c(paste0("__", loop_dim_param, " <- ", loop_dim_param), proposal_lines)
+        }
+        for (loop_dim_param in rev(dim_vars[vars %in% unique(dimless_param_names)]))
+        {
+          proposal_lines <-
+            c(paste(var_type, paste0("__", loop_dim_param), "(has_output=0)"), proposal_lines)
+        }
       }
 
       model <- add_block(model, name = paste0("proposal_", block),
