@@ -64,7 +64,7 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, size =
   if (correlations) rounds <- c(rounds, 2)
   for (round in rounds) {
     iter <- 1
-    adapt_scale <- 1 / scale
+    adapt_scale <- 1
     while ((round == 2 && !shape_adapted) ||
            (min(accRate) < min || max(accRate) > max || !is.finite(accRate)) &&
            iter <= max_iter) {

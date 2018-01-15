@@ -169,10 +169,14 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
         param_names <- names(sd_vec[sd_vec > 0])
       }
 
-      if (missing(scale)) {
-        scale_string <- ""
+
+      if (correlations) {
+        scale_string <- paste0(sqrt(2.38**2 / length(param_names)), " * ")
       } else {
-        scale_string <- paste0(scale, " * ")
+        scale_string <- ""
+      }
+      if (!missing(scale)) {
+        scale_string <- paste0(scale, " * ", scale_string)
       }
 
       proposal_lines <- c()
