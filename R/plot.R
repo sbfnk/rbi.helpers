@@ -268,10 +268,12 @@ plot.libbi <- function(x, ..., prior,
         return(values)
     }
 
-    if (!missing(select) && x$time_dim %in% names(select)) {
-      temp_time_df <- data.table(time=select[[x$time_dim]])
-      temp_time_df <- clean_dates(temp_time_df, x$time_dim, use_dates, date.unit, date.origin)
-      select[[x$time_dim]] <- temp_time_df[[x$time_dim]]
+    time_dim <- ifelse(length(x$time_dim) == 1, x$time_dim, "time")
+
+    if (!missing(select) && time_dim %in% names(select)) {
+      temp_time_df <- data.table(time=select[[time_dim]])
+      temp_time_df <- clean_dates(temp_time_df, time_dim, use_dates, date.unit, date.origin)
+      select[[time_dim]] <- temp_time_df[[time_dim]]
     }
 
     ## plot trajectories
@@ -306,7 +308,7 @@ plot.libbi <- function(x, ..., prior,
                     }
                 }
 
-                values <- clean_dates(values, x$time_dim, use_dates, date.unit, date.origin)
+                values <- clean_dates(values, time_dim, use_dates, date.unit, date.origin)
 
                 if (!missing(select))
                 {
@@ -314,7 +316,7 @@ plot.libbi <- function(x, ..., prior,
                     {
                         if (var_name %in% colnames(values))
                         {
-                            if (!(var_name == "np") || x$time_dim %in% colnames(values)) {
+                            if (!(var_name == "np") || time_dim %in% colnames(values)) {
                                 values <- values[get(var_name) %in% select[[var_name]]]
                                 if (class(values[, get(var_name)]) == "factor")
                                 {
@@ -382,7 +384,7 @@ plot.libbi <- function(x, ..., prior,
             dataset <- lapply(names(data), function(y) {data.table::data.table(data[[y]])[, var := y]})
             dataset <- rbindlist(dataset, fill=TRUE)
             dataset <- factorise_columns(dataset, labels)
-            dataset <- clean_dates(dataset, x$time_dim, use_dates, date.unit, date.origin)
+            dataset <- clean_dates(dataset, time_dim, use_dates, date.unit, date.origin)
 
             if (!all.times && !is.null(vdt) && nrow(vdt) > 0)
             {
