@@ -278,7 +278,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
           {
             ## preserve adapted dimensions
             if (param != dim_param) {
-              orig_param_dims <- sub("^.*\\[(.*)\\]$", "\\1", param_string)
+              orig_param_dims <- sub("^.*\\[(.*)\\]$", "\\1", param)
               orig_param_dims <- unlist(strsplit(orig_param_dims, ","))
               new_param_dims <- sub("^.*\\[(.*)\\]$", "\\1", dim_param)
               new_param_dims <- unlist(strsplit(new_param_dims, ","))
