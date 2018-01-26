@@ -6,19 +6,19 @@
 \title{Plot results from libbi}
 \usage{
 \method{plot}{libbi}(x, ..., prior, type = c("state", "noise", "obs", "param",
-  "logeval"), quantiles = c(0.5, 0.95), date.origin, date.unit,
-  time.dim = "time", data, extra.aes, all.times = FALSE, hline, burn,
-  steps = FALSE, select, threshold, data.colour = "red", base.alpha = 0.5,
-  np.alpha = 0.35, trend = "median", densities = "histogram",
-  density_args = list(), limit.to.data = FALSE, labels, brewer.palette,
-  pairs = TRUE, correlations = TRUE, verbose = FALSE, plot = TRUE)
+  "logeval"), quantiles = c(0.5, 0.95), date.origin, date.unit, data,
+  extra.aes, all.times = FALSE, hline, burn, steps = FALSE, select,
+  threshold, data.colour = "red", base.alpha = 0.5, np.alpha = 0.35,
+  trend = "median", densities = "histogram", density_args = list(),
+  limit.to.data = FALSE, labels, brewer.palette, pairs = TRUE,
+  correlations = TRUE, verbose = FALSE, plot = TRUE)
 }
 \arguments{
 \item{x}{A \code{libbi} object containing Monte-Carlo samples}
 
 \item{...}{more specific selection of variables to plot (see the \code{type} option); any other options will be interpreted as options for geom_step / geom_line / geom_point / etc. when plotting states/noises/observations, e.g. lwd or others}
 
-\item{prior}{optional; Prior samples, given as a \code{libbi}}
+\item{prior}{optional; Prior samples, given as a \code{libbi} object}
 
 \item{type}{character vector determining which plots to generate; options are: "state", "obs", "param", "noise", "logevals"; by default, all will be plotted; more specific selections of variables can be given as arguments with the name of the type containing character vectors of variables, e.g. \code{param="alpha"} to just plot parameter alpha (requiring "param" to be given as one of "type")}
 
@@ -27,8 +27,6 @@
 \item{date.origin}{date of origin (if dates are to be calculated)}
 
 \item{date.unit}{unit of date (if desired, otherwise the time dimension will be used); possible options: "day", "week", "biweek", "month", "year"}
-
-\item{time.dim}{time dimension ("time" by default)}
 
 \item{data}{observations (a named list of data frames, a \code{libbi} object with observations, or a NetCDF file name)}
 

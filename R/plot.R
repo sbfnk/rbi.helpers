@@ -234,6 +234,10 @@ plot.libbi <- function(x, ..., prior,
                 {
                     values[, paste("time") := date.origin + get(time.dim)]
                     values[, paste("time_next") := get("time") + 1]
+                } else if (date.unit == "semiweek")
+                {
+                    values[, paste("time") := date.origin + get(time.dim) * 3.5]
+                    values[, paste("time_next") := get("time") + 3.5]
                 } else if (date.unit == "week")
                 {
                     values[, paste("time") := date.origin + get(time.dim) * 7]
