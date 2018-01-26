@@ -27,37 +27,31 @@ r_binary_packages:
   - testthat
   - digest
   - praise
-
-r_github_packages:
-  - jimhester/covr
-  - libbi/rbi
+  - covr
+  - rbi
+  - R.rsp
 
 after_success:
   - Rscript -e 'library(covr); covr::codecov()'
 
 before_install:
+  - export HOMEBREW_NO_AUTO_UPDATE=1
+  - export HOMEBREW_DEVELOPER=1
+  - export HOMEBREW_FORCE_VENDOR_RUBY=1
+  - export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH";
   - if [ -f ".git/shallow" ]; then travis_retry git fetch --unshallow; fi
   - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
-      sudo chown -R $USER $(brew --repo);
-      sudo chown -R $USER $(brew --prefix);
-      brew tap homebrew/science;
-      brew install gcc;
-      brew link --overwrite gcc;
-      brew install libbi;
+      FORMULA="libbi";
+      brew cask uninstall --force oclint;
+      brew tap sbfnk/libbi;
     fi
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-      sudo mkdir -p /home/linuxbrew;
-      sudo chown "$USER" /home/linuxbrew;
-      LINUXBREW=/home/linuxbrew/.linuxbrew;
-      git clone https://github.com/Linuxbrew/brew.git "$LINUXBREW";
-      export PATH="$LINUXBREW/bin:$PATH";
-      export LD_LIBRARY_PATH=$(echo $LD_LIBRARY_PATH | sed 's/:$//');
-      brew tap homebrew/science;
-      brew install --with-libidn curl;
-      brew install --with-libidn gmp;
-      brew install libbi;
-      mkdir -p ~/.R;
-      printf "CC=/usr/bin/gcc\nCXX=/usr/bin/g++\nCFLAGS=-std=c99 $CFLAGS"  > ~/.R/Makevars;
+      sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)";
+      LINUXBREW="/home/linuxbrew/.linuxbrew"
+      FORMULA="libbi-linux";
+      export PATH="$LINUXBREW/bin:$LINUXBREW/sbin:$PATH";
+      brew tap sbfnk/libbi;
+      chmod 644 $LINUXBREW/Homebrew/Library/Taps/sbfnk/homebrew-libbi/"$FORMULA".rb;
+      unset LD_LIBRARY_PATH;
     fi
-
-
+  - brew install sbfnk/libbi/$FORMULA; true
