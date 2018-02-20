@@ -86,14 +86,11 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, size =
         adapt_scale <- adapt_scale * scale
       }
       if (round == 2) shape_adapted <- TRUE
-     }
+      if (iter > max_iter) warning("Maximum of iterations reached")
+    }
   }
 
   if (!quiet) message(date(), " Acceptance rate: ", min(accRate))
-
-  if (iter > max_iter) {
-    warning("Maximum of iterations reached")
-  }
 
   adapted$thin <- thin
 
