@@ -172,8 +172,11 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
       } else {
         param_names <- names(sd_vec[sd_vec > 0])
       }
-      dimless_param_names <- gsub("\\[[^]]*\\]", "", param_names)
-
+      dimless_param_names<- gsub("\\[[^]]*\\]", "", param_names)
+      dim_var_names <- var_names(wrapper$model, dim=TRUE)
+      dim_param_names <- vapply(seq_along(dimless_param_names), function(x) {
+        grep(paste0("^", dimless_param_names[x], "(\\[|$)"), dim_var_names, value=TRUE)
+      }, "")
 
       if (correlations) {
         scale_string <- paste0(sqrt(2.38**2 / length(param_names)), " * ")
@@ -187,13 +190,14 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
       proposal_lines <- c()
 
       for (param_id in seq_along(param_names)) { ## loop over all parameters
-        dim_param <- param_names[param_id]
-        param <- dimless_param_names[param_id]
+        param <- param_names[param_id]
+        dim_param <- dim_param_names[param_id]
+        dimless_param <- dimless_param_names[param_id]
 
         ## extract bounded distribution split from parameters
         param_bounds_string <-
           sub("^.*(uniform|truncated_gaussian|truncated_normal|gamma|beta)\\((.*)\\)[[:space:]]*$",
-              "\\1|\\2", variable_bounds[dim_param])
+              "\\1|\\2", variable_bounds[param])
 
         ## split distribution from arguments
         args <- strsplit(param_bounds_string, split = "\\|")
@@ -202,7 +206,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
         ## extract arguments to distribution
         bounds_string <- args[[1]][2]
 
-        mean <- dim_param
+        mean <- param
 
         if (correlations && !is.null(A)) {
           for (j in seq_len(param_id - 1))
@@ -213,8 +217,8 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
           }
           sd <- Adiag[[param_id]]
         } else {
-          mean <- dim_param
-          sd <- sd_vec[[dim_param]]
+          mean <- param
+          sd <- sd_vec[[param]]
         }
 
         ## impose bounds on gamma and beta distributions
@@ -224,7 +228,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
           bounds_string <- "lower = 0"
         }
 
-        if (!truncate || is.na(bounds_string) || bounds_string == variable_bounds[dim_param]) {
+        if (!truncate || is.na(bounds_string) || bounds_string == variable_bounds[param]) {
           if (sd == 0) {
             sd <- 1
           }
@@ -232,7 +236,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
           ## no bounds, just use a gaussian
           proposal_lines <-
             c(proposal_lines,
-              paste0(dim_param, " ~ gaussian(", "mean = ", mean, ", std = ", scale_string, sd, ")"))
+              paste0(param, " ~ gaussian(", "mean = ", mean, ", std = ", scale_string, sd, ")"))
         } else {
           ## there are (potentially) bounds, use a truncated normal
           bounds <- c(lower = NA, upper = NA)
@@ -277,17 +281,17 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
           error = function(cond)
           {
             ## preserve adapted dimensions
-            if (param != dim_param) {
-              orig_param_dims <- sub("^.*\\[(.*)\\]$", "\\1", param)
+            if (dimless_param != param) {
+              orig_param_dims <- sub("^.*\\[(.*)\\]$", "\\1", dim_param)
               orig_param_dims <- unlist(strsplit(orig_param_dims, ","))
-              new_param_dims <- sub("^.*\\[(.*)\\]$", "\\1", dim_param)
+              new_param_dims <- sub("^.*\\[(.*)\\]$", "\\1", param)
               new_param_dims <- unlist(strsplit(new_param_dims, ","))
               names(new_param_dims) <- orig_param_dims
               for (bound in names(bounds))
               {
                 orig_bound_dims <- sub("^.*\\[(.*)\\]$", "\\1", bounds[bound])
                 bound_dims <- unlist(strsplit(orig_bound_dims, ","))
-                matching_dims <- which(bound_dims %in% names(new_param_dims))
+                matching_dims <- which(bound_dims %in% orig_param_dims)
                 if (length(matching_dims) > 0)
                 {
                   bound_dims[matching_dims] <-
@@ -316,7 +320,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
 
           proposal_lines <-
             c(proposal_lines,
-              paste0(dim_param, " ~ truncated_gaussian(", "mean = ", mean,
+              paste0(param, " ~ truncated_gaussian(", "mean = ", mean,
                      ", std = ", scale_string, sd,
                      ifelse(length(bounds) > 0,
                             paste0(", ", paste(names(bounds), "=", bounds,
