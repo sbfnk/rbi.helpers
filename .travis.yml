@@ -51,6 +51,6 @@ before_install:
       brew tap sbfnk/libbi;
       chmod 644 $LINUXBREW/Homebrew/Library/Taps/sbfnk/homebrew-libbi/"$FORMULA".rb;
       mkdir ~/.R;
-      echo "LD_LIBRARY_PATH=$(brew --prefix curl)/lib" > ~/.R/Makevars;
+      echo "Q1hYPS91c3IvYmluL2crKwpDQz0vdXNyL2Jpbi9nY2MK" | base64 -d > ~/.R/Makevars;
     fi
   - brew install sbfnk/libbi/$FORMULA; true
