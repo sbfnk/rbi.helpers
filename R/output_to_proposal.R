@@ -8,7 +8,7 @@
 #' @param wrapper a \code{\link{libbi}} which has been run
 #' @param scale a factor by which to scale all the standard deviations
 #' @param correlations whether to take into account correlations
-#' @param truncate truncate the multivariate normal proposals
+#' @param truncate truncate the multivariate normal proposals according to the used priors, e.g. truncating a parameter with beta prior at 0 and 1
 #' @importFrom data.table setnames
 #' @importFrom stats cov
 #' @importFrom rbi get_block add_block insert_lines
@@ -224,7 +224,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
         ## impose bounds on gamma and beta distributions
         if (dist == "beta") {
           bounds_string <- "lower = 0, upper = 1"
-        } else if (dist %in% c("gamma", "poisson", "negbin", "binomial")) {
+        } else if (dist %in% c("gamma", "poisson", "negbin", "binomial", "betabin", "exponential")) {
           bounds_string <- "lower = 0"
         }
 
