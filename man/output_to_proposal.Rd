@@ -4,7 +4,8 @@
 \alias{output_to_proposal}
 \title{Construct a proposal from run results}
 \usage{
-output_to_proposal(wrapper, scale, correlations = FALSE, truncate = TRUE)
+output_to_proposal(wrapper, scale, correlations = FALSE, truncate = TRUE,
+  blocks = c("parameter", "initial"))
 }
 \arguments{
 \item{wrapper}{a \code{\link{libbi}} which has been run}
@@ -13,7 +14,9 @@ output_to_proposal(wrapper, scale, correlations = FALSE, truncate = TRUE)
 
 \item{correlations}{whether to take into account correlations}
 
-\item{truncate}{truncate the multivariate normal proposals}
+\item{truncate}{truncate the multivariate normal proposals according to the used priors, e.g. truncating a parameter with beta prior at 0 and 1}
+
+\item{blocks}{blocks to use (out of "parameter" and "initial")}
 }
 \value{
 the updated bi model

@@ -25,7 +25,7 @@ will be inverted.}
 
 \item{correlations}{whether to take into account correlations}
 
-\item{truncate}{truncate the multivariate normal proposals}
+\item{truncate}{truncate the multivariate normal proposals according to the used priors, e.g. truncating a parameter with beta prior at 0 and 1}
 
 \item{quiet}{if set to TRUE, will not provide running output of particle numbers tested}
 
