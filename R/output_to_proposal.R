@@ -145,7 +145,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
     if (ncol(wide_block) > 0)
     {
 
-      if (ncol(wide_block) > 1) {
+      if (ncol(wide_block) > 1 && correlations) {
         ## calculate the covariance matrix
         c <- stats::cov(wide_block)
 
