@@ -9,12 +9,13 @@
 #' @param scale a factor by which to scale all the standard deviations
 #' @param correlations whether to take into account correlations
 #' @param truncate truncate the multivariate normal proposals according to the used priors, e.g. truncating a parameter with beta prior at 0 and 1
+#' @param blocks blocks to use (out of "parameter" and "initial")
 #' @importFrom data.table setnames
 #' @importFrom stats cov
 #' @importFrom rbi get_block add_block insert_lines
 #' @return the updated bi model
 #' @keywords internal
-output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = TRUE) {
+output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = TRUE, blocks=c("parameter", "initial")) {
 
   if (!wrapper$run_flag) {
     stop("The model should be run first")
@@ -39,7 +40,8 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
 
   param_block <- list()
   params <- list(parameter=var_names(model, "param"), initial=var_names(model, "state"))
-  for (block in c("parameter", "initial"))
+  params <- params[blocks]
+  for (block in blocks)
   {
     ## get parameters
     param_block[[block]] <- get_block(model, block)
