@@ -290,7 +290,7 @@ plot.libbi <- function(x, ..., prior,
             prior_samples <- clean_data(prior, "prior", verbose=verbose)
         }
         if (!data_missing) {
-            if (verbose) message(date(), " Getting observations")
+          if (verbose) message(date(), " Getting observations")
             data <- clean_data(data, "data", "obs", verbose=verbose)
         }
 
@@ -746,12 +746,14 @@ plot.libbi <- function(x, ..., prior,
                         wpdt[, paste(extra_cols) := NULL]
                     }
                     if (correlations) {
-                      cp <- GGally::ggcorr(wpdt)
-                      plots[["correlations"]] <- cp
+                      ## cp <- GGally::ggcorr(wpdt)
+                      warning("Correlations plot currently deactivated because of problems with the 'GGally' package")
+                      ## plots[["correlations"]] <- cp
                     }
                     if (pairs) {
-                      pp <- GGally::ggpairs(wpdt)
-                      plots[["pairs"]] <- pp
+                      ## pp <- GGally::ggpairs(wpdt)
+                      warning("Pairs plot currently deactivated because of problems with the 'GGally' package")
+                      ## plots[["pairs"]] <- pp
                     }
                 }
 
