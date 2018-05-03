@@ -230,35 +230,43 @@ plot.libbi <- function(x, ..., prior,
         {
             if (use_dates)
             {
-                if (date.unit == "day")
+                known_units <- c("day", "week", "month", "year")
+                date_split <- unlist(strsplit(date.unit, " "))
+                if (length(date_split) == 1)
                 {
-                    values[, paste("time") := date.origin + get(time.dim)]
-                    values[, paste("time_next") := get("time") + 1]
-                } else if (date.unit == "semiweek")
+                    amount <- 1
+                    unit <- date_split
+                } else if (length(date_split) == 2)
                 {
-                    values[, paste("time") := date.origin + get(time.dim) * 3.5]
-                    values[, paste("time_next") := get("time") + 3.5]
-                } else if (date.unit == "week")
+                    amount <- as.numeric(date_split[1])
+                    unit <- date_split[2]
+                } else
                 {
-                    values[, paste("time") := date.origin + get(time.dim) * 7]
-                    values[, paste("time_next") := get("time") + 7]
-                } else if (date.unit == "biweek")
+                    stop("'date.unit' must consist of one or two words")
+                }
+                if (grepl("days?$", unit))
                 {
-                    values[, paste("time") := date.origin + get(time.dim) * 14]
-                    values[, paste("time_next") := get("time") + 14]
-                } else if (date.unit == "month")
+                    values[, paste("time") := date.origin + get(time.dim) * amount]
+                    values[, paste("time_next") := get("time") + 1 * amount]
+                } else if (grepl("weeks?$", unit))
                 {
-                    values[, paste("time") := date.origin %m+% months(as.integer(get(time.dim)))]
-                    values[, paste("time_next") := get("time") %m+% months(1)]
-                } else if (date.unit == "year")
+                    values[, paste("time") := date.origin + get(time.dim) * 7 * amount]
+                    values[, paste("time_next") := get("time") + 7 * amount]
+                } else if (grepl("months?$", unit))
+                {
+                    values[, paste("time") := date.origin %m+% months(as.integer(get(time.dim) * amount))]
+                    values[, paste("time_next") := get("time") %m+% months(amount)]
+                } else if (grepl("years?$", unit))
                 {
                     if (missing(date.origin)) {
-                        values[, paste("time") := as.Date(paste(get(time.dim), 1, 1, sep = "-"))]
-                        values[, paste("time_next") := as.Date(paste(get(time.dim) + 1, 1, 1, sep = "-"))]
+                        values[, paste("time") := as.Date(paste(get(time.dim) * amount, 1, 1, sep = "-"))]
+                        values[, paste("time_next") := as.Date(paste(get(time.dim) + amount, 1, 1, sep = "-"))]
                     } else {
-                        values[, paste("time") := date.origin + years(as.integer(get(time.dim)))]
-                        values[, paste("time_next") := get("time") %m+% months(12)]
+                        values[, paste("time") := date.origin + years(as.integer(get(time.dim) * amount))]
+                        values[, paste("time_next") := get("time") %m+% months(12 * amount)]
                     }
+                } else {
+                    stop("Unknown date unit: ", unit)
                 }
             } else {
                 values[, paste("time") := get(time.dim)]
