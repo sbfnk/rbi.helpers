@@ -117,9 +117,16 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
       match <- grep(paste0("^[[:space:]]*", gsub("([][])", "\\\\\\1", param), "[[:space:]][^~]*~"),
                     unlist(param_block), value = TRUE)
       if (length(match) == 0) {
-        param_regex <- gsub("\\[[0-9, ]*\\]", "[[A-z_, ].*]", param)
+        param_regex <- gsub("\\[[0-9, ]*\\]", "[[A-z0-9_,: ].*]", param)
         match <- grep(paste0("^[[:space:]]*", param_regex, "[[:space:]][^~]*~"),
                       unlist(param_block), value = TRUE)
+        if (length(match) > 1) {
+          id <- as.integer(sub("^.*\\[([0-9, ]*)\\].*$", "\\1", param))
+          ranges <- lapply(match, function(x) {
+            eval(parse(text=sub("^.*\\[([ 0-9:,]*)\\].*~.*$", "\\1", x)))
+          })
+          match <- match[which(vapply(ranges, function(x) id %in% x, TRUE))]
+        }
       }
       if (length(match) == 0) return("")
       return(match)
