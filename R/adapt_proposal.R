@@ -12,7 +12,10 @@
 #' @param scale scale multiplier/divider for the proposal. If >1 this
 #'   will be inverted.
 #' @param max_iter maximum of iterations (default: 10)
-#' @param size if TRUE (default: FALSE), the size of the (diagonal multivariate normal) proposal distribution will be adapted before taking into account correlations
+#' @param adapt what to adapt; if "size" (default), the width of independent proposals will be adapted; if "shape", proposals will be dependent (following a multivariate normal) taking into account empirical correlations; if a vector of both "size" and "shape", the size will be adapted before the shape
+#' @param size (deprecated, use \code{{adapt}} instead) if TRUE (default: FALSE), the size of the (diagonal multivariate normal) proposal distribution will be adapted
+#' @param correlations (deprecated, use \code{{adapt}} instead) if TRUE (default: FALSE), the shape of the (diagonal multivariate normal) proposal distribution will be adapted according to the empirical covariance
+#' @param truncate if TRUE, the proposal distributions will be truncated according to the support of the prior distributions
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for \code{\link{sample}}
 #' @return a \code{\link{libbi}} with the desired proposal distribution

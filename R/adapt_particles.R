@@ -65,7 +65,10 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
     id <- id + 1
     adapted <- rbi::sample(adapted, nparticles=test[id], chain=TRUE, ...)
 
-    var_loglik <- c(var_loglik, stats::var(rbi::bi_read(adapted, "loglikelihood")$loglikelihood$value))
+    loglik <- rbi::bi_read(adapted, "loglikelihood")$loglikelihood$value
+    ## remove any infinite log-likelihoods
+    loglik <- loglik[is.finite(loglik)]
+    var_loglik <- c(var_loglik, stats::var(loglik))
 
     if (!quiet) message(date(), " ", test[id], " particles, loglikelihod variance: ", var_loglik[id])
 

@@ -21,11 +21,13 @@ will be inverted.}
 
 \item{max_iter}{maximum of iterations (default: 10)}
 
-\item{size}{if TRUE (default: FALSE), the size of the (diagonal multivariate normal) proposal distribution will be adapted before taking into account correlations}
+\item{adapt}{what to adapt; if "size" (default), the width of independent proposals will be adapted; if "shape", proposals will be dependent (following a multivariate normal) taking into account empirical correlations; if a vector of both "size" and "shape", the size will be adapted before the shape}
 
-\item{correlations}{whether to take into account correlations}
+\item{size}{(deprecated, use \code{{adapt}} instead) if TRUE (default: FALSE), the size of the (diagonal multivariate normal) proposal distribution will be adapted}
 
-\item{truncate}{truncate the multivariate normal proposals according to the used priors, e.g. truncating a parameter with beta prior at 0 and 1}
+\item{correlations}{(deprecated, use \code{{adapt}} instead) if TRUE (default: FALSE), the shape of the (diagonal multivariate normal) proposal distribution will be adapted according to the empirical covariance}
+
+\item{truncate}{if TRUE, the proposal distributions will be truncated according to the support of the prior distributions}
 
 \item{quiet}{if set to TRUE, will not provide running output of particle numbers tested}
 
