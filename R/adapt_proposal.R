@@ -29,7 +29,32 @@
 #' \dontrun{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
 #'                                min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 #' @export
-adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, size = FALSE, correlations = TRUE, truncate = TRUE, quiet = FALSE, ...) {
+adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt = c("size", "shape"), size = FALSE, correlations = TRUE, truncate = TRUE, quiet = FALSE, ...) {
+
+  given_size <- NULL
+  given_correlations <- NULL
+  if (!missing(size)) {
+    warning("'size' argument is deprecated; use 'adapt'")
+    given_size <- size
+  }
+  if (!missing(correlations)) {
+    warning("'correlations' argument is deprecated; use 'adapt'")
+    given_correlations <- correlations
+  }
+
+  adapt <- match.arg(adapt, several.ok = TRUE)
+  if (length(adapt) == 0) {
+    stop("'adapt' must be one or both of 'size' and 'shape'")
+  } else {
+    size <- ("size" %in% adapt)
+    correlations <- ("shape" %in% adapt)
+    if (!is.null(given_size) && size != given_size) {
+      warning("'size' given but not in 'adapt'. Will not adapt size")
+    }
+    if (!is.null(given_correlations) && correlations != given_correlations) {
+      warning("'correlations' given but not in 'shape in 'adapt'. Will not adapt shape")
+    }
+  }
 
   if (min == 0 && max == 1) return(x)
 
