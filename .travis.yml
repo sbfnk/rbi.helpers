@@ -10,6 +10,10 @@ matrix:
   allow_failures:
     - os: linux
 
+addons:
+  apt:
+    update: true
+
 r_binary_packages:
   - magrittr
   - lazyeval
@@ -21,15 +25,23 @@ r_binary_packages:
   - httr
   - crayon
   - reshape2
-  - ncdf4
   - data.table
   - coda
   - testthat
   - digest
   - praise
-  - covr
-  - R.rsp
   - lubridate
+
+r_packages:
+  - R.rsp
+
+r_github_pacakges:
+  - r-lib/covr
+
+apt_packages:
+  - libxml2-dev
+  - libnetcdf-dev
+  - libhdf5-dev
 
 after_success:
   - Rscript -e 'library(covr); covr::codecov()'
@@ -39,19 +51,11 @@ before_install:
   - export HOMEBREW_DEVELOPER=1
   - export HOMEBREW_FORCE_VENDOR_RUBY=1
   - if [ -f ".git/shallow" ]; then travis_retry git fetch --unshallow; fi
-  - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then
-      FORMULA="libbi";
-      brew cask uninstall --force oclint;
-      brew tap sbfnk/libbi;
-    fi
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
       LINUXBREW="/home/linuxbrew/.linuxbrew";
       export PATH="$LINUXBREW/bin:$LINUXBREW/sbin/$PATH";
       sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)";
-      FORMULA="libbi-linux";
-      brew tap sbfnk/libbi;
-      chmod 644 $LINUXBREW/Homebrew/Library/Taps/sbfnk/homebrew-libbi/"$FORMULA".rb;
-      mkdir ~/.R;
-      echo "Q1hYPS91c3IvYmluL2crKwpDQz0vdXNyL2Jpbi9nY2MKQ0ZMQUdTPS1zdGQ9Yzk5Cg==" | base64 -d > ~/.R/Makevars;
+      brew install libssh2;
+      brew install libbi;
     fi
-  - brew install sbfnk/libbi/$FORMULA; true
+  - R -e "install.packages('ncdf4')"
