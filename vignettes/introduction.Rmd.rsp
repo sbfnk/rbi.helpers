@@ -61,6 +61,7 @@ install_github("sbfnk/rbi.helpers")
 Use
 
 ```{R}
+library('rbi')
 library('rbi.helpers')
 ```
 to load the package.
@@ -77,7 +78,7 @@ SIRdata <- bi_generate_dataset(SIRmodel, end_time=16*7, noutputs=16, seed=123456
 
 # Adapt the number of particles
 
-In the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html), a [stochastic SIR model](https://raw.githubusercontent.com/libbi/RBi/master/inst/SIR.bi) was fitted to simulated data from the same model using particle Markov-chain Monte Carlo with 16 particles.
+In the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html), a [stochastic SIR model](https://raw.githubusercontent.com/libbi/RBi/master/inst/SIR.bi) is fitted to simulated data from the same model using particle Markov-chain Monte Carlo with 16 particles.
 Given a model and data, how do we know how many particles we need?
 This question does not have a simple answer, as the "optimal" number of particles may depend on the state of the Markov chain.
 A possible rule-of-thumb is to choose the number of particles such that the variance of the log-likelihood near the mode is approximately one.
@@ -86,8 +87,12 @@ This suggests a [strategy](https://darrenjw.wordpress.com/2014/06/08/tuning-part
 For the first part (finding the mode), a crude method is to take a fixed number of samples from the prior distribution and choose the one that maximises the posterior distribution.
 In **RBi**, this can be achieved with
 
-```{R}
+```{R eval=FALSE}
 bi_prior <- sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234)
+```
+
+```{R echo=FALSE}
+bi_prior <- rbi::sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234)
 ```
 
 By using `proposal="prior"` we set the prior distribution to be the proposal distribution.
@@ -129,7 +134,7 @@ Note that the multivariate normal is realised as a series of conditionally depen
 The model can be saved via
 
 ```{R}
-write_file(adapted$model, "SIR.bi")
+write_model(adapted$model, "SIR.bi")
 ````
 
 The steps above are exactly the steps used to create the proposal blocks in the file `SIR.bi` contained in the **RBi** package and used in its vignette.
@@ -138,8 +143,12 @@ The steps above are exactly the steps used to create the proposal blocks in the 
 
 Let us run take 5,000 samples from the posterior distribution of the model using the adapted proposal and number of particles:
 
-```{R}
+```{R eval=FALSE}
 posterior <- sample(adapted, nsamples=5000, sample_obs=TRUE)
+```
+
+```{R echo=FALSE}
+posterior <- rbi::sample(adapted, nsamples=5000, sample_obs=TRUE)
 ```
 
 Note that we used the `sample_obs` option to also generate posterior predictive samples from of the observations.
@@ -148,7 +157,7 @@ Instead of using the [coda](https://cran.r-project.org/package=coda) routines fo
 If passed a `libbi` object, it can be called using `plot`.
 
 ```{R}
-p <- plot(posterior)
+p <- plot(posterior, plot=FALSE)
 ```
 
 There are various options available for controlling the plots.
@@ -184,18 +193,6 @@ p$densities
 This plots histograms.
 Smooth density interpolations can be plotted by passing `densities="density"` to `plot_libbi`.
 
-## Pairwise correlation plot
-
-```{R}
-p$correlations
-```
-
-## Pairs plot
-
-```{R}
-p$pairs
-```
-
 ## Summary data
 
 All the data used for the different plots are stored in the `data` object:
@@ -216,9 +213,18 @@ DIC(posterior)
 
 In combination with the `magrittr` package, the it is possible to construct inference chains more elegantly. For example, to get posterior samples from adapted Metropolis-Hastings as above, we could simply write
 
-```{R}
+```{R eval=FALSE}
+library('magrittr')
 posterior <- sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234) %>%
   adapt_particles %>%
   adapt_proposal(min=0.05, max=0.4) %>%
   sample(nsamples=5000, nparticles=16, sample_obs=TRUE)
+```
+
+```{R echo=FALSE}
+library('magrittr')
+posterior <- rbi::sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234) %>%
+  adapt_particles %>%
+  adapt_proposal(min=0.05, max=0.4) %>%
+  rbi::sample(nsamples=5000, nparticles=16, sample_obs=TRUE)
 ```
