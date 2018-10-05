@@ -351,10 +351,14 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
         {
           proposal_lines <- c(paste0("__", loop_dim_param, " <- ", loop_dim_param), proposal_lines)
         }
+        var_lines <- c()
         for (loop_dim_param in rev(dim_vars[vars %in% unique(dimless_param_names)]))
         {
-          proposal_lines <-
-            c(paste(var_type, paste0("__", loop_dim_param), "(has_output=0)"), proposal_lines)
+          var_lines <-
+            c(paste(var_type, paste0("__", loop_dim_param), "(has_output=0)"), var_lines)
+        }
+        if (length(var_lines) > 0) {
+            model <- insert_lines(model, var_lines, at_beginning_of="model")
         }
       }
 
