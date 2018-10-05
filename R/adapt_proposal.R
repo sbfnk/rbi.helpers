@@ -12,7 +12,8 @@
 #' @param scale scale multiplier/divider for the proposal. If >1 this
 #'   will be inverted.
 #' @param max_iter maximum of iterations (default: 10)
-#' @param adapt what to adapt; if "size" (default), the width of independent proposals will be adapted; if "shape", proposals will be dependent (following a multivariate normal) taking into account empirical correlations; if a vector of both "size" and "shape", the size will be adapted before the shape
+#' @param adapt what to adapt; if "size" (default), the width of independent proposals will be adapted; if "shape", proposals will be dependent (following a multivariate normal) taking into account empirical correlations; if "both", the size will be adapted
+#' before the shape
 #' @param size (deprecated, use \code{{adapt}} instead) if TRUE (default: FALSE), the size of the (diagonal multivariate normal) proposal distribution will be adapted
 #' @param correlations (deprecated, use \code{{adapt}} instead) if TRUE (default: FALSE), the shape of the (diagonal multivariate normal) proposal distribution will be adapted according to the empirical covariance
 #' @param truncate if TRUE, the proposal distributions will be truncated according to the support of the prior distributions
@@ -32,7 +33,7 @@
 #' \dontrun{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
 #'                                min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 #' @export
-adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt = c("size", "shape"), size = FALSE, correlations = TRUE, truncate = TRUE, quiet = FALSE, ...) {
+adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt = c("size", "shape", "both"), size = FALSE, correlations = TRUE, truncate = TRUE, quiet = FALSE, ...) {
 
   given_size <- NULL
   given_correlations <- NULL
@@ -45,10 +46,11 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
     given_correlations <- correlations
   }
 
-  adapt <- match.arg(adapt, several.ok = TRUE)
+  adapt <- match.arg(adapt)
   if (length(adapt) == 0) {
-    stop("'adapt' must be one or both of 'size' and 'shape'")
+    stop("'adapt' must be one 'size', 'shape' or 'both'.")
   } else {
+    if (adapt == "both") adapt <- c("size", "shape")
     size <- ("size" %in% adapt)
     correlations <- ("shape" %in% adapt)
     if (!is.null(given_size) && size != given_size) {

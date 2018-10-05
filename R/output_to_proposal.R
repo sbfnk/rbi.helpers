@@ -188,14 +188,14 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
       }, "")
 
       if (correlations) {
-        scale_string <- paste0(sqrt(2.38**2 / length(param_names)), " * ")
+        corr_scale <- sqrt(2.38**2 / length(param_names))
       } else {
-        scale_string <- ""
+        corr_scale <- 1
       }
       if (!missing(scale)) {
-        scale_string <- paste0(scale, " * ", scale_string)
+        corr_scale <- corr_scale * scale
       }
-
+      
       proposal_lines <- c()
 
       for (param_id in seq_along(param_names)) { ## loop over all parameters
@@ -220,7 +220,9 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
         if (correlations && !is.null(A)) {
           for (j in seq_len(param_id - 1))
           {
-            mean <- paste0(mean, " + (", Afactors[param_id, j], ") * (",
+            mean <- paste0(mean,
+                           " ", ifelse(sign(Afactors[param_id, j]) > 0, "+", "-"),
+                           " ", signif(abs(Afactors[param_id, j]), 1), " * (",
                            param_names[j], " - ", paste0("__", param_names[j]),
                            ")")
           }
@@ -245,7 +247,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
           ## no bounds, just use a gaussian
           proposal_lines <-
             c(proposal_lines,
-              paste0(param, " ~ gaussian(", "mean = ", mean, ", std = ", scale_string, sd, ")"))
+              paste0(param, " ~ gaussian(", "mean = ", mean, ", std = ", signif(corr_scale * sd, 1), ")"))
         } else {
           ## there are (potentially) bounds, use a truncated normal
           bounds <- c(lower = NA, upper = NA)
@@ -330,7 +332,7 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
           proposal_lines <-
             c(proposal_lines,
               paste0(param, " ~ truncated_gaussian(", "mean = ", mean,
-                     ", std = ", scale_string, sd,
+                     ", std = ", signif(corr_scale * sd, 1),
                      ifelse(length(bounds) > 0,
                             paste0(", ", paste(names(bounds), "=", bounds,
                                                sep = " ", collapse = ", "),

@@ -26,7 +26,7 @@
 
 \item{date.origin}{date of origin (if dates are to be calculated)}
 
-\item{date.unit}{unit of date (if desired, otherwise the time dimension will be used); possible options: "day", "week", "biweek", "month", "year"}
+\item{date.unit}{unit of date (if desired, otherwise the time dimension will be used); possible options: "day", "week", "month", "year", optionally with a quantity, e.g., "2 week"}
 
 \item{data}{observations (a named list of data frames, a \code{libbi} object with observations, or a NetCDF file name)}
 

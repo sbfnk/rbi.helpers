@@ -6,7 +6,7 @@
   of samples}
 \usage{
 adapt_proposal(x, min = 0, max = 1, scale = 2, max_iter = 10,
-  adapt = c("size", "shape"), size = FALSE, correlations = TRUE,
+  adapt = c("size", "shape", "both"), size = FALSE, correlations = TRUE,
   truncate = TRUE, quiet = FALSE, ...)
 }
 \arguments{
@@ -21,7 +21,8 @@ will be inverted.}
 
 \item{max_iter}{maximum of iterations (default: 10)}
 
-\item{adapt}{what to adapt; if "size" (default), the width of independent proposals will be adapted; if "shape", proposals will be dependent (following a multivariate normal) taking into account empirical correlations; if a vector of both "size" and "shape", the size will be adapted before the shape}
+\item{adapt}{what to adapt; if "size" (default), the width of independent proposals will be adapted; if "shape", proposals will be dependent (following a multivariate normal) taking into account empirical correlations; if "both", the size will be adapted
+before the shape}
 
 \item{size}{(deprecated, use \code{{adapt}} instead) if TRUE (default: FALSE), the size of the (diagonal multivariate normal) proposal distribution will be adapted}
 
