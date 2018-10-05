@@ -4,15 +4,10 @@ cache: packages
 matrix:
   include:
     - os: linux
-      dist: trusty
       sudo: required
     - os: osx
   allow_failures:
     - os: linux
-
-addons:
-  apt:
-    update: true
 
 r_binary_packages:
   - magrittr
@@ -30,32 +25,43 @@ r_binary_packages:
   - testthat
   - digest
   - praise
-  - lubridate
-
-r_packages:
+  - knitr
+  - xml2
+  - ncdf4
   - R.rsp
+  - roxygen2
+  - scales
+  - coda
+  - GGally
+
+apt_packages:
+  - libblas-dev
+  - liblapack-dev
+  - libqrupdate-dev
+  - libboost-all-dev
+  - libgsl0-dev
+  - libnetcdf-dev
+  - autoconf
+  - automake
 
 r_github_pacakges:
   - r-lib/covr
 
-apt_packages:
-  - libxml2-dev
-  - libnetcdf-dev
-  - libhdf5-dev
+brew_packages:
+  - libbi
 
 after_success:
   - Rscript -e 'library(covr); covr::codecov()'
 
 before_install:
-  - export HOMEBREW_NO_AUTO_UPDATE=1
-  - export HOMEBREW_DEVELOPER=1
-  - export HOMEBREW_FORCE_VENDOR_RUBY=1
-  - if [ -f ".git/shallow" ]; then travis_retry git fetch --unshallow; fi
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-      LINUXBREW="/home/linuxbrew/.linuxbrew";
-      export PATH="$LINUXBREW/bin:$LINUXBREW/sbin/$PATH";
-      sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)";
-      brew install libssh2;
-      brew install libbi;
+      curl -fLo /tmp/thrust-1.8.2.zip https://github.com/thrust/thrust/releases/download/1.8.2/thrust-1.8.2.zip;
+      unzip /tmp/thrust-1.8.2.zip;
+      sudo mv thrust /usr/local/include;
+      curl -fLo /tmp/LibBi.tar.gz https://github.com/lawmurray/LibBi/archive/stable.tar.gz;
+      tar xzf /tmp/LibBi.tar.gz -C ~;
+      pushd ~/LibBi-stable;
+      cpanm --quiet --installdeps --notest --sudo .;
+      cpanm --quiet --sudo .;
+      popd;
     fi
-  - R -e "install.packages('ncdf4')"
