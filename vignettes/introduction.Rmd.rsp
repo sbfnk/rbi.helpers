@@ -25,8 +25,8 @@ pre code {
 <%@meta name="author"%> on <%=format(as.Date(Sys.Date()), format="%B %d, %Y")%>
 
 ```{R, echo=FALSE}
-LOCAL <- identical(Sys.getenv("LOCAL"), "true")
-knitr::opts_chunk$set(purl = LOCAL)
+TRAVIS <- !identical(tolower(Sys.getenv("TRAVIS")), "true")
+knitr::opts_chunk$set(purl = TRAVIS)
 ```
 
 [RBi.helpers](https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [RBi](https://github.com/libbi/RBi), an R interface to [LibBi](https://github.com/libbi/LibBi), a library for Bayesian Inference.
@@ -96,7 +96,7 @@ In **RBi**, this can be achieved with
 bi_prior <- sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234)
 ```
 
-```{R echo=FALSE}
+```{R echo=FALSE, eval=TRAVIS}
 bi_prior <- rbi::sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234)
 ```
 
@@ -107,14 +107,14 @@ It is worth trying the commands with a different seed and seeing the difference 
 The location in parameters of the sampler at the end of the 1000 samples will give an approximation of the mode of the posterior distribution.
 This can then be used to adjust the number of particles using
 
-```{R}
+```{R, eval=TRAVIS}
 adapted <- adapt_particles(bi_prior)
 ```
 
 This will take the last sample of the output file contained in the `libbi` object `bi_prior`, and use it to adjust the number of particles by starting with 1 particle (or a given `min`) and doubling it until the variance of the loglikelihood crosses 1.
 The number of particles is then saved in the `adapted` object:
 
-```{R}
+```{R, eval=TRAVIS}
 adapted$options$nparticles
 ```
 
@@ -125,20 +125,20 @@ This can, again, be obtained using a sequence of trial runs, whereby the proposa
 The way this is implemented in the `adapt_proposal` function in **RBi.helpers** is that the proposal distribution is adjusted to come from a multivariate normal taking into account the covariance of samples obtained so far, until the acceptance rate lies between the given minimum and maximumad.
 For example, to adjust the proposal distribution for an acceptance rate between 0.05 and 0.4, we can run:
 
-```{R}
+```{R, eval=TRAVIS}
 adapted <- adapt_proposal(adapted, min=0.05, max=0.4)
 ```
 
 The adjusted proposals are stored in the `bi_model` contained in the `libbi` object `adapted_proposal`
 
-```{R}
+```{R, eval=TRAVIS}
 get_block(adapted$model, "proposal_parameter")
 ```
 
 Note that the multivariate normal is realised as a series of conditionally dependent draws from normal distributions.
 The model can be saved via
 
-```{R}
+```{R, eval=TRAVIS}
 write_model(adapted$model, "SIR.bi")
 ````
 
@@ -152,7 +152,7 @@ Let us run take 5,000 samples from the posterior distribution of the model using
 posterior <- sample(adapted, nsamples=5000, sample_obs=TRUE)
 ```
 
-```{R echo=FALSE}
+```{R echo=FALSE, eval=TRAVIS}
 posterior <- rbi::sample(adapted, nsamples=5000, sample_obs=TRUE)
 ```
 
@@ -161,7 +161,7 @@ Note that we used the `sample_obs` option to also generate posterior predictive 
 Instead of using the [coda](https://cran.r-project.org/package=coda) routines for plotting as described in the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html#analysing-an-mcmc-run), one can use the `plot_libbi` function.
 If passed a `libbi` object, it can be called using `plot`.
 
-```{R}
+```{R, eval=TRAVIS}
 p <- plot(posterior, plot=FALSE)
 ```
 
@@ -170,13 +170,13 @@ See `?plot_libbi` for a description of all the different available arguments.
 
 The returned object `p` contains a number of different plots:
 
-```{R}
+```{R, eval=TRAVIS}
 names(p)
 ```
 
 ## Trajectories
 
-```{R}
+```{R, eval=TRAVIS}
 p$trajectories
 ```
 
@@ -185,13 +185,13 @@ Note that this plots the data on top of the observation trajectory, because we h
 
 ## Trace plot
 
-```{R}
+```{R, eval=TRAVIS}
 p$traces
 ```
 
 ## Posterior densities
 
-```{R}
+```{R, eval=TRAVIS}
 p$densities
 ```
 
@@ -202,7 +202,7 @@ Smooth density interpolations can be plotted by passing `densities="density"` to
 
 All the data used for the different plots are stored in the `data` object:
 
-```{R}
+```{R, eval=TRAVIS}
 p$data
 ```
 
@@ -210,7 +210,7 @@ p$data
 
 To compute the [Deviance Information Criterion](https://en.m.wikipedia.org/wiki/Deviance_information_criterion) (DIC), use `DIC`:
 
-```{R}
+```{R, eval=TRAVIS}
 DIC(posterior)
 ```
 
@@ -226,7 +226,7 @@ posterior <- sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, np
   sample(nsamples=5000, nparticles=16, sample_obs=TRUE)
 ```
 
-```{R echo=FALSE}
+```{R echo=FALSE, eval=TRAVIS}
 library('magrittr')
 posterior <- rbi::sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234) %>%
   adapt_particles %>%
