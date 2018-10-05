@@ -24,6 +24,11 @@ pre code {
 
 <%@meta name="author"%> on <%=format(as.Date(Sys.Date()), format="%B %d, %Y")%>
 
+```{R, echo=FALSE}
+LOCAL <- identical(Sys.getenv("LOCAL"), "true")
+knitr::opts_chunk$set(purl = LOCAL)
+```
+
 [RBi.helpers](https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [RBi](https://github.com/libbi/RBi), an R interface to [LibBi](https://github.com/libbi/LibBi), a library for Bayesian Inference.
 
 ### Latest Version: _0.3.0_  &nbsp; <small>(24 July 2017)</small>
