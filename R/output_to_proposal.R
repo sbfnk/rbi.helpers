@@ -39,7 +39,8 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
   }
 
   param_block <- list()
-  params <- list(parameter=var_names(model, "param"), initial=var_names(model, "state"))
+  params <- list(parameter=var_names(model, type="param"),
+                 initial=var_names(model, type="state"))
   params <- params[blocks]
   for (block in blocks)
   {
