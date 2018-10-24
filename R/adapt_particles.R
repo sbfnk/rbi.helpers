@@ -12,7 +12,6 @@
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
-#' @importFrom coda mcmc rejectionRate effectiveSize
 #' @importFrom rbi bi_model bi_dim_len bi_read sample remove_lines
 #' @importFrom stats var
 #' @examples
