@@ -47,7 +47,6 @@ The **RBi.helpers** package requires `R` (>= 3.2.0) as well as the packages:
 - `coda`
 - `ggplot2`
 - `scales`
-- `GGally`
 
 Most functions also require a working installation of **LibBi**.
 Please see the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html) for how to get one via homebrew or linuxbrew.

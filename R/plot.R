@@ -848,7 +848,7 @@ plot.libbi <- function(x, ..., prior,
                 ldt <- values
             } else
             {
-                ldt <- rbind(ldt, values)
+                ldt <- rbind(ldt, values, fill=TRUE)
             }
         }
         trace_aesthetic <- list(x = "np", y = "value")
