@@ -557,7 +557,7 @@ plot.libbi <- function(x, ..., prior,
                 p <- p + do.call(geom_point, c(list(data = vdt[single == TRUE], aes_(group =~ factor(np)), alpha = np.alpha, shape = 4), dot_options))
             }
         }
-        p <- p + scale_y_continuous(labels = comma) + ylab("")
+        p <- p + scale_y_continuous() + ylab("")
         if (!missing(brewer.palette))
         {
             p <- p + scale_color_brewer(palette = brewer.palette)
