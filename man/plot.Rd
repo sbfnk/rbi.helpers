@@ -5,13 +5,13 @@
 \alias{plot.libbi}
 \title{Plot results from libbi}
 \usage{
-\method{plot}{libbi}(x, ..., prior, type = c("state", "noise", "obs", "param",
-  "logeval"), quantiles = c(0.5, 0.95), date.origin, date.unit, data,
-  extra.aes, all.times = FALSE, hline, burn, steps = FALSE, select,
-  threshold, data.colour = "red", base.alpha = 0.5, np.alpha = 0.35,
-  trend = "median", densities = "histogram", density_args = list(),
-  limit.to.data = FALSE, labels, brewer.palette, pairs = TRUE,
-  correlations = TRUE, verbose = FALSE, plot = TRUE)
+\method{plot}{libbi}(x, ..., prior, type = c("state", "noise", "obs",
+  "param", "logeval"), quantiles = c(0.5, 0.95), date.origin, date.unit,
+  data, extra.aes, all.times = FALSE, hline, burn, steps = FALSE,
+  select, threshold, data.colour = "red", base.alpha = 0.5,
+  np.alpha = 0.35, trend = "median", densities = "histogram",
+  density_args = list(), limit.to.data = FALSE, labels, brewer.palette,
+  pairs = TRUE, correlations = TRUE, verbose = FALSE, plot = TRUE)
 }
 \arguments{
 \item{x}{A \code{libbi} object containing Monte-Carlo samples}
@@ -62,9 +62,9 @@
 
 \item{brewer.palette}{optional; brewer color palette}
 
-\item{pairs}{logical: whether to generate a pair plot}
+\item{pairs}{DEPRECATED; logical: whether to generate a pair plot}
 
-\item{correlations}{logical: whether to generate a correlations plot}
+\item{correlations}{DEPRECATED; logical: whether to generate a correlations plot}
 
 \item{verbose}{if set to TRUE, additional output will be displayed}
 
@@ -85,8 +85,6 @@ plot(example_bi) # just plot trajectories
 \dontrun{p <- plot(example_bi, plot = FALSE) # get whole suite of plots
 
 p$trajectories
-p$correlations
-p$pairs
 p$densities
 p$traces
 p$logevals}

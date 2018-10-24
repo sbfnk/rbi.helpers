@@ -4,8 +4,8 @@
 \alias{output_to_proposal}
 \title{Construct a proposal from run results}
 \usage{
-output_to_proposal(wrapper, scale, correlations = FALSE, truncate = TRUE,
-  blocks = c("parameter", "initial"))
+output_to_proposal(wrapper, scale, correlations = FALSE,
+  truncate = TRUE, blocks = c("parameter", "initial"))
 }
 \arguments{
 \item{wrapper}{a \code{\link{libbi}} which has been run}
