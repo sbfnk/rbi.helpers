@@ -7,7 +7,7 @@
 acceptance_rate(...)
 }
 \arguments{
-\item{...}{parameters to \code{\link{get_traces}} (especially 'run')}
+\item{...}{parameters to \code{\link{get_traces}} (especially 'x')}
 }
 \value{
 acceptance rate

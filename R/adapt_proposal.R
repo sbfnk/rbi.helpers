@@ -20,7 +20,6 @@
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for \code{\link{sample}}
 #' @return a \code{\link{libbi}} with the desired proposal distribution
-#' @importFrom coda mcmc rejectionRate
 #' @importFrom rbi bi_dim_len get_traces sample
 #' @inheritParams output_to_proposal
 #' @examples
