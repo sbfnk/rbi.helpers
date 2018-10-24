@@ -27,8 +27,8 @@
 #' @param limit.to.data whether to limit the time axis to times with observations (default: FALSE)
 #' @param labels facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs
 #' @param brewer.palette optional; brewer color palette
-#' @param pairs logical: whether to generate a pair plot
-#' @param correlations logical: whether to generate a correlations plot
+#' @param pairs DEPRECATED; logical: whether to generate a pair plot
+#' @param correlations DEPRECATED; logical: whether to generate a correlations plot
 #' @param verbose if set to TRUE, additional output will be displayed
 #' @param plot set to FALSE to suppress plot of trajectories
 #' @param ... more specific selection of variables to plot (see the \code{type} option); any other options will be interpreted as options for geom_step / geom_line / geom_point / etc. when plotting states/noises/observations, e.g. lwd or others
@@ -37,7 +37,6 @@
 #' @importFrom lubridate %m+% years
 #' @importFrom rbi bi_read bi_contents var_names
 #' @importFrom stats quantile as.formula
-#' @importFrom GGally ggcorr
 #' @export
 #' @examples
 #' example_run_file <- system.file(package="rbi", "example_output.nc")
@@ -48,8 +47,6 @@
 #' \dontrun{p <- plot(example_bi, plot = FALSE) # get whole suite of plots
 #'
 #' p$trajectories
-#' p$correlations
-#' p$pairs
 #' p$densities
 #' p$traces
 #' p$logevals}
@@ -754,14 +751,10 @@ plot.libbi <- function(x, ..., prior,
                         wpdt[, paste(extra_cols) := NULL]
                     }
                     if (correlations) {
-                      ## cp <- GGally::ggcorr(wpdt)
-                      warning("Correlations plot currently deactivated because of problems with the 'GGally' package")
-                      ## plots[["correlations"]] <- cp
+                      warning("Correlations plot deprecated because of problems with the 'GGally' package")
                     }
                     if (pairs) {
-                      ## pp <- GGally::ggpairs(wpdt)
-                      warning("Pairs plot currently deactivated because of problems with the 'GGally' package")
-                      ## plots[["pairs"]] <- pp
+                      warning("Pairs plot deprecated because of problems with the 'GGally' package")
                     }
                 }
 
