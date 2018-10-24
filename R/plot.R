@@ -33,7 +33,7 @@
 #' @param plot set to FALSE to suppress plot of trajectories
 #' @param ... more specific selection of variables to plot (see the \code{type} option); any other options will be interpreted as options for geom_step / geom_line / geom_point / etc. when plotting states/noises/observations, e.g. lwd or others
 #' @return a list of plots: states, densities, traces, correlations, noises, logdensities, as well as underlying raw and aggregate data
-#' @import ggplot2 scales data.table
+#' @import ggplot2 data.table
 #' @importFrom lubridate %m+% years
 #' @importFrom rbi bi_read bi_contents var_names
 #' @importFrom stats quantile as.formula
