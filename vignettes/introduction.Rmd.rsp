@@ -145,23 +145,25 @@ The steps above are exactly the steps used to create the proposal blocks in the 
 
 # Plot libbi objects
 
-Let us run take 5,000 samples from the posterior distribution of the model using the adapted proposal and number of particles:
+Let us run take 5,000 samples from the posterior distribution of the model using the adapted proposal and number of particles, and generate sampled observations:
 
 ```{R eval=FALSE}
-posterior <- sample(adapted, nsamples=5000, sample_obs=TRUE)
+posterior <- sample(adapted, nsamples=5000)
+pred <- predict(posterior, noutputs=16, with=c("transform-obs-to-state"))
 ```
 
 ```{R echo=FALSE, eval=TRAVIS}
-posterior <- rbi::sample(adapted, nsamples=5000, sample_obs=TRUE)
+posterior <- rbi::sample(adapted, nsamples=5000)
+pred <- predict(posterior, noutputs=16, with=c("transform-obs-to-state"))
 ```
 
-Note that we used the `sample_obs` option to also generate posterior predictive samples from of the observations.
+Note that we called `predict` with the `with=c("transform-obs-to-state")` option to also generate posterior predictive samples from of the observations.
 
-Instead of using the [coda](https://cran.r-project.org/package=coda) routines for plotting as described in the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html#analysing-an-mcmc-run), one can use the `plot_libbi` function.
-If passed a `libbi` object, it can be called using `plot`.
+Instead of using the [coda](https://cran.r-project.org/package=coda) routines for plotting as described in the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html#analysing-an-mcmc-run), one can use the `plot.libbi` function.
+If passed a `libbi` object, it can be called using `plot`. Here, we use it with the `pred` object. We could also pass the `posterior` object, but that would not have the observation samples.
 
 ```{R, eval=TRAVIS}
-p <- plot(posterior, plot=FALSE)
+p <- plot(pred, plot=FALSE)
 ```
 
 There are various options available for controlling the plots.
@@ -180,7 +182,7 @@ p$trajectories
 ```
 
 This is the default plot displayed when `plot_libbi` is called without `plot=FALSE`.
-Note that this plots the data on top of the observation trajectory, because we have sampled with `sample_obs=TRUE`.
+Note that this plots the data on top of the observation trajectory, because we called `predict` with `with=c("transform-obs-to-state")`.
 
 ## Trace plot
 
@@ -199,7 +201,7 @@ Smooth density interpolations can be plotted by passing `densities="density"` to
 
 ## Summary data
 
-All the data used for the different plots are stored in the `data` object:
+All the data used for the plot are stored in the `data` object:
 
 ```{R, eval=TRAVIS}
 p$data
@@ -222,7 +224,9 @@ library('magrittr')
 posterior <- sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234) %>%
   adapt_particles %>%
   adapt_proposal(min=0.05, max=0.4) %>%
-  sample(nsamples=5000, nparticles=16, sample_obs=TRUE)
+  sample(nsamples=5000)
+pred <- posterior %>%
+  predict(noutputs=16, with=c("transform-obs-to-state"))
 ```
 
 ```{R echo=FALSE, eval=TRAVIS}
@@ -230,5 +234,7 @@ library('magrittr')
 posterior <- rbi::sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234) %>%
   adapt_particles %>%
   adapt_proposal(min=0.05, max=0.4) %>%
-  rbi::sample(nsamples=5000, nparticles=16, sample_obs=TRUE)
+  rbi::sample(nsamples=5000, nparticles=16)
+pred <- posterior %>%
+  predict(noutputs=16, with=c("transform-obs-to-state"))
 ```

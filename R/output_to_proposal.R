@@ -39,7 +39,8 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
   }
 
   param_block <- list()
-  params <- list(parameter=var_names(model, "param"), initial=var_names(model, "state"))
+  params <- list(parameter=var_names(model, type="param"),
+                 initial=var_names(model, type="state"))
   params <- params[blocks]
   for (block in blocks)
   {
@@ -341,24 +342,22 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
         }
       }
 
-      ## HERE: use "param"/"states", not just "param"
       if (correlations && !is.null(A))
       {
         var_type <- ifelse(block == "parameter", "param", "state")
         vars <- var_names(model, type=var_type, dim=FALSE)
         dim_vars <- var_names(model, type=var_type, dim=TRUE)
-        for (loop_dim_param in rev(dim_vars[vars %in% unique(dimless_param_names)]))
-        {
-          proposal_lines <- c(paste0("__", loop_dim_param, " <- ", loop_dim_param), proposal_lines)
-        }
-        var_lines <- c()
-        for (loop_dim_param in rev(dim_vars[vars %in% unique(dimless_param_names)]))
-        {
-          var_lines <-
-            c(paste(var_type, paste0("__", loop_dim_param), "(has_output=0)"), var_lines)
-        }
-        if (length(var_lines) > 0) {
+        propose_parameters <- rev(dim_vars[vars %in% unique(dimless_param_names)])
+        if (length(propose_parameters) > 0) {
+          proposal_lines <-
+            c(paste0("__", propose_parameters, " <- ", propose_parameters),
+              proposal_lines)
+          new_param_names <-
+            setdiff(paste0("__", propose_parameters), vars)
+          if (length(new_param_names) > 0) {
+            var_lines <- paste(var_type, new_param_names, "(has_output=0)")
             model <- insert_lines(model, var_lines, at_beginning_of="model")
+          }
         }
       }
 
