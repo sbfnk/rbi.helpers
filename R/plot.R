@@ -118,7 +118,7 @@ plot.libbi <- function(x, ..., prior,
             ## the object
             vars_in_obs_file <- bi_contents(x[["options"]][["obs-file"]])
             data <- bi_read(x[["options"]][["obs-file"]],
-                            vars=intersect(var_names(x[["model"]], "obs"),
+                            vars=intersect(var_names(x[["model"]], type="obs"),
                                            vars_in_obs_file),
                             dims=x[["dims"]],
                             coord_dims=x[["coord_dims"]])
@@ -168,7 +168,7 @@ plot.libbi <- function(x, ..., prior,
                 given_vars[[type.loop]] <- intersect(existing_vars, c("loglikelihood", "logprior", "logweight", "logevidence"))
             } else
             {
-                type_vars <- var_names(x[["model"]], type.loop)
+                type_vars <- var_names(x[["model"]], type=type.loop)
                 if (type.loop == "param")
                 {
                     init_vars <-
