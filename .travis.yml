@@ -45,7 +45,7 @@ apt_packages:
   - automake
 
 r_github_pacakges:
-  - r-lib/covr
+  - sbfnk/rbi
 
 brew_packages:
   - libbi
@@ -65,4 +65,3 @@ before_install:
       cpanm --quiet --sudo .;
       popd;
     fi
-  - Rscript -e 'devtools::install_github("sbfnk/rbi")'
