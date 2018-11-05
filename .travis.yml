@@ -65,3 +65,4 @@ before_install:
       cpanm --quiet --sudo .;
       popd;
     fi
+  - Rscript -e 'devtools::install_github("sbfnk/rbi")'
