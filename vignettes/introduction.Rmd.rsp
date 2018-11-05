@@ -225,8 +225,8 @@ posterior <- sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, np
   adapt_particles %>%
   adapt_proposal(min=0.05, max=0.4) %>%
   sample(nsamples=5000)
-pred <- posterior %>%
-  predict(noutputs=16, with=c("transform-obs-to-state"))
+posterior_obs <- posterior %>%
+  sample_obs
 ```
 
 ```{R echo=FALSE, eval=TRAVIS}
@@ -235,6 +235,6 @@ posterior <- rbi::sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*
   adapt_particles %>%
   adapt_proposal(min=0.05, max=0.4) %>%
   rbi::sample(nsamples=5000, nparticles=16)
-pred <- posterior %>%
-  predict(noutputs=16, with=c("transform-obs-to-state"))
+posterior_obs <- posterior %>%
+  sample_obs
 ```
