@@ -20,7 +20,7 @@
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for \code{\link{sample}}
 #' @return a \code{\link{libbi}} with the desired proposal distribution
-#' @importFrom rbi bi_dim_len get_traces sample
+#' @importFrom rbi bi_dim_len get_traces sample enable_outputs
 #' @inheritParams output_to_proposal
 #' @examples
 #' example_obs <- bi_read(system.file(package="rbi", "example_dataset.nc"))
@@ -67,22 +67,31 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
   if (!quiet) message(date(), " Adapting the proposal distribution")
 
   if (x$run_flag) {
-    ## add any passed parameters to x without running the model
-    x <- rbi::run(x, client=character(0), ...)
+    ## check if output file exists and contains all parameters
+    params <- var_names(x$model, type="param")
+    missing_vars <- setdiff(params, bi_contents(x))
+    ## need an initial trial run if not all parameters are in the output file
+    need_initial_trial_run <- (length(missing_vars) > 0)
   } else {
-    if (!quiet) message(date(), " Initial trial run")
-    x <- rbi::sample(x, ...)
+    need_initial_trial_run <- TRUE
   }
 
-  thin <- x$thin ## no thinning when adapting proposal
+  ## ensure all parameters are saved to output file
+  output_model <- enable_outputs(x$model, type="param")
+
+  if (need_initial_trial_run) {
+    if (!quiet) message(date(), " Initial trial run")
+    adapted <- rbi::sample(x, model=output_model, chain=FALSE, ...)
+  } else {
+    ## add any passed parameters to x without running the model
+    adapted <- rbi::run(x, model=output_model, client=character(0), ...)
+  }
 
   ## scale should be > 1 (it's a divider if acceptance rate is too
   ## small, multiplier if the acceptance Rate is too big)
   if (scale < 1) scale <- 1 / scale
 
-  accRate <- acceptance_rate(x)
-  adapted <- x
-  adapted$thin <- 1
+  accRate <- acceptance_rate(adapted)
   rounds <- c()
   if (size) {
     rounds <- c(rounds, 1)
@@ -104,9 +113,10 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
                   " with scale ", adapt_scale)
         }
       }
-      adapted$model <- output_to_proposal(adapted, adapt_scale,
-                                          correlations = (round == 2), truncate=truncate)
-      adapted <- rbi::sample(adapted, chain=TRUE, ...)
+      adapted$model <-
+        output_to_proposal(adapted, adapt_scale,
+                           correlations = (round == 2), truncate=truncate)
+      adapted <- rbi::sample(adapted, ...)
       accRate <- acceptance_rate(adapted)
       iter <- iter + 1
       if (min(accRate) < min) {
@@ -121,7 +131,13 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
 
   if (!quiet) message(date(), " Acceptance rate: ", min(accRate))
 
-  adapted$thin <- thin
+  ## put model back together (potential disabling output of some parameters)
+  model <- x$model
+  for (block in c("proposal_parameter", "proposal_initial")) {
+    model <- add_block(model, block, get_block(adapted$model, block))
+  }
+
+  adapted$model <- model
 
   return(adapted)
 }
