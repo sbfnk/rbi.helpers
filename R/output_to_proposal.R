@@ -67,8 +67,8 @@ output_to_proposal <- function(wrapper, scale, correlations = FALSE, truncate = 
       {
         ## for parameters with dimensions, create a parameter for each
         ## possible dimension(s)
-        a <- apply(unique_dims, 1, function(x) {
-          merge(data.table(t(x)), y)
+        a <- lapply(seq_len(nrow(unique_dims)), function(x) {
+          merge(unique_dims[x, ], y)
         })
         ## convert factor to integer
         for (dim_colname in dim_colnames) {
