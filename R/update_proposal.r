@@ -250,7 +250,7 @@ update_proposal <- function(model, correlations = FALSE, truncate = TRUE, blocks
         new_dim <- paste0("dim __dim_", block, "_cov")
         cov_lines <-
           c(paste0(new_dim, "(", length(block_vars[[block]]), ")"),
-            paste0("input __proposal_", block, "_cov[", new_dim, ",", new_dim"]"))
+            paste0("input __proposal_", block, "_cov[", new_dim, ",", new_dim, "]"))
         model <- insert_lines(model, cov_lines, after=max(dim_lines))
       } else {
         new_param_names <-
