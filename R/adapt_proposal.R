@@ -26,7 +26,7 @@
 #' example_obs <- bi_read(system.file(package="rbi", "example_dataset.nc"))
 #' example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
 #' example_bi <- libbi(model = example_model, obs = example_obs)
-#' obs_states <- var_names(example_model, "obs")
+#' obs_states <- var_names(example_model, type="obs")
 #' max_time <- max(vapply(example_obs[obs_states], function(x) { max(x[["time"]])}, 0))
 #' # adapt to acceptance rate between 0.1 and 0.5
 #' \dontrun{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
@@ -76,16 +76,23 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
     need_initial_trial_run <- TRUE
   }
 
+  blocks <- "parameter"
+  if ("with-transform-initial-to-param" %in% names(x$options)) {
+    blocks <- c(blocks, "initial")
+  }
   ## ensure all parameters are saved to output file
   output_model <- enable_outputs(x$model, type="param")
 
   if (need_initial_trial_run) {
     if (!quiet) message(date(), " Initial trial run")
-    adapted <- rbi::sample(x, model=output_model, chain=FALSE, ...)
+    adapted <- rbi::sample(x, model=output_model, ...)
   } else {
-    ## add any passed parameters to x without running the model
-    adapted <- rbi::run(x, model=output_model, client=character(0), ...)
+    adapted <- rbi::sample(x, model=output_model, client=character(0), ...)
   }
+
+  adapted$model <-
+    update_proposal(adapted$model, correlations=correlations,
+                    truncate=truncate, blocks=blocks)
 
   ## scale should be > 1 (it's a divider if acceptance rate is too
   ## small, multiplier if the acceptance Rate is too big)
@@ -113,10 +120,16 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
                   " with scale ", adapt_scale)
         }
       }
-      adapted$model <-
-        output_to_proposal(adapted, adapt_scale,
-                           correlations = (round == 2), truncate=truncate)
-      adapted <- rbi::sample(adapted, ...)
+
+      adaptation_vars <-
+        output_to_cov(adapted, correlations = (round == 2))
+      sample_opts <- list(x=adapted)
+      if ("input-file" %in% x$options) {
+        bi_write(x$options[["input-file"]], adaptation_vars, append=TRUE)
+      } else {
+        sample_opts[["input"]] <- adaptation_vars
+      }
+      adapted <- do.call(rbi::sample, sample_opts)
       accRate <- acceptance_rate(adapted)
       iter <- iter + 1
       if (min(accRate) < min) {
