@@ -124,7 +124,7 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
       adaptation_vars <-
         output_to_cov(adapted, correlations = (round == 2))
       sample_opts <- list(x=adapted)
-      if ("input-file" %in% x$options) {
+      if ("input-file" %in% names(x$options)) {
         bi_write(x$options[["input-file"]], adaptation_vars, append=TRUE)
       } else {
         sample_opts[["input"]] <- adaptation_vars
