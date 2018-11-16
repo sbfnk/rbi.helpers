@@ -87,7 +87,7 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
     if (!quiet) message(date(), " Initial trial run")
     adapted <- rbi::sample(x, model=output_model, ...)
   } else {
-    adapted <- rbi::sample(x, model=output_model, client=character(0), ...)
+    adapted <- rbi::run(x, model=output_model, client=character(0), ...)
   }
 
   adapted$model <-
