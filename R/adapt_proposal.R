@@ -144,12 +144,7 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
   if (!quiet) message(date(), " Acceptance rate: ", min(accRate))
 
   ## put model back together (potential disabling output of some parameters)
-  model <- x$model
-  for (block in c("proposal_parameter", "proposal_initial")) {
-    model <- add_block(model, block, get_block(adapted$model, block))
-  }
-
-  adapted$model <- model
+  adapted$model <- update_proposal(x$model)
 
   return(adapted)
 }
