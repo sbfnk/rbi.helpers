@@ -80,18 +80,24 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
   if ("with-transform-initial-to-param" %in% names(x$options)) {
     blocks <- c(blocks, "initial")
   }
+
+  if (need_initial_trial_run) {
+    if (!quiet) message(date(), " Initial trial run")
+    options <- c(list(x), list(...))
+    block_lines <- unlist(lapply(blocks, function(block) {
+      get_block(x$model, paste("propose", block, sep="_"))
+    }))
+    if (length(block_lines) == 0) options[["proposal"]] <- "prior"
+    adapted <- do.call(rbi::sample, options)
+  }
+
   ## ensure all parameters are saved to output file
   adapt_model <- enable_outputs(x$model, type="param")
   adapt_model <-
     update_proposal(adapt_model, correlations=correlations,
                     truncate=truncate, blocks=blocks)
 
-  if (need_initial_trial_run) {
-    if (!quiet) message(date(), " Initial trial run")
-    adapted <- rbi::sample(x, model=adapt_model, ...)
-  } else {
-    adapted <- rbi::run(x, model=adapt_model, client=character(0), ...)
-  }
+  adapted <- rbi::run(x, model=adapt_model, client=character(0), ...)
 
   ## scale should be > 1 (it's a divider if acceptance rate is too
   ## small, multiplier if the acceptance Rate is too big)
