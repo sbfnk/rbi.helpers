@@ -105,12 +105,10 @@ output_to_cov <- function(x, scale, correlations=FALSE) {
         ## calculate the covariance matrix
         c <- 2.38**2 * stats::cov(wide_block) / ncol(wide_block)
 
-        cholStatus <- try(A <- chol(c, pivot=TRUE), silent = TRUE)
-        if (class(cholStatus) == "try-error")
-        {
+        A <- tryCatch(chol(c, pivot=TRUE), warning=function(w) NULL)
+        if (is.null(A)) {
           warning("Cholesky decomposition failed; ",
                   "will try to adapt via independent univariate sampling first.")
-          A <- NULL
         } else
         {
           A <- t(A[, order(attr(A, "pivot"))])
