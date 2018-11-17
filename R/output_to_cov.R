@@ -10,6 +10,7 @@
 #' @inheritParams update_proposal
 #' @importFrom data.table setnames melt data.table
 #' @importFrom stats cov
+#' @importFrom Matrix nearPD
 #' @return the updated bi model
 #' @keywords internal
 output_to_cov <- function(x, scale, correlations=FALSE) {
@@ -100,18 +101,14 @@ output_to_cov <- function(x, scale, correlations=FALSE) {
 
     if (ncol(wide_block) > 0)
     {
-
       if (ncol(wide_block) > 1 && correlations) {
         ## calculate the covariance matrix
         c <- 2.38**2 * stats::cov(wide_block) / ncol(wide_block)
-
-        A <- tryCatch(chol(c, pivot=TRUE), warning=function(w) NULL)
-        if (is.null(A)) {
+        tryCatch(A <- t(as.matrix(chol(nearPD(c)$mat))), error=function(e) NULL)
+        if (is.null(A))
+        {
           warning("Cholesky decomposition failed; ",
                   "will try to adapt via independent univariate sampling first.")
-        } else
-        {
-          A <- t(A[, order(attr(A, "pivot"))])
         }
       } else {
         A <- NULL
@@ -126,48 +123,48 @@ output_to_cov <- function(x, scale, correlations=FALSE) {
       if (!missing(scale)) {
         A <- A * scale
       }
-    }
 
-    for (i in seq_len(ncol(A))) {
-      if (A[i, i]==0) {
-        A[i, i] <- abs(mean(wide_block[, i, with=FALSE][[1]])/10)
-      }
-    }
-
-    ## generate variables - first check if covariate input exists in data
-    cov_input_name <- paste("__proposal", block, "cov", sep="_")
-    input_var_names <- var_names(x$model, type="input")
-    if (cov_input_name %in% input_var_names) {
-      dim_name <- paste("__dim", block, "cov", sep="_")
-      long_cov <- data.table::melt(A, varnames=paste(dim_name, 1:2, sep="."))
-      vars[[cov_input_name]] <- long_cov
-    } else if (correlations) {
-      stop("'correlations=TRUE' but model file doesn't ask for correlation input.")
-    } else {
-      unique_params <- unique(dimless_params[[block]])
-      std_vars <- lapply(unique_params, function(param)
-      {
-        dims <- get_dims(x$model)
-        var_dims <-
-          sub("^.*\\[(.*)\\]", "\\1", var_names(x$model, vars=param, dim=TRUE))
-        if (var_dims == param) {
-          ## no dimensions
-          A[param, param]
-        } else {
-          var_dim_names <- split(var_dims, ",")[[1]]
-          ids <- which(dimless_params[[block]] == param)
-          std <- diag(A[ids, ids])
-          std_dims <- sub("^.*\\[(.*)\\]", "\\1", names(std))
-          df <-
-            as.data.frame(do.call(rbind, lapply(strsplit(std_dims, ","), as.integer)))
-          colnames(df) <- var_dim_names
-          cbind(df, data.frame(value=unname(std)))
+      for (i in seq_len(ncol(A))) {
+        if (A[i, i]==0) {
+          A[i, i] <- mean(wide_block[, i, with=FALSE][[1]])/10
         }
-      })
-      names(std_vars) <- unique_params
-      for (name in names(std_vars)) {
-        std_input_name <- paste("__std", name, sep="_")
-        vars[[std_input_name]] <- std_vars[[name]]
+      }
+
+      ## generate variables - first check if covariate input exists in data
+      cov_input_name <- paste("__proposal", block, "cov", sep="_")
+      input_var_names <- var_names(x$model, type="input")
+      if (cov_input_name %in% input_var_names) {
+        dim_name <- paste("__dim", block, "cov", sep="_")
+        long_cov <- data.table::melt(A, varnames=paste(dim_name, 1:2, sep="."))
+        vars[[cov_input_name]] <- long_cov
+      } else if (correlations) {
+        stop("'correlations=TRUE' but model file doesn't ask for correlation input.")
+      } else {
+        unique_params <- unique(dimless_params[[block]])
+        std_vars <- lapply(unique_params, function(param)
+        {
+          dims <- get_dims(x$model)
+          var_dims <-
+            sub("^.*\\[(.*)\\]", "\\1", var_names(x$model, vars=param, dim=TRUE))
+          if (var_dims == param) {
+            ## no dimensions
+            A[param, param]
+          } else {
+            var_dim_names <- split(var_dims, ",")[[1]]
+            ids <- which(dimless_params[[block]] == param)
+            std <- diag(A[ids, ids])
+            std_dims <- sub("^.*\\[(.*)\\]", "\\1", names(std))
+            df <-
+              as.data.frame(do.call(rbind, lapply(strsplit(std_dims, ","), as.integer)))
+            colnames(df) <- var_dim_names
+            cbind(df, data.frame(value=unname(std)))
+          }
+        })
+        names(std_vars) <- unique_params
+        for (name in names(std_vars)) {
+          std_input_name <- paste("__std", name, sep="_")
+          vars[[std_input_name]] <- std_vars[[name]]
+        }
       }
     }
   }
