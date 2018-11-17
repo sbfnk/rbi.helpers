@@ -81,18 +81,17 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
     blocks <- c(blocks, "initial")
   }
   ## ensure all parameters are saved to output file
-  output_model <- enable_outputs(x$model, type="param")
+  adapt_model <- enable_outputs(x$model, type="param")
+  adapt_model <-
+    update_proposal(adapt_model, correlations=correlations,
+                    truncate=truncate, blocks=blocks)
 
   if (need_initial_trial_run) {
     if (!quiet) message(date(), " Initial trial run")
-    adapted <- rbi::sample(x, model=output_model, ...)
+    adapted <- rbi::sample(x, model=adapt_model, ...)
   } else {
-    adapted <- rbi::run(x, model=output_model, client=character(0), ...)
+    adapted <- rbi::run(x, model=adapt_model, client=character(0), ...)
   }
-
-  adapted$model <-
-    update_proposal(adapted$model, correlations=correlations,
-                    truncate=truncate, blocks=blocks)
 
   ## scale should be > 1 (it's a divider if acceptance rate is too
   ## small, multiplier if the acceptance Rate is too big)
