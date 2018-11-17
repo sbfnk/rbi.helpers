@@ -245,7 +245,7 @@ update_proposal <- function(model, correlations = FALSE, truncate = TRUE, blocks
           setdiff(paste0("__current_", propose_parameters), vars)
         if (length(new_param_names) > 0) {
           var_lines <- paste(var_type, new_param_names, "(has_output=0)")
-          model <- insert_lines(model, var_lines, after=max(dim_lines))
+          proposal_lines <- c(var_lines, proposal_lines)
         }
         new_dim <- paste0("__dim_", block, "_cov")
         cov_lines <-
