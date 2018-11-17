@@ -136,12 +136,15 @@ output_to_cov <- function(x, scale, correlations=FALSE) {
       }
     }
 
-    ## generate variables
-    if (correlations) {
-      input_name <- paste("__proposal", block, "cov", sep="_")
+    ## generate variables - first check if covariate input exists in data
+    cov_input_name <- paste("__proposal", block, "cov", sep="_")
+    input_var_names <- var_names(x$model, type="input")
+    if (cov_input_name %in% input_var_names) {
       dim_name <- paste("__dim", block, "cov", sep="_")
       long_cov <- data.table::melt(A, varnames=paste(dim_name, 1:2, sep="."))
-      vars[[input_name]] <- long_cov
+      vars[[cov_input_name]] <- long_cov
+    } else if (correlations) {
+      stop("'correlations=TRUE' but model file doesn't ask for correlation input.")
     } else {
       unique_params <- unique(dimless_params[[block]])
       std_vars <- lapply(unique_params, function(param)
@@ -165,8 +168,8 @@ output_to_cov <- function(x, scale, correlations=FALSE) {
       })
       names(std_vars) <- unique_params
       for (name in names(std_vars)) {
-        input_name <- paste("__std", name, sep="_")
-        vars[[input_name]] <- std_vars[[name]]
+        std_input_name <- paste("__std", name, sep="_")
+        vars[[std_input_name]] <- std_vars[[name]]
       }
     }
   }
