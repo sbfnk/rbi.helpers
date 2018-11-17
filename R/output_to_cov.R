@@ -130,7 +130,7 @@ output_to_cov <- function(x, scale, correlations=FALSE) {
 
     for (i in seq_len(ncol(A))) {
       if (A[i, i]==0) {
-        A[i, i] <- mean(wide_block[, i, with=FALSE][[1]])/10
+        A[i, i] <- abs(mean(wide_block[, i, with=FALSE][[1]])/10)
       }
     }
 
