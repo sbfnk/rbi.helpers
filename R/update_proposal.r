@@ -5,13 +5,12 @@
 #' This function takes the provided \code{\link{bi_model}} and adds a generic
 #' Gaussian proposal distribution.
 #' @param model a \code{\link{bi_model}} object
-#' @param correlations whether to take into account correlations
 #' @param truncate truncate the multivariate normal proposals according to the used priors, e.g. truncating a parameter with beta prior at 0 and 1
 #' @param blocks blocks to use (out of "parameter" and "initial")
 #' @importFrom rbi get_block add_block insert_lines
 #' @return the updated bi model
 #' @keywords internal
-update_proposal <- function(model, correlations = FALSE, truncate = TRUE, blocks=c("parameter", "initial")) {
+update_proposal <- function(model, truncate = TRUE, blocks=c("parameter", "initial")) {
 
   if (!("bi_model" %in% class(model))) stop("'x' must be a 'bi_model'")
 
@@ -121,20 +120,14 @@ update_proposal <- function(model, correlations = FALSE, truncate = TRUE, blocks
 
       mean <- param
 
-      if (correlations) {
-        for (j in (seq_len(param_id - 1)))
-        {
-          mean <-
-            paste0(mean, " + __proposal_", block, "_cov[",
-                   param_id-1, ",", j-1, "] * (",
-                   block_vars[[block]][j], " - ",
-                   paste0("__current_", block_vars[[block]][j]), ")")
-        }
-        std <- paste0("__proposal_", block, "_cov[", param_id-1, ",", param_id-1, "]")
-      } else {
-        mean <- param
-        std <- paste0("__std_", param)
+      for (j in (seq_len(param_id - 1))) {
+        mean <-
+          paste0(mean, " + __proposal_", block, "_cov[",
+                 param_id-1, ",", j-1, "] * (",
+                 block_vars[[block]][j], " - ",
+                 paste0("__current_", block_vars[[block]][j]), ")")
       }
+      std <- paste0("__proposal_", block, "_cov[", param_id-1, ",", param_id-1, "]")
 
       ## impose bounds on gamma and beta distributions
       if (dist == "beta") {
@@ -237,27 +230,20 @@ update_proposal <- function(model, correlations = FALSE, truncate = TRUE, blocks
     propose_parameters <- rev(dim_vars[vars %in% unique(dimless_variable_names)])
 
     if (length(propose_parameters) > 0) {
-      if (correlations) {
-        proposal_lines <-
-          c(paste0("__current_", propose_parameters, " <- ", propose_parameters),
-            proposal_lines)
-        new_param_names <-
-          setdiff(paste0("__current_", propose_parameters), vars)
-        if (length(new_param_names) > 0) {
-          var_lines <- paste(var_type, new_param_names, "(has_output=0)")
-          model <- insert_lines(model, var_lines, after=max(dim_lines))
-        }
-        new_dim <- paste0("__dim_", block, "_cov")
-        cov_lines <-
-          c(paste0("dim ", new_dim, "(", length(block_vars[[block]]), ")"),
-            paste0("input __proposal_", block, "_cov[", new_dim, ",", new_dim, "]"))
-        model <- insert_lines(model, cov_lines, after=max(dim_lines))
-      } else {
-        new_param_names <-
-          paste0("__std_", propose_parameters)
-        model <- insert_lines(model, paste("input", new_param_names),
-                              after=max(dim_lines))
+      proposal_lines <-
+        c(paste0("__current_", propose_parameters, " <- ", propose_parameters),
+          proposal_lines)
+      new_param_names <-
+        setdiff(paste0("__current_", propose_parameters), vars)
+      if (length(new_param_names) > 0) {
+        var_lines <- paste(var_type, new_param_names, "(has_output=0)")
+        model <- insert_lines(model, var_lines, after=max(dim_lines))
       }
+      new_dim <- paste0("__dim_", block, "_cov")
+      cov_lines <-
+        c(paste0("dim ", new_dim, "(", length(block_vars[[block]]), ")"),
+          paste0("input __proposal_", block, "_cov[", new_dim, ",", new_dim, "]"))
+      model <- insert_lines(model, cov_lines, after=max(dim_lines))
     }
 
     model <- add_block(model, name = paste0("proposal_", block),

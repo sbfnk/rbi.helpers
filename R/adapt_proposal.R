@@ -20,7 +20,7 @@
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for \code{\link{sample}}
 #' @return a \code{\link{libbi}} with the desired proposal distribution
-#' @importFrom rbi bi_dim_len get_traces sample enable_outputs
+#' @importFrom rbi bi_dim_len get_traces sample enable_outputs get_dims
 #' @inheritParams output_to_proposal
 #' @examples
 #' example_obs <- bi_read(system.file(package="rbi", "example_dataset.nc"))
@@ -80,24 +80,42 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
   if ("with-transform-initial-to-param" %in% names(x$options)) {
     blocks <- c(blocks, "initial")
   }
-
-  if (need_initial_trial_run) {
-    if (!quiet) message(date(), " Initial trial run")
-    options <- c(list(x), list(...))
-    block_lines <- unlist(lapply(blocks, function(block) {
-      get_block(x$model, paste("propose", block, sep="_"))
-    }))
-    if (length(block_lines) == 0) options[["proposal"]] <- "prior"
-    adapted <- do.call(rbi::sample, options)
-  }
-
   ## ensure all parameters are saved to output file
   adapt_model <- enable_outputs(x$model, type="param")
   adapt_model <-
-    update_proposal(adapt_model, correlations=correlations,
-                    truncate=truncate, blocks=blocks)
+    update_proposal(adapt_model, truncate=truncate, blocks=blocks)
 
-  adapted <- rbi::run(x, model=adapt_model, client=character(0), ...)
+  ## write initial covariance matrix
+  adaptation_vars <- list()
+  dims <- rbi::get_dims(adapt_model)
+  cov_vars <-
+    grep("^__proposal_(parameter|initial)_cov$", var_names(adapt_model, type="input"),
+         value=TRUE)
+  for (cov_var in cov_vars) {
+    dim_var <- sub("^__proposal", "__dim", cov_var)
+    df <- expand.grid(var.1=seq_len(dims[[dim_var]])-1,
+                      var.2=seq_len(dims[[dim_var]])-1,
+                      value=0)
+    df[df$var.1==df$var.2, "value"] <- 1
+    colnames(df) <- c(paste(dim_var, 1:2, sep="."), "value")
+    adaptation_vars[[cov_var]] <- df
+  }
+
+  run_opts <- list(x=x, model=adapt_model)
+  if ("input-file" %in% names(x$options)) {
+    bi_write(x$options[["input-file"]], adaptation_vars, append=TRUE)
+  } else {
+    run_opts[["input"]] <- adaptation_vars
+  }
+
+  if (need_initial_trial_run) {
+    if (!quiet) message(date(), " Initial trial run")
+    run_opts[["client"]] <- "sample"
+  } else {
+    run_opts[["client"]] <- character(0)
+  }
+  adapted <- do.call(rbi::run, c(run_opts, list(...)))
+  run_opts[["client"]] <- "sample"
 
   ## scale should be > 1 (it's a divider if acceptance rate is too
   ## small, multiplier if the acceptance Rate is too big)
@@ -128,13 +146,9 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
 
       adaptation_vars <-
         output_to_cov(adapted, scale=adapt_scale, correlations = (round == 2))
-      sample_opts <- list(x=adapted)
-      if ("input-file" %in% names(x$options)) {
-        bi_write(x$options[["input-file"]], adaptation_vars, append=TRUE)
-      } else {
-        sample_opts[["input"]] <- adaptation_vars
-      }
-      adapted <- do.call(rbi::sample, sample_opts)
+      run_opts[["x"]] <- adapted
+      bi_write(adapted$options[["input-file"]], adaptation_vars, append=TRUE)
+      adapted <- do.call(rbi::run, c(run_opts, list(...)))
       accRate <- acceptance_rate(adapted)
       iter <- iter + 1
       if (min(accRate) < min) {
