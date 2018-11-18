@@ -81,27 +81,16 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
     blocks <- c(blocks, "initial")
   }
   ## ensure all parameters are saved to output file
-  adapt_model <- enable_outputs(x$model, type="param")
-  adapt_model <-
+  adapted_model <- enable_outputs(x$model, type="param")
+  adapted_model <-
     update_proposal(adapt_model, truncate=truncate, blocks=blocks)
 
   ## write initial covariance matrix
-  adaptation_vars <- list()
-  dims <- rbi::get_dims(adapt_model)
-  cov_vars <-
-    grep("^__proposal_(parameter|initial)_cov$", var_names(adapt_model, type="input"),
-         value=TRUE)
-  for (cov_var in cov_vars) {
-    dim_var <- sub("^__proposal", "__dim", cov_var)
-    df <- expand.grid(var.1=seq_len(dims[[dim_var]])-1,
-                      var.2=seq_len(dims[[dim_var]])-1,
-                      value=0)
-    df[df$var.1==df$var.2, "value"] <- 1
-    colnames(df) <- c(paste(dim_var, 1:2, sep="."), "value")
-    adaptation_vars[[cov_var]] <- df
-  }
+  adapted <- x
+  adapted$model <- adapt_model
+  adaptation_vars <- get_mvn_params(adapted)
 
-  run_opts <- list(x=x, model=adapt_model)
+  run_opts <- list(x=adapted)
   if ("input-file" %in% names(x$options)) {
     bi_write(x$options[["input-file"]], adaptation_vars, append=TRUE)
   } else {
@@ -145,10 +134,10 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
       }
 
       adaptation_vars <-
-        output_to_cov(adapted, scale=adapt_scale, correlations = (round == 2))
+        get_mvn_params(adapted, correlations = (round == 2), scale=scale)
       run_opts[["x"]] <- adapted
-      bi_write(adapted$options[["input-file"]], adaptation_vars, append=TRUE)
-      adapted <- do.call(rbi::run, c(run_opts, list(...)))
+      run_opts[["input"]] <- adaptation_vars
+      adapted <- do.call(rbi::run, run_opts)
       accRate <- acceptance_rate(adapted)
       iter <- iter + 1
       if (min(accRate) < min) {
@@ -164,7 +153,12 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
   if (!quiet) message(date(), " Acceptance rate: ", min(accRate))
 
   ## put model back together (potential disabling output of some parameters)
-  adapted$model <- update_proposal(x$model)
+  model <- x$model
+  for (block in c("proposal_parameter", "proposal_initial")) {
+    model <- add_block(model, block, get_block(adapted$model, block))
+  }
+
+  adapted$model <- model
 
   return(adapted)
 }
