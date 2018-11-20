@@ -10,6 +10,10 @@ get_mvn_params(x, scale = 1, correlations = TRUE, fix)
 \item{x}{a \code{\link{libbi}} which has been run}
 
 \item{scale}{a factor by which to scale all elements of the covarience matrix}
+
+\item{correlations}{logical; if TRUE, correlations are taken into account when constructing the parameters}
+
+\item{fix}{if this is set, all elements of the covariance matrix will be set to it}
 }
 \value{
 the updated bi model

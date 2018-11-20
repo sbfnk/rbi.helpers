@@ -21,7 +21,6 @@
 #' @param ... parameters for \code{\link{sample}}
 #' @return a \code{\link{libbi}} with the desired proposal distribution
 #' @importFrom rbi bi_dim_len get_traces sample enable_outputs get_dims
-#' @inheritParams output_to_proposal
 #' @examples
 #' example_obs <- bi_read(system.file(package="rbi", "example_dataset.nc"))
 #' example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
