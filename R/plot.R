@@ -5,7 +5,6 @@
 #' @description
 #' Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
 #' @param x A \code{libbi} object containing Monte-Carlo samples
-#' @param prior optional; Prior samples, given as a \code{libbi} object
 #' @param type character vector determining which plots to generate; options are: "state", "obs", "param", "noise", "logevals"; by default, all will be plotted; more specific selections of variables can be given as arguments with the name of the type containing character vectors of variables, e.g. \code{param="alpha"} to just plot parameter alpha (requiring "param" to be given as one of "type")
 #' @param quantiles if plots are produced, which quantile to use for confidence intervals (NULL for no confidence intervals)
 #' @param date.origin date of origin (if dates are to be calculated)
@@ -22,17 +21,12 @@
 #' @param base.alpha base alpha value for credible intervals
 #' @param np.alpha alpha of trajectories, if 'np' is part of \code{select} (default: 0.35)
 #' @param trend how the trend should be characterised (e.g., mean, median, or NULL for no trend line)
-#' @param densities density geometry (e.g., "histogram" (default) or "density")
-#' @param density_args list of arguments to pass to density geometry
 #' @param limit.to.data whether to limit the time axis to times with observations (default: FALSE)
 #' @param labels facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs
-#' @param brewer.palette optional; brewer color palette
-#' @param pairs DEPRECATED; logical: whether to generate a pair plot
-#' @param correlations DEPRECATED; logical: whether to generate a correlations plot
 #' @param verbose if set to TRUE, additional output will be displayed
 #' @param plot set to FALSE to suppress plot of trajectories
 #' @param ... more specific selection of variables to plot (see the \code{type} option); any other options will be interpreted as options for geom_step / geom_line / geom_point / etc. when plotting states/noises/observations, e.g. lwd or others
-#' @return a list of plots: states, densities, traces, correlations, noises, logdensities, as well as underlying raw and aggregate data
+#' @return a plot of trajectories
 #' @import ggplot2 data.table
 #' @importFrom lubridate %m+% years
 #' @importFrom rbi bi_read bi_contents var_names
@@ -59,15 +53,10 @@ plot.libbi <- function(x, ..., prior,
                        all.times = FALSE, hline,
                        burn, steps = FALSE, select, threshold,
                        data.colour = "red", base.alpha = 0.5,
-                       np.alpha=0.35, trend = "median",
-                       densities = "histogram",
-                       density_args = list(), limit.to.data = FALSE,
-                       labels, brewer.palette,
-                       pairs=TRUE, correlations=TRUE,
-                       verbose = FALSE,
-                       plot = TRUE)
+                       trend = "median", np.alpha=0.35, limit.to.data = FALSE,
+                       labels, verbose = FALSE, plot = TRUE)
 {
-    plots <- list() ## list holding the plots to be returned
+    retval <- NULL
     ret_data <- list() ## list holding data to be returned
 
     dot_options <- list(...)
@@ -190,6 +179,8 @@ plot.libbi <- function(x, ..., prior,
         }
     }
 
+    ##:ess-bp-start::browser@nil:##
+browser(expr=is.null(.ESSBP.[["@7@"]]));##:ess-bp-end:##
     missing_types <- setdiff(names(given_vars), type)
     if (length(missing_types) > 0) {
         warning("Variables given for type(s) ", paste(missing_types), ", but not included in 'type' variable. Will not plot these")
@@ -289,10 +280,6 @@ plot.libbi <- function(x, ..., prior,
         if (length(vars[["trajectories"]]) > 0) {
             if (verbose) message(date(), " Getting trajectory samples")
             samples <- clean_data(x, "x", verbose=verbose, vars=vars[["trajectories"]])
-        }
-        if (!missing(prior)) {
-            if (verbose) message(date(), " Getting prior samples")
-            prior_samples <- clean_data(prior, "prior", verbose=verbose)
         }
         if (!data_missing) {
           if (verbose) message(date(), " Getting observations")
@@ -509,6 +496,8 @@ plot.libbi <- function(x, ..., prior,
                                    get("np"), sep = "_")]
         }
 
+        ##:ess-bp-start::browser@nil:##
+browser(expr=is.null(.ESSBP.[["@6@"]]));##:ess-bp-end:##
         p <- ggplot(mapping = do.call(aes_string, aesthetic))
 
         if (!is.null(quantiles) && !is.null(aggregate_values) && nrow(aggregate_values) > 0)
@@ -558,12 +547,7 @@ plot.libbi <- function(x, ..., prior,
             }
         }
         p <- p + scale_y_continuous() + ylab("")
-        if (!missing(brewer.palette))
-        {
-            p <- p + scale_color_brewer(palette = brewer.palette)
-            p <- p + scale_fill_brewer(palette = brewer.palette)
-        }
-        p <- p + expand_limits(y = 0)
+        ## p <- p + expand_limits(y = 0)
         if (!missing(data) && nrow(dataset) > 0)
         {
             if (!missing(extra.aes) && "color" %in% names(extra.aes))
@@ -617,276 +601,10 @@ plot.libbi <- function(x, ..., prior,
                        labeller = label_parsed)
         }
 
-        plots[["trajectories"]] <- p
+        retval <- p
     }
-
-    if ("param" %in% type)
-    {
-        pdt <- NULL
-        if (length(vars[["param"]]) > 0) {
-            if (verbose) message(date(), " Getting parameters")
-            samples <- clean_data(x, "x", verbose=verbose,
-                                  vars=vars[["param"]], init.to.param=TRUE)
-        }
-
-        if (!missing(prior)) { ## clean again in case trajectories weren't asked
-          if (verbose) message(date(), " Getting prior parameter samples")
-          prior_samples <- clean_data(prior, "prior", verbose=verbose,
-                                      init.to.param=TRUE)
-        }
-
-        if (verbose) message(date(), " Parameter plots")
-        for (param in vars[["param"]])
-        {
-            param_values <- list()
-            param_values[["posterior"]] <- samples[[param]]
-            if ("np" %in% colnames(samples[[param]]))
-            {
-                param_values[["posterior"]] <-
-                    param_values[["posterior"]][get("np") >= burn]
-            }
-
-            if (!missing(prior) && param %in% names(prior_samples))
-            {
-              param_values[["prior"]] <- prior_samples[[param]]
-            }
-
-            for (dist in names(param_values))
-            {
-                values <- param_values[[dist]]
-                if (!("data.frame" %in% class(values)))
-                {
-                    values <- data.table::data.table(np = 0, value = values)
-                }
-
-                by.mean <- "np"
-                if (!missing(extra.aes))
-                {
-                    by.mean <- c(by.mean, unique(unname(extra.aes)))
-                }
-                param.by <- intersect(by.mean, colnames(values))
-                param.wo <- setdiff(by.mean, colnames(values))
-
-                values <- values[, list(value = get("value")), by = param.by]
-
-                if (!("np" %in% colnames(values)))
-                {
-                    values[, paste("np") := 1]
-                }
-
-                for (wo in setdiff(param.wo, "np"))
-                {
-                    values[, paste(wo) := "n/a"]
-                }
-
-                param_label <- param
-                if (param %in% init_vars) param_label <- paste0(param, "_0")
-                new_params <- data.table::data.table(distribution = dist, parameter = rep(param_label, nrow(values)), values)
-                if (is.null(pdt))
-                {
-                    pdt <- new_params
-                } else
-                {
-                    pdt <- rbind(pdt, new_params)
-                }
-            }
-        }
-        if (!is.null(pdt) && nrow(pdt) > 0)
-        {
-            ## factorise columns
-            pdt <- factorise_columns(pdt, labels)
-
-            by.varying <- c("parameter", "distribution")
-            if (!missing(extra.aes))
-            {
-                by.varying <- c(by.varying, unlist(unique(unname(extra.aes))))
-            }
-            pdt[, paste("varying") := (length(unique(get("value"))) > 1), by = by.varying]
-
-            ret_data <- c(ret_data, list(params = pdt))
-
-            aesthetic <- list(x = "value", y = "..density..")
-            if (!missing(extra.aes))
-            {
-                aesthetic <- c(aesthetic, extra.aes)
-            }
-
-            black_prior <- FALSE
-            if (!missing(prior))
-            {
-                if (!missing(extra.aes) && length(intersect(c("color", "fill"), names(extra.aes))) > 0)
-                {
-                    ## if posterior is colourful, make prior black
-                    black_prior <- TRUE
-                } else
-                {
-                    aesthetic <- c(aesthetic, list(color = "distribution", fill = "distribution"))
-                }
-                if (!("alpha" %in% names(density_args))) {
-                    density_args[["alpha"]] <- 0.5
-                }
-            }
-
-            if (!is.null(pdt) && nrow(pdt[get("varying") == TRUE & get("distribution") == "posterior"]) > 0)
-            {
-                if (!select_id)
-                {
-                    break_dist <- 0.4
-                    extra_cols <- setdiff(colnames(pdt),
-                                          c("parameter", "np", "varying", "value"))
-                    if (length(extra_cols) > 0)
-                    {
-                        cast_formula <-
-                            stats::as.formula(paste(paste(c("np", extra_cols), collapse = " + "), "parameter", sep = "~"))
-                    } else
-                    {
-                        cast_formula <- as.formula("np~parameter")
-                    }
-                    wpdt <-
-                        data.table::data.table(data.table::dcast(pdt[get("varying") == TRUE & get("distribution") == "posterior"],
-                                                                 cast_formula, value.var = "value"))
-                    wpdt[, paste("np") := NULL]
-                    if (length(extra_cols) > 0)
-                    {
-                        wpdt[, paste(extra_cols) := NULL]
-                    }
-                    if (correlations) {
-                      warning("Correlations plot deprecated because of problems with the 'GGally' package")
-                    }
-                    if (pairs) {
-                      warning("Pairs plot deprecated because of problems with the 'GGally' package")
-                    }
-                }
-
-                density_data <- pdt[get("varying") == TRUE]
-                if (black_prior) {
-                    density_data <- density_data[get("distribution") == "posterior"]
-                }
-                dp <- ggplot()
-                dp <- dp + facet_wrap(~ parameter, scales = "free",
-                                      labeller=label_parsed)
-                dp <- dp + do.call(paste0("geom_", densities),
-                                   c(list(mapping = do.call(aes_string, aesthetic),
-                                          data = density_data, position = "identity"),
-                                     density_args))
-                if (black_prior) {
-                    dp <- dp + geom_line(data = pdt[get("varying") == TRUE & get("distribution") == "prior"],
-                                         mapping = aes_(x =~ value), stat = "density", color = "black", adjust = 2)
-                }
-                if (!missing(brewer.palette))
-                {
-                    dp <- dp + scale_color_brewer(palette = brewer.palette)
-                    dp <- dp + scale_fill_brewer(palette = brewer.palette)
-                }
-                dp <- dp + ylab("density")
-                dp <- dp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
-                                 legend.position = "top")
-                if (select_id)
-                {
-                    dp <- dp + geom_vline(data = pdt[get("np") %in% select[["np"]]],
-                                          aes_(xintercept =~ value))
-                }
-                plots[["densities"]] <- dp
-
-                aesthetic <- list(x = "np", y = "value")
-
-                if (!missing(extra.aes))
-                {
-                    aesthetic <- c(aesthetic, extra.aes)
-                }
-
-                tp <- ggplot(mapping = do.call(aes_string, aesthetic))
-                tp <- tp + geom_line(data = pdt[get("varying") == TRUE & get("distribution") == "posterior"])
-                tp <- tp + facet_wrap(~ parameter, scales = "free_y",
-                                      labeller=label_parsed)
-                tp <- tp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
-                                 legend.position = "top")
-                if (select_id)
-                {
-                    tp <- tp + geom_vline(xintercept = select[["np"]])
-                }
-                if (!missing(brewer.palette))
-                {
-                    tp <- tp + scale_color_brewer(palette = brewer.palette)
-                    tp <- tp + scale_fill_brewer(palette = brewer.palette)
-                }
-                plots[["traces"]] <- tp
-            }
-        }
-    }
-
-    if ("logeval" %in% type)
-    {
-        ldt <- NULL
-        if (length(vars[["logeval"]]) > 0) {
-            if (verbose) message(date(), " Getting logevals")
-            samples <- clean_data(x, "x", verbose=verbose, vars=vars[["logeval"]])
-        }
-
-        if (verbose) message(date(), " Logeval plots")
-        for (ll in vars[["logeval"]])
-        {
-            values <- samples[[ll]]
-            if ("np" %in% colnames(samples[[ll]]))
-            {
-                values <- values[get("np") >= burn]
-            }
-
-            if (!("data.frame" %in% class(values)))
-            {
-                values <- data.table::data.table(np = 0, value = values)
-            }
-
-            if (!("np" %in% colnames(values)))
-            {
-                data.table::setnames(values, "time", "np")
-            }
-
-            values[, paste("density") := ll]
-            if (is.null(ldt))
-            {
-                ldt <- values
-            } else
-            {
-                ldt <- rbind(ldt, values, fill=TRUE)
-            }
-        }
-        trace_aesthetic <- list(x = "np", y = "value")
-        density_aesthetic <- list(x = "value")
-
-        if (!is.null(ldt) && nrow(ldt) > 0)
-        {
-            ret_data <- c(ret_data, list(likelihoods = ldt))
-
-            likelihood_dummy_plot <-
-                data.frame(expand.grid(type = c("Density", "Trace"),
-                                       density = vars[["logeval"]]))
-            lp <- ggplot(likelihood_dummy_plot)
-            lp <- lp + geom_line(data = data.frame(ldt, type = "Trace"),
-                                 mapping = do.call(aes_string, trace_aesthetic))
-            lp <- lp +
-                geom_histogram(data = data.frame(ldt, type = "Density"),
-                               mapping = do.call(aes_string, density_aesthetic))
-            lp <- lp + facet_wrap(density ~ type, scales = "free")
-            lp <- lp + theme(axis.text.x = element_text(angle = 45, hjust = 1),
-                             legend.position = "top")
-            if (select_id)
-            {
-                lp <- lp + geom_vline(data = data.frame(type = "Trace"),
-                                      xintercept = ldt[get("np") %in% select[["np"]], get("value")])
-            }
-            plots[["logevals"]] <- lp
-        }
-    }
-
-    ## plot first plot if requested
-    if (plot && length(plots) > 0)
-    {
-      print(plots[[1]])
-    }
-    plots[["data"]] <- ret_data
 
     ## return all plots invisibly
-    invisible(plots)
+    invisible(retval)
 }
 
