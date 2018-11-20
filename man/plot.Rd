@@ -5,12 +5,12 @@
 \alias{plot.libbi}
 \title{Plot results from libbi}
 \usage{
-\method{plot}{libbi}(x, ..., prior, type = c("state", "noise", "obs",
-  "param", "logeval"), quantiles = c(0.5, 0.95), date.origin, date.unit,
-  data, extra.aes, all.times = FALSE, hline, burn, steps = FALSE,
-  select, threshold, data.colour = "red", base.alpha = 0.5,
-  trend = "median", np.alpha = 0.35, limit.to.data = FALSE, labels,
-  verbose = FALSE, plot = TRUE)
+\method{plot}{libbi}(x, ..., type = c("state", "noise", "obs", "param",
+  "logeval"), quantiles = c(0.5, 0.95), date.origin, date.unit, data,
+  extra.aes, all.times = FALSE, hline, burn, steps = FALSE, select,
+  threshold, data.colour = "red", base.alpha = 0.5, trend = "median",
+  np.alpha = 0.35, limit.to.data = FALSE, labels, verbose = FALSE,
+  plot = TRUE)
 }
 \arguments{
 \item{x}{A \code{libbi} object containing Monte-Carlo samples}
