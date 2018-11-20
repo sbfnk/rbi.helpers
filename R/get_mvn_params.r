@@ -106,12 +106,7 @@ get_mvn_params <- function(x, scale=1, correlations=TRUE, fix) {
           if (ncol(wide) > 1 && correlations) {
             ## calculate the covariance matrix
             c <- 2.38**2 * stats::cov(wide) / ncol(wide)
-            tryCatch(A <- t(as.matrix(chol(nearPD(c)$mat))), error=function(e) NULL)
-            if (is.null(A))
-            {
-              warning("Cholesky decomposition failed; ",
-                      "will try to adapt via independent univariate sampling first.")
-            }
+            A <- tryCatch(t(as.matrix(chol(nearPD(c)$mat))), error=function(e) NULL)
           } else {
             A <- NULL
           }
@@ -132,11 +127,17 @@ get_mvn_params <- function(x, scale=1, correlations=TRUE, fix) {
           A <- matrix(ncol=0, nrow=0)
         }
       } else {
-        A <- diag(ncol=length(params[[block]]), nrow=length(params[[block]]))
-        rownames(A) <- params[[block]]
-        colnames(A) <- params[[block]]
+        A <- NULL
       }
+    } else {
+      A <- NULL
     }
+
+    if (is.null(A)) {
+      A <- diag(ncol=length(params[[block]]), nrow=length(params[[block]]))
+      rownames(A) <- params[[block]]
+      colnames(A) <- params[[block]]
+ }
 
     if (prod(dim(A) > 0)) {
       if (!missing(scale)) {
