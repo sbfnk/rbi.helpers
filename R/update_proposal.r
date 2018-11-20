@@ -226,24 +226,33 @@ update_proposal <- function(model, truncate = TRUE, blocks=c("parameter", "initi
 
     var_type <- block_to_state[block]
     vars <- var_names(model, type=var_type, dim=FALSE)
+    aux_inputs <- var_names(model, type="input", dim=FALSE, aux=TRUE)
     dim_vars <- var_names(model, type=var_type, dim=TRUE)
+    dim_aux_vars <- var_names(model, type=var_type, dim=TRUE, aux=TRUE)
     propose_parameters <- rev(dim_vars[vars %in% unique(dimless_variable_names)])
 
     if (length(propose_parameters) > 0) {
       proposal_lines <-
         c(paste0("__current_", propose_parameters, " <- ", propose_parameters),
           proposal_lines)
+
       new_param_names <-
-        setdiff(paste0("__current_", propose_parameters), vars)
+        setdiff(paste0("__current_", propose_parameters), dim_aux_vars)
       if (length(new_param_names) > 0) {
-        var_lines <- paste(var_type, new_param_names, "(has_output=0)")
-        model <- insert_lines(model, var_lines, after=max(dim_lines))
+        new_var_lines <- paste(var_type, new_param_names, "(has_output=0)")
+        model <- insert_lines(model, new_var_lines, after=max(dim_lines))
       }
-      new_dim <- paste0("__dim_", block, "_cov")
-      cov_lines <-
-        c(paste0("dim ", new_dim, "(", length(block_vars[[block]]), ")"),
-          paste0("input __proposal_", block, "_cov[", new_dim, ",", new_dim, "]"))
-      model <- insert_lines(model, cov_lines, after=max(dim_lines))
+      new_input_names <- setdiff(paste0("__proposal_", block, "_cov"), aux_inputs)
+      cov_dim_name <- paste0("__dim_", block, "_cov")
+      if (length(new_input_names) > 0) {
+        new_input_lines <- paste0("input ", new_input_names, "[", cov_dim_name, ",", cov_dim_name, "]")
+        model <- insert_lines(model, new_input_lines, after=max(dim_lines))
+      }
+      new_dim_names <- setdiff(cov_dim_name, names(dims))
+      if (length(new_dim_names) > 0) {
+        new_dim_lines <- paste0("dim ", new_dim_names, "(", length(block_vars[[block]]), ")")
+        model <- insert_lines(model, new_dim_lines, after=max(dim_lines))
+      }
     }
 
     model <- add_block(model, name = paste0("proposal_", block),
