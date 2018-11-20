@@ -81,13 +81,12 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
     blocks <- c(blocks, "initial")
   }
   ## ensure all parameters are saved to output file
-  adapted_model <- enable_outputs(x$model, type="param")
-  adapted_model <-
-    update_proposal(adapt_model, truncate=truncate, blocks=blocks)
+  model_with_proposal <-
+    update_proposal(x$model, truncate=truncate, blocks=blocks)
 
   ## write initial covariance matrix
   adapted <- x
-  adapted$model <- adapt_model
+  adapted$model <- enable_outputs(model_with_proposal, type="param")
   adaptation_vars <- get_mvn_params(adapted)
 
   run_opts <- list(x=adapted)
@@ -104,7 +103,6 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
     run_opts[["client"]] <- character(0)
   }
   adapted <- do.call(rbi::run, c(run_opts, list(...)))
-  run_opts[["client"]] <- "sample"
 
   ## scale should be > 1 (it's a divider if acceptance rate is too
   ## small, multiplier if the acceptance Rate is too big)
@@ -134,10 +132,9 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
       }
 
       adaptation_vars <-
-        get_mvn_params(adapted, correlations = (round == 2), scale=scale)
-      run_opts[["x"]] <- adapted
-      run_opts[["input"]] <- adaptation_vars
-      adapted <- do.call(rbi::run, run_opts)
+        get_mvn_params(adapted, correlations = (round == 2), scale=adapt_scale)
+      bi_write(adapted$options[["input-file"]], adaptation_vars, append=TRUE)
+      adapted <- rbi::sample(adapted, ...)
       accRate <- acceptance_rate(adapted)
       iter <- iter + 1
       if (min(accRate) < min) {
@@ -153,12 +150,7 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
   if (!quiet) message(date(), " Acceptance rate: ", min(accRate))
 
   ## put model back together (potential disabling output of some parameters)
-  model <- x$model
-  for (block in c("proposal_parameter", "proposal_initial")) {
-    model <- add_block(model, block, get_block(adapted$model, block))
-  }
-
-  adapted$model <- model
+  adapted$model <- model_with_proposal
 
   return(adapted)
 }
