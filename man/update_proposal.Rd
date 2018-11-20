@@ -4,13 +4,11 @@
 \alias{update_proposal}
 \title{Construct a proposal from run results}
 \usage{
-update_proposal(model, correlations = FALSE, truncate = TRUE,
-  blocks = c("parameter", "initial"))
+update_proposal(model, truncate = TRUE, blocks = c("parameter",
+  "initial"))
 }
 \arguments{
 \item{model}{a \code{\link{bi_model}} object}
-
-\item{correlations}{whether to take into account correlations}
 
 \item{truncate}{truncate the multivariate normal proposals according to the used priors, e.g. truncating a parameter with beta prior at 0 and 1}
 
