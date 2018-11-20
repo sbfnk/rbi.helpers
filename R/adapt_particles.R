@@ -44,15 +44,18 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   test <- 2**(seq(floor(log(min, 2)), ceiling(log(max, 2))))
 
   adapted <- x
-  model <- x$model
-  model <- rbi::remove_lines(model, "proposal_parameter")
-  model <- rbi::remove_lines(model, "parameter")
-  if ("with-transform-initial-to-param" %in% names(x$options)) {
-    model <- rbi::remove_lines(model, "proposal_initial")
-    model <- rbi::remove_lines(model, "initial")
+  adapted$model <- update_proposal(adapted$model)
+
+  zero_cov_vars <- get_mvn_params(adapted, fix=0)
+  existing_cov_vars <- intersect(bi_contents(adapted, file="input"), names(zero_cov_vars))
+  existing_cov_input <- bi_read(adapted, file="input", vars=existing_cov_vars)
+
+  if ("input-file" %in% names(adapted$options)) {
+    bi_write(adapted$options[["input-file"]], zero_cov_vars, append=TRUE)
+  } else {
+    adapted <- rbi::run(adapted, client=character(0), input=zero_cov_vars, ...)
   }
 
-  adapted$model <- model
   adapted$thin <- 1
 
   accRate <- c()
@@ -78,11 +81,13 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   }
 
   adapted$options[["nparticles"]] <- test[id]
-  adapted$model <- x$model
   adapted$thin <- thin
-  adapted$run_flag <- FALSE
 
-  if (!quiet) message(date(), " Choosing ", test[id], " particles.")
+  if (length(existing_cov_input) > 0) {
+    bi_write(adapted$options[["input-file"]], existing_cov_input, append=TRUE)
+  }
+
+ if (!quiet) message(date(), " Choosing ", test[id], " particles.")
 
   return(adapted)
 }
