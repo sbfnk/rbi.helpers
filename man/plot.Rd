@@ -9,16 +9,13 @@
   "param", "logeval"), quantiles = c(0.5, 0.95), date.origin, date.unit,
   data, extra.aes, all.times = FALSE, hline, burn, steps = FALSE,
   select, threshold, data.colour = "red", base.alpha = 0.5,
-  np.alpha = 0.35, trend = "median", densities = "histogram",
-  density_args = list(), limit.to.data = FALSE, labels, brewer.palette,
-  pairs = TRUE, correlations = TRUE, verbose = FALSE, plot = TRUE)
+  trend = "median", np.alpha = 0.35, limit.to.data = FALSE, labels,
+  verbose = FALSE, plot = TRUE)
 }
 \arguments{
 \item{x}{A \code{libbi} object containing Monte-Carlo samples}
 
 \item{...}{more specific selection of variables to plot (see the \code{type} option); any other options will be interpreted as options for geom_step / geom_line / geom_point / etc. when plotting states/noises/observations, e.g. lwd or others}
-
-\item{prior}{optional; Prior samples, given as a \code{libbi} object}
 
 \item{type}{character vector determining which plots to generate; options are: "state", "obs", "param", "noise", "logevals"; by default, all will be plotted; more specific selections of variables can be given as arguments with the name of the type containing character vectors of variables, e.g. \code{param="alpha"} to just plot parameter alpha (requiring "param" to be given as one of "type")}
 
@@ -48,30 +45,20 @@
 
 \item{base.alpha}{base alpha value for credible intervals}
 
-\item{np.alpha}{alpha of trajectories, if 'np' is part of \code{select} (default: 0.35)}
-
 \item{trend}{how the trend should be characterised (e.g., mean, median, or NULL for no trend line)}
 
-\item{densities}{density geometry (e.g., "histogram" (default) or "density")}
-
-\item{density_args}{list of arguments to pass to density geometry}
+\item{np.alpha}{alpha of trajectories, if 'np' is part of \code{select} (default: 0.35)}
 
 \item{limit.to.data}{whether to limit the time axis to times with observations (default: FALSE)}
 
 \item{labels}{facet labels, in case they are to be rewritten, to be parsed using \code{label_parsed}; should be given as named character vector of (parameter = 'label') pairs}
-
-\item{brewer.palette}{optional; brewer color palette}
-
-\item{pairs}{DEPRECATED; logical: whether to generate a pair plot}
-
-\item{correlations}{DEPRECATED; logical: whether to generate a correlations plot}
 
 \item{verbose}{if set to TRUE, additional output will be displayed}
 
 \item{plot}{set to FALSE to suppress plot of trajectories}
 }
 \value{
-a list of plots: states, densities, traces, correlations, noises, logdensities, as well as underlying raw and aggregate data
+a plot of trajectories
 }
 \description{
 Plots state trajectories (unless plot = FALSE) and invisibly returns a list of state trajectories and other plots.
