@@ -39,18 +39,32 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
     x <- rbi::sample(x, ...)
   }
 
+  libbi_version <- installed_libbi_version(x$path_to_libbi)
+  old_libbi <- ## check if version is >= 1.4.3
+    (grepl("^pre", libbi_version) || compareVersion("1.4.3", libbi_version)==1)
+
   thin <- x$thin ## no thinning when adapting particles
 
   test <- 2**(seq(floor(log(min, 2)), ceiling(log(max, 2))))
 
   adapted <- x
-  adapted$model <- update_proposal(adapted$model)
 
-  zero_cov_vars <- get_mvn_params(adapted, fix=0)
-  existing_cov_vars <- intersect(bi_contents(adapted, file="input"), names(zero_cov_vars))
-  existing_cov_input <- bi_read(adapted, file="input", vars=existing_cov_vars)
-
-  adapted <- attach_data(adapted, file="input", zero_cov_vars)
+  if (old_libbi) { ## old libbi version; we need to copy the prior to the proposal
+    model <- x$model
+    model <- rbi::remove_lines(model, "proposal_parameter")
+    model <- rbi::remove_lines(model, "parameter")
+    if ("with-transform-initial-to-param" %in% names(x$options)) {
+      model <- rbi::remove_lines(model, "proposal_initial")
+      model <- rbi::remove_lines(model, "initial")
+    }
+  } else {
+    adapted$model <- update_proposal(adapted$model)
+    zero_cov_vars <- get_mvn_params(adapted, fix=0)
+    existing_cov_vars <-
+      intersect(bi_contents(adapted, file="input"), names(zero_cov_vars))
+    existing_cov_input <- bi_read(adapted, file="input", vars=existing_cov_vars)
+    adapted <- attach_data(adapted, file="input", zero_cov_vars)
+  }
 
   adapted$thin <- 1
 
@@ -79,8 +93,11 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   adapted$options[["nparticles"]] <- test[id]
   adapted$thin <- thin
 
-  if (length(existing_cov_input) > 0) {
-    adapted <- attach_data(adapted, file="input", existing_cov_input)
+  if (old_model) {
+    adapted$model <- x$model
+    adapted$run_flag <- FALSE
+  } else if (length(existing_cov_input) > 0) {
+      adapted <- attach_data(adapted, file="input", existing_cov_input)
   }
 
  if (!quiet) message(date(), " Choosing ", test[id], " particles.")
