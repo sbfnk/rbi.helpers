@@ -179,8 +179,6 @@ plot.libbi <- function(x, ...,
         }
     }
 
-    ##:ess-bp-start::browser@nil:##
-browser(expr=is.null(.ESSBP.[["@7@"]]));##:ess-bp-end:##
     missing_types <- setdiff(names(given_vars), type)
     if (length(missing_types) > 0) {
         warning("Variables given for type(s) ", paste(missing_types), ", but not included in 'type' variable. Will not plot these")
@@ -496,8 +494,6 @@ browser(expr=is.null(.ESSBP.[["@7@"]]));##:ess-bp-end:##
                                    get("np"), sep = "_")]
         }
 
-        ##:ess-bp-start::browser@nil:##
-browser(expr=is.null(.ESSBP.[["@6@"]]));##:ess-bp-end:##
         p <- ggplot(mapping = do.call(aes_string, aesthetic))
 
         if (!is.null(quantiles) && !is.null(aggregate_values) && nrow(aggregate_values) > 0)
