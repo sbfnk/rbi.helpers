@@ -12,7 +12,7 @@
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
-#' @importFrom rbi bi_model bi_dim_len bi_read sample remove_lines
+#' @importFrom rbi bi_model bi_dim_len bi_read sample remove_lines attach_data
 #' @importFrom stats var
 #' @examples
 #' example_obs <- bi_read(system.file(package="rbi", "example_dataset.nc"))
@@ -50,11 +50,7 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   existing_cov_vars <- intersect(bi_contents(adapted, file="input"), names(zero_cov_vars))
   existing_cov_input <- bi_read(adapted, file="input", vars=existing_cov_vars)
 
-  if ("input-file" %in% names(adapted$options)) {
-    bi_write(adapted$options[["input-file"]], zero_cov_vars, append=TRUE)
-  } else {
-    adapted <- rbi::run(adapted, client=character(0), input=zero_cov_vars, ...)
-  }
+  adapted <- attach_data(adapted, file="input", zero_cov_vars)
 
   adapted$thin <- 1
 
@@ -84,7 +80,7 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   adapted$thin <- thin
 
   if (length(existing_cov_input) > 0) {
-    bi_write(adapted$options[["input-file"]], existing_cov_input, append=TRUE)
+    adapted <- attach_data(adapted, file="input", existing_cov_input)
   }
 
  if (!quiet) message(date(), " Choosing ", test[id], " particles.")

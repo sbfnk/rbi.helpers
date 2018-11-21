@@ -139,7 +139,7 @@ get_mvn_params <- function(x, scale=1, correlations=TRUE, fix) {
       A <- diag(ncol=length(params[[block]]), nrow=length(params[[block]]))
       rownames(A) <- params[[block]]
       colnames(A) <- params[[block]]
- }
+    }
 
     if (prod(dim(A) > 0)) {
       if (!missing(scale)) {

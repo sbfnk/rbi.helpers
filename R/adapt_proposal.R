@@ -20,7 +20,7 @@
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for \code{\link{sample}}
 #' @return a \code{\link{libbi}} with the desired proposal distribution
-#' @importFrom rbi bi_dim_len get_traces sample enable_outputs get_dims
+#' @importFrom rbi bi_dim_len get_traces sample enable_outputs get_dims attach_data
 #' @examples
 #' example_obs <- bi_read(system.file(package="rbi", "example_dataset.nc"))
 #' example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
@@ -87,21 +87,12 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
   adapted <- x
   adapted$model <- enable_outputs(model_with_proposal, type="param")
   adaptation_vars <- get_mvn_params(adapted)
-
-  run_opts <- list(x=adapted)
-  if ("input-file" %in% names(x$options)) {
-    bi_write(x$options[["input-file"]], adaptation_vars, append=TRUE)
-  } else {
-    run_opts[["input"]] <- adaptation_vars
-  }
+  adapted <- attach_data(adapted, file="input", adaptation_vars)
 
   if (need_initial_trial_run) {
     if (!quiet) message(date(), " Initial trial run")
-    run_opts[["client"]] <- "sample"
-  } else {
-    run_opts[["client"]] <- character(0)
+    adapted <- rbi::sample(adapted, ...)
   }
-  adapted <- do.call(rbi::run, c(run_opts, list(...)))
 
   ## scale should be > 1 (it's a divider if acceptance rate is too
   ## small, multiplier if the acceptance Rate is too big)
@@ -132,7 +123,7 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
 
       adaptation_vars <-
         get_mvn_params(adapted, correlations = (round == 2), scale=adapt_scale)
-      bi_write(adapted$options[["input-file"]], adaptation_vars, append=TRUE)
+      adapted <- attach_data(adapted, file="input", adaptation_vars)
       adapted <- rbi::sample(adapted, ...)
       accRate <- acceptance_rate(adapted)
       iter <- iter + 1
