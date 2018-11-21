@@ -79,7 +79,7 @@ Plots state trajectories (unless plot = FALSE) and invisibly returns a list of s
 \examples{
 example_run_file <- system.file(package="rbi", "example_output.nc")
 example_model_file <- system.file(package="rbi", "PZ.bi")
-example_bi <- attach_file(libbi(example_model_file), "output", example_run_file)
+example_bi <- attach_data(libbi(example_model_file), "output", example_run_file)
 
 plot(example_bi) # just plot trajectories
 \dontrun{p <- plot(example_bi, plot = FALSE) # get whole suite of plots
