@@ -87,7 +87,8 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
   adapted <- x
   adapted$model <- enable_outputs(model_with_proposal, type="param")
   adaptation_vars <- get_mvn_params(adapted)
-  adapted <- attach_data(adapted, file="input", adaptation_vars)
+  adapted <-
+    attach_data(adapted, file="input", adaptation_vars, append=TRUE, overwrite=TRUE)
 
   if (need_initial_trial_run) {
     if (!quiet) message(date(), " Initial trial run")
@@ -123,7 +124,9 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
 
       adaptation_vars <-
         get_mvn_params(adapted, correlations = (round == 2), scale=adapt_scale)
-      adapted <- attach_data(adapted, file="input", adaptation_vars)
+      adapted <-
+        attach_data(adapted, file="input", adaptation_vars, in_place=TRUE,
+                    overwrite=TRUE, quiet=TRUE)
       adapted <- rbi::sample(adapted, ...)
       accRate <- acceptance_rate(adapted)
       iter <- iter + 1
