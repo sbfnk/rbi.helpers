@@ -93,11 +93,11 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   adapted$options[["nparticles"]] <- test[id]
   adapted$thin <- thin
 
-  if (old_model) {
+  if (old_libbi) {
     adapted$model <- x$model
     adapted$run_flag <- FALSE
   } else if (length(existing_cov_input) > 0) {
-      adapted <- attach_data(adapted, file="input", existing_cov_input)
+    adapted <- attach_data(adapted, file="input", existing_cov_input)
   }
 
  if (!quiet) message(date(), " Choosing ", test[id], " particles.")
