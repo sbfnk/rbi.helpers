@@ -23,7 +23,7 @@ acceptance_rate <- function(...) {
 
   x <- rbi::get_traces(...)
   if (nrow(x) > 1) {
-    accRate <- 1 - mean(apply(x[-nrow(x), , drop = FALSE] == x[-1,, drop = FALSE], 1, all))
+    accRate <- 1 - min(apply(x[-nrow(x), , drop = FALSE] == x[-1,, drop = FALSE], 1, all))
   } else {
     stop("Cannot compute acceptance rate from just one sample. Try setting 'nsamples'")
   }
