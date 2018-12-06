@@ -8,9 +8,8 @@ DIC <- function(x, ...) UseMethod("DIC")
 ##' Computes the DIC of a libbi object containing Monte-Carlo samples. The effective number of parameters is calculated following Gelman et al., Bayesian Data Analysis: Second Edition, 2004, p. 182.
 ##'
 ##' @param x a \code{libbi} object
-##' @param burn number of iterations to discard as burn-in (if any)
 ##' @param bootstrap number of bootstrap samples to take, 0 to just take data
-##' @param ... not used
+##' @param ... any parameters to be passed to `bi_read` (e.g., `burn`)
 ##' @return DIC
 ##' @import data.table
 ##' @importFrom stats var
@@ -21,30 +20,15 @@ DIC <- function(x, ...) UseMethod("DIC")
 ##' example_bi <- attach_data(libbi(example_model_file), "output", example_run)
 ##' DIC(example_bi)
 ##' @author Sebastian Funk
-DIC.libbi <- function(x, burn, bootstrap = 0, ...)
+DIC.libbi <- function(x, bootstrap = 0, ...)
 {
-    res <- bi_read(x)
-
-    ## convert to data.table
-    res <- lapply(res, function(x) { if (is.data.frame(x)) { data.table::data.table(x) } else {x} })
-
-    if (!missing(burn))
-    {
-        burned <- lapply(res, function(x) {
-            if ("np" %in% colnames(x)) {
-                x <- x[get("np") >= burn]
-            }
-        })
-    } else
-    {
-        burned <- res
-    }
+    res <- bi_read(x, ...)
 
     ## sample mean deviance
-    mean_D <- mean(-2 * burned[["loglikelihood"]]$value)
+    mean_D <- mean(-2 * res[["loglikelihood"]]$value)
 
     ## effective number of parameters
-    pd <- stats::var(-2 * burned[["loglikelihood"]]$value) / 2
+    pd <- stats::var(-2 * res[["loglikelihood"]]$value) / 2
 
     ## DIC
     return(mean_D + pd)
