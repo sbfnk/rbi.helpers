@@ -6,5 +6,5 @@ example_bi <- attach_data(libbi(example_model_file), "output", example_run)
 
 test_that("We can calculate DIC",
 {
-    expect_equal(round(DIC(example_bi)), 174)
+    expect_equal(round(DIC(example_bi, burn=10)), 174)
 })
