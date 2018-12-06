@@ -42,7 +42,7 @@ get_mvn_params <- function(x, scale=1, correlations=TRUE, fix) {
       rownames(A) <- params[[block]]
       colnames(A) <- params[[block]]
     } else if (x$run_flag){
-      res <- bi_read(x, vars=unique(dimless_params[[block]]), init.to.param = TRUE)
+      res <- bi_read(x, vars=unique(dimless_params[[block]]), init_to_param = TRUE)
 
       l <- list()
       for (param in names(res))
