@@ -12,8 +12,9 @@
 #' @param quiet if set to TRUE, will not provide running output of particle numbers tested
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
-#' @importFrom rbi bi_model bi_dim_len bi_read sample remove_lines attach_data
+#' @importFrom rbi bi_model bi_dim_len bi_read sample remove_lines attach_data installed_libbi_version
 #' @importFrom stats var
+#' @importFrom utils compareVersion
 #' @examples
 #' example_obs <- bi_read(system.file(package="rbi", "example_dataset.nc"))
 #' example_model <- bi_model(system.file(package="rbi", "PZ.bi"))

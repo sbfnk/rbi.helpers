@@ -7,7 +7,7 @@
 #' @param model a \code{\link{bi_model}} object
 #' @param truncate truncate the multivariate normal proposals according to the used priors, e.g. truncating a parameter with beta prior at 0 and 1
 #' @param blocks blocks to use (out of "parameter" and "initial")
-#' @importFrom rbi get_block add_block insert_lines
+#' @importFrom rbi get_block add_block insert_lines get_const
 #' @return the updated bi model
 #' @keywords internal
 update_proposal <- function(model, truncate = TRUE, blocks=c("parameter", "initial")) {

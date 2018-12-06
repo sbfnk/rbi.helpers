@@ -11,7 +11,7 @@
 #' @param fix if this is set, all elements of the covariance matrix will be set to it
 #' @inheritParams update_proposal
 #' @importFrom data.table setnames melt data.table
-#' @importFrom stats cov
+#' @importFrom stats cov sd
 #' @importFrom Matrix nearPD
 #' @return the updated bi model
 #' @keywords internal
