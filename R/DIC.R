@@ -16,9 +16,9 @@ DIC <- function(x, ...) UseMethod("DIC")
 ##' @importFrom stats var
 ##' @export
 ##' @examples
-##' example_run_file <- system.file(package="rbi", "example_output.nc")
+##' example_run <- bi_read(system.file(package="rbi", "example_output.nc"))
 ##' example_model_file <- system.file(package="rbi", "PZ.bi")
-##' example_bi <- attach_data(libbi(example_model_file), "output", example_run_file)
+##' example_bi <- attach_data(libbi(example_model_file), "output", example_run)
 ##' DIC(example_bi)
 ##' @author Sebastian Funk
 DIC.libbi <- function(x, burn, bootstrap = 0, ...)
