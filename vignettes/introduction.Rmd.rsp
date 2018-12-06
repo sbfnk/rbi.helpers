@@ -128,83 +128,10 @@ For example, to adjust the proposal distribution for an acceptance rate between 
 adapted <- adapt_proposal(adapted, min=0.05, max=0.4)
 ```
 
-The adjusted proposals are stored in the `bi_model` contained in the `libbi` object `adapted_proposal`
+The covariance matrices for parameters and initial conditions are stored in the input file contained in the `libbi` object `adapted`
 
 ```{R, eval=TRAVIS}
-get_block(adapted$model, "proposal_parameter")
-```
-
-Note that the multivariate normal is realised as a series of conditionally dependent draws from normal distributions.
-The model can be saved via
-
-```{R, eval=TRAVIS}
-write_model(adapted$model, "SIR.bi")
-````
-
-The steps above are exactly the steps used to create the proposal blocks in the file `SIR.bi` contained in the **RBi** package and used in its vignette.
-
-# Plot libbi objects
-
-Let us run take 5,000 samples from the posterior distribution of the model using the adapted proposal and number of particles, and generate sampled observations:
-
-```{R eval=FALSE}
-posterior <- sample(adapted, nsamples=5000)
-pred <- predict(posterior, noutputs=16, with=c("transform-obs-to-state"))
-```
-
-```{R echo=FALSE, eval=TRAVIS}
-posterior <- rbi::sample(adapted, nsamples=5000)
-pred <- predict(posterior, noutputs=16, with=c("transform-obs-to-state"))
-```
-
-Note that we called `predict` with the `with=c("transform-obs-to-state")` option to also generate posterior predictive samples from of the observations.
-
-Instead of using the [coda](https://cran.r-project.org/package=coda) routines for plotting as described in the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html#analysing-an-mcmc-run), one can use the `plot.libbi` function.
-If passed a `libbi` object, it can be called using `plot`. Here, we use it with the `pred` object. We could also pass the `posterior` object, but that would not have the observation samples.
-
-```{R, eval=TRAVIS}
-p <- plot(pred, plot=FALSE)
-```
-
-There are various options available for controlling the plots.
-See `?plot_libbi` for a description of all the different available arguments.
-
-The returned object `p` contains a number of different plots:
-
-```{R, eval=TRAVIS}
-names(p)
-```
-
-## Trajectories
-
-```{R, eval=TRAVIS}
-p$trajectories
-```
-
-This is the default plot displayed when `plot_libbi` is called without `plot=FALSE`.
-Note that this plots the data on top of the observation trajectory, because we called `predict` with `with=c("transform-obs-to-state")`.
-
-## Trace plot
-
-```{R, eval=TRAVIS}
-p$traces
-```
-
-## Posterior densities
-
-```{R, eval=TRAVIS}
-p$densities
-```
-
-This plots histograms.
-Smooth density interpolations can be plotted by passing `densities="density"` to `plot_libbi`.
-
-## Summary data
-
-All the data used for the plot are stored in the `data` object:
-
-```{R, eval=TRAVIS}
-p$data
+bi_read(adapted, file="input")
 ```
 
 # Compute DIC
@@ -217,15 +144,14 @@ DIC(posterior)
 
 # Create inference chains
 
-In combination with the `magrittr` package, the it is possible to construct inference chains more elegantly. For example, to get posterior samples from adapted Metropolis-Hastings as above, we could simply write
+In combination with the `magrittr` package, the it is possible to construct inference chains more elegantly. For example, to get posterior samples from adapted Metropolis-Hastings including sampled observations, we could simply write
 
 ```{R eval=FALSE}
 library('magrittr')
 posterior <- sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234) %>%
   adapt_particles %>%
   adapt_proposal(min=0.05, max=0.4) %>%
-  sample(nsamples=5000)
-posterior_obs <- posterior %>%
+  sample(nsamples=5000) %>%
   sample_obs
 ```
 
@@ -235,6 +161,5 @@ posterior <- rbi::sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*
   adapt_particles %>%
   adapt_proposal(min=0.05, max=0.4) %>%
   rbi::sample(nsamples=5000, nparticles=16)
-posterior_obs <- posterior %>%
-  sample_obs
+  rbi::sample_obs
 ```
