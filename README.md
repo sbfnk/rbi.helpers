@@ -8,7 +8,6 @@ Helper functions for the RBi package
 It contains:
 - `adapt_proposal`, to adapt the proposal distribution of a model according to the empirical standard deviations of accepted parameters
 - `adapt_particles`, to adapt the number of particles at a given point in parameter space.
-- `plot`, to plot libbi output
 - `DIC`, to compute the DIC of a pMCMC run
 - `acceptance_rate`, to calculate the acceptance rate of a pMCMC run
 
