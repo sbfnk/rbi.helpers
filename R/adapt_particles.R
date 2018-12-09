@@ -41,8 +41,8 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   }
 
   libbi_version <- installed_libbi_version(x$path_to_libbi)
-  old_libbi <- ## check if version is >= 1.4.3
-    (grepl("^pre", libbi_version) || compareVersion("1.4.3", libbi_version)==1)
+  old_libbi <- ## check if version is > 1.4.2
+    (compareVersion(libbi_version, "1.4.2") <= 0)
 
   thin <- x$thin ## no thinning when adapting particles
 
