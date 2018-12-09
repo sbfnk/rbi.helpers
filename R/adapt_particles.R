@@ -41,8 +41,8 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   }
 
   libbi_version <- installed_libbi_version(x$path_to_libbi)
-  old_libbi <- ## check if version is >= 1.4.3
-    (grepl("^pre", libbi_version) || compareVersion("1.4.3", libbi_version)==1)
+  old_libbi <- ## check if version is > 1.4.2
+    (compareVersion(libbi_version, "1.4.2") <= 0)
 
   thin <- x$thin ## no thinning when adapting particles
 
@@ -51,26 +51,30 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
   adapted <- x
 
   if (old_libbi) { ## old libbi version; we need to copy the prior to the proposal
-    model <- x$model
+    model <- adapted$model
     model <- rbi::remove_lines(model, "proposal_parameter")
     model <- rbi::remove_lines(model, "parameter")
     if ("with-transform-initial-to-param" %in% names(x$options)) {
       model <- rbi::remove_lines(model, "proposal_initial")
       model <- rbi::remove_lines(model, "initial")
     }
+    adapted$model <- model
   } else {
     adapted$model <- update_proposal(adapted$model)
     zero_cov_vars <- get_mvn_params(adapted, fix=0)
-    existing_cov_vars <-
-      intersect(bi_contents(adapted, file="input"), names(zero_cov_vars))
-    existing_cov_input <- bi_read(adapted, file="input", vars=existing_cov_vars)
+    if ("input-file" %in% names(adapted$options)) {
+      existing_cov_vars <-
+        intersect(bi_contents(adapted, file="input"), names(zero_cov_vars))
+      existing_cov_input <- bi_read(adapted, file="input", vars=existing_cov_vars)
+    } else {
+      existing_cov_input <- list()
+    }
     adapted <- attach_data(adapted, file="input", zero_cov_vars)
   }
 
   adapted$thin <- 1
 
   accRate <- c()
-  var_loglik <- c()
 
   found_good <- FALSE
   id <- 0
@@ -81,11 +85,12 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
     loglik <- rbi::bi_read(adapted, "loglikelihood")$loglikelihood$value
     ## remove any infinite log-likelihoods
     loglik <- loglik[is.finite(loglik)]
-    var_loglik <- c(var_loglik, stats::var(loglik))
+    var_loglik <- stats::var(loglik)
+    if (is.na(var_loglik)) var_loglik <- 0
 
-    if (!quiet) message(date(), " ", test[id], " particles, loglikelihod variance: ", var_loglik[id])
+    if (!quiet) message(date(), " ", test[id], " particles, loglikelihod variance: ", var_loglik)
 
-    if (var_loglik[id] < target.variance) {
+    if (var_loglik < target.variance) {
       ## choose smallest var-loglikelihood < target.variance
       found_good <- TRUE
     }
