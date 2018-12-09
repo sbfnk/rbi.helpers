@@ -5,16 +5,14 @@
 \alias{DIC.libbi}
 \title{Compute Deviance Information Criterion (DIC) for a libbi model}
 \usage{
-\method{DIC}{libbi}(x, burn, bootstrap = 0, ...)
+\method{DIC}{libbi}(x, bootstrap = 0, ...)
 }
 \arguments{
 \item{x}{a \code{libbi} object}
 
-\item{burn}{number of iterations to discard as burn-in (if any)}
-
 \item{bootstrap}{number of bootstrap samples to take, 0 to just take data}
 
-\item{...}{not used}
+\item{...}{any parameters to be passed to `bi_read` (e.g., `burn`)}
 }
 \value{
 DIC
