@@ -5,7 +5,7 @@ example_output <- bi_read(system.file(package="rbi", "example_output.nc"))
 bi <- libbi(model, nparticles=1)
 data <- bi_generate_dataset(bi, seed=1234)
 
-test_that("the number of particles can be adapted",
+test_that("pMCMC adaptation works",
 {
   capture.output(
     prop_adapted <-
