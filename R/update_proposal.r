@@ -45,7 +45,7 @@ update_proposal <- function(model, truncate = TRUE, blocks=c("parameter", "initi
       names(dim_list) <- var_dims
 
       df <- do.call(expand.grid, dim_list)
-      all_dims <- apply(df, 1, function(x) paste(x, sep=","))
+      all_dims <- apply(df, 1, function(x) paste(x, collapse=","))
       var_name <- gsub("[[:space:]]", "", sub("\\[.+$", "", x))
       paste0(var_name, "[", all_dims, "]")
     } else {
@@ -146,8 +146,11 @@ update_proposal <- function(model, truncate = TRUE, blocks=c("parameter", "initi
         ## there are (potentially) bounds, use a truncated normal
         bounds <- c(lower = NA, upper = NA)
 
-        ## extract upper and lower bounds
-        split_bounds <- strsplit(bounds_string, split = ",")[[1]]
+        ## extract upper and lower bounds (ignoring commas inside brackets)
+        ## see https://stackoverflow.com/questions/39733645/split-string-by-space-except-whats-inside-parentheses
+        split_bounds <-
+          strsplit(bounds_string, "(\\[(?:[^[\\]]++|(?1))*\\])(*SKIP)(*F)|,",
+                   perl=TRUE)[[1]]
         for (bound in c("lower", "upper")) {
           named <- grep(paste0(bound, "[[:space:]]*="), split_bounds)
           if (length(named) > 0) {
