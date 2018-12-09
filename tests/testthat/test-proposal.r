@@ -3,7 +3,7 @@ context("Testing generating multivariate proposals")
 model_str <- "
 model test {
   const no_a = 2
-  const no_b = 2
+  const no_b = 3
   dim a(no_a)
   dim b(no_b)
 
@@ -14,7 +14,10 @@ model test {
   param m[a, b]
 
   sub parameter {
-    m[a,b] ~ truncated_gaussian(lower=0)
+    m[0,0] ~ beta()
+    m[0,1] ~ gamma()
+    m[0,2] ~ gaussian(mean=1)
+    m[1,b] ~ truncated_gaussian(mean=1, lower=m[0,1])
   }
 
   sub initial {
@@ -66,10 +69,4 @@ test_that("multivariate proposals can be generated",
 test_that("errors are reported",
 {
     expect_error(update_proposal(3), "must be a")
-})
-
-test_that("deprecated options are recognised",
-{
-  expect_warning(adapt_proposal(bi, size=TRUE), "adapt")
-  expect_warning(adapt_proposal(bi, correlations=TRUE), "adapt")
 })

@@ -7,12 +7,17 @@ data <- bi_generate_dataset(bi, seed=1234)
 
 test_that("the number of particles can be adapted",
 {
-  prop_adapted <-
-    adapt_proposal(bi, obs=data, nsamples=100, min=0.5, max=0.53, adapt="both", seed=3)
+  capture.output(
+    prop_adapted <-
+      adapt_proposal(bi, obs=data, nsamples=100, min=0.5, max=0.53,
+                     adapt="both", seed=3)
+  )
   prop_adapted2 <-
-    adapt_proposal(prop_adapted, with="transform-initial-to-param", min=0.4, max=0.5, adapt="shape", seed=5, scale=0.5)
-  part_adapted <-
-    adapt_particles(bi, obs=data, nsamples=100, seed=1)
+    adapt_proposal(prop_adapted, with="transform-initial-to-param", min=0.4, max=0.5, adapt="shape", seed=5, scale=0.5, quiet=TRUE)
+  capture.output(
+    part_adapted <-
+      adapt_particles(bi, obs=data, nsamples=100, seed=1)
+  )
   expect_true(part_adapted$options$nparticles>0)
   expect_gt(length(bi_read(prop_adapted, file="input")), 0)
   expect_gt(length(bi_read(adapt_proposal(prop_adapted, min=0, max=1), file="input")), 0)
