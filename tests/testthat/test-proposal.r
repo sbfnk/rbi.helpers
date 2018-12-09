@@ -17,7 +17,7 @@ model test {
     m[0,0] ~ beta()
     m[0,1] ~ gamma()
     m[0,2] ~ gaussian(mean=1)
-    m[1,b] ~ truncated_gaussian(mean=1, lower=m[0,1])
+    m[1,b] ~ truncated_gaussian(mean=1, lower=m[0,b])
   }
 
   sub initial {
