@@ -7,12 +7,13 @@
 #' @param model a \code{\link{bi_model}} object
 #' @param truncate truncate the multivariate normal proposals according to the used priors, e.g. truncating a parameter with beta prior at 0 and 1
 #' @param blocks blocks to use (out of "parameter" and "initial")
-#' @importFrom rbi get_block add_block insert_lines get_const
+#' @importFrom rbi get_block add_block insert_lines get_const rewrite
+#' @importFrom utils capture.output
 #' @return the updated bi model
 #' @keywords internal
 update_proposal <- function(model, truncate = TRUE, blocks=c("parameter", "initial")) {
 
-  if (!("bi_model" %in% class(model))) stop("'x' must be a 'bi_model'")
+  if (!("bi_model" %in% class(model))) stop("'model' must be a 'bi_model'")
 
   ## get constant expressions
   const <- get_const(model)
@@ -20,184 +21,121 @@ update_proposal <- function(model, truncate = TRUE, blocks=c("parameter", "initi
     assign(const_name, const[[const_name]])
   }
 
+  libbi_model <- bi_model(lines=capture.output(rewrite(model)))
   param_block <- list()
+  ranges <- list()
+
   for (block in blocks)
   {
     ## get parameters
-    param_block[[block]] <- get_block(model, block)
+    param_block[[block]] <- grep("~", get_block(libbi_model, block),  value=TRUE)
+    ranges[[block]] <- unlist(lapply(param_block[[block]], function(x)
+    {
+      ## strip to parameter definition
+      dim_param <- sub("[[:space:]]*~.*$", "", x)
+      ## strip to distribution
+      dist_param <- sub("^.*~[[:space:]]*", "", x)
+      ## strip dim identifiers
+      dim_param <- sub("[^[,]+=", "", dim_param)
+      ret <- list(param=sub("\\[.*$", "", dim_param), dist=dist_param)
+      if (grepl("\\[", dim_param)) {
+        vardims <- unlist(strsplit(sub("^.*\\[", "", sub("\\]$", "", dim_param)), ","))
+        grid <- do.call(expand.grid, lapply(vardims, function(x) eval(parse(text=x))))
+        ret <- apply(grid, 1, function(x)
+        {
+          c(ret, list(dim=paste0("[", paste(x, collapse=","), "]")))
+        })
+      } else {
+        ret <- list(c(ret, list(dim="")))
+      }
+      ret
+    }), recursive = FALSE)
   }
 
-  ## get dimensionless parameters
-  params <- list(parameter=var_names(model, type="param"),
-                 initial=var_names(model, type="state"))
-  params <- params[blocks]
-
-  ## get dimension parameters
-  dims <- get_dims(model)
-  block_to_state <- c(parameter="param", initial="state")
-  vars <- var_names(model, type=block_to_state[blocks], dim=TRUE)
-  dim_vars <- unlist(lapply(vars, function(x)
-  {
-    if (grepl("\\[", x)) {
-      var_dims <-
-        gsub("[[:space:]]", "", strsplit(sub("^.*\\[(.+)\\]$", "\\1", x), ",")[[1]])
-      dim_list <- lapply(var_dims, function(x) seq_len(dims[[x]])-1)
-      names(dim_list) <- var_dims
-
-      df <- do.call(expand.grid, dim_list)
-      all_dims <- apply(df, 1, function(x) paste(x, collapse=","))
-      var_name <- gsub("[[:space:]]", "", sub("\\[.+$", "", x))
-      paste0(var_name, "[", all_dims, "]")
-    } else {
-      x
-    }
-  }))
-
-  ## get prior density definition for each parameter
-  param_bounds <-
-    vapply(dim_vars, function(param) {
-      match <- grep(paste0("^[[:space:]]*", gsub("([][])", "\\\\\\1", param),
-                           "[[:space:]][^~]*~"),
-                    unlist(param_block), value = TRUE)
-      if (length(match) == 0) {
-        param_regex <- gsub("\\[[0-9, ]*\\]", "[[A-z0-9_,: ].*]", param)
-        match <- grep(paste0("^[[:space:]]*", param_regex, "[[:space:]][^~]*~"),
-                      unlist(param_block), value = TRUE)
-        if (length(match) > 1) {
-          id <- as.integer(sub("^.*\\[([0-9, ]*)\\].*$", "\\1", param))
-          ranges <- lapply(match, function(x) {
-            eval(parse(text=sub("^.*\\[([ 0-9:,]*)\\].*~.*$", "\\1", x)))
-          })
-          match <- match[which(vapply(ranges, function(x) id %in% x, TRUE))]
-        }
-      }
-      if (length(match) == 0) return("")
-      return(match)
-    }, "")
-  param_bounds <- param_bounds[nchar(param_bounds) > 0]
-  ## select parameter that are variable (has a ~ in its prior line)
-  variable_bounds <- param_bounds[vapply(param_bounds, function(x) {
-    length(x) > 0
-  }, TRUE)]
-
-  variable_names <- names(variable_bounds)
-  dimless_variable_names <- sub("[[:space:]]*\\[.*$", "", variable_names)
-
-  block_vars <- lapply(names(params), function(x)
-  {
-    variable_names[dimless_variable_names %in% params[[x]]]
-  })
-  dimless_block_vars <- lapply(names(params), function(x)
-  {
-    dimless_variable_names[dimless_variable_names %in% params[[x]]]
-  })
-  names(block_vars) <- names(params)
-  names(dimless_block_vars) <- names(params)
-
-  for (block in names(block_vars))
+  for (block in names(ranges))
   {
     proposal_lines <- c()
     dim_lines <- grep("^[[:space:]]*dim[[:space:]]", model)
     if (length(dim_lines)==0) dim_lines <- 1
+    block_vars <- c()
 
-    for (param_id in seq_along(block_vars[[block]]))
+    for (param_id in seq_along(ranges[[block]]))
     {
-      param <- block_vars[[block]][param_id]
-      dimless_param <- dimless_block_vars[[block]][param_id]
-      dim_param <- var_names(model, vars=dimless_param, dim=TRUE)
+      range <- ranges[[block]][[param_id]]
+      param <- paste0(range$param, range$dim)
+      block_vars <- c(block_vars, param)
+      dim_param <- var_names(model, vars=range$param, dim=TRUE)
 
       ## extract bounded distribution split from parameters
       param_bounds_string <-
-        sub("^.*(uniform|truncated_gaussian|truncated_normal|gamma|beta|exponential|binomial|negbin|betabin)\\((.*)\\)[[:space:]]*$",
-            "\\1|\\2", variable_bounds[param])
+        sub(paste0("^(uniform|truncated_gaussian|truncated_normal|gamma|beta|",
+                   "exponential|binomial|negbin|betabin)\\((.*)\\)$"), "\\1|\\2",
+            range$dist)
 
       ## split distribution from arguments
       args <- strsplit(param_bounds_string, split = "\\|")
       ## extract distribution
       dist <- args[[1]][1]
       ## extract arguments to distribution
-      bounds_string <- args[[1]][2]
+      arg_string <- args[[1]][2]
 
       mean <- param
 
       for (j in (seq_len(param_id - 1))) {
         mean <-
           paste0(mean, " + __proposal_", block, "_cov[",
-                 param_id-1, ",", j-1, "] * (",
-                 block_vars[[block]][j], " - ",
-                 paste0("__current_", block_vars[[block]][j]), ")")
+                 param_id-1, ",", j-1, "] * (", block_vars[j], " - ",
+                 paste0("__current_", block_vars[j]), ")")
       }
       std <- paste0("__proposal_", block, "_cov[", param_id-1, ",", param_id-1, "]")
 
       ## impose bounds on gamma and beta distributions
       if (dist == "beta") {
-        bounds_string <- "lower = 0, upper = 1"
+        arg_string <- "lower = 0, upper = 1"
       } else if (dist %in% c("gamma", "poisson", "negbin", "binomial", "betabin", "exponential")) {
-        bounds_string <- "lower = 0"
+        arg_string <- "lower = 0"
       }
 
-      if (!truncate || is.na(bounds_string) ||
-            bounds_string == variable_bounds[param]) {
+      ## extract upper and lower bounds (ignoring commas inside brackets)
+      ## see https://stackoverflow.com/questions/39733645/split-string-by-space-except-whats-inside-parentheses
+      split_args <-
+        unlist(strsplit(arg_string,
+                        "(\\[(?:[^[\\]]++|(?1))*\\])(*SKIP)(*F)|, ", perl=TRUE))
+      named_args <- strsplit(split_args, split = " = ")
+      arg_names <- vapply(named_args, function(x) x[[1]], "")
+      bound_arg_pos <- which(arg_names %in% c("lower", "upper"))
+
+      bound_args <- named_args[bound_arg_pos]
+
+      if (!truncate || length(bound_args) == 0) {
         ## no bounds, just use a gaussian
         proposal_lines <-
           c(proposal_lines,
             paste0(param, " ~ gaussian(", "mean = ", mean, ", std = ", std, ")"))
       } else {
-        ## there are (potentially) bounds, use a truncated normal
-        bounds <- c(lower = NA, upper = NA)
-
-        ## extract upper and lower bounds (ignoring commas inside brackets)
-        ## see https://stackoverflow.com/questions/39733645/split-string-by-space-except-whats-inside-parentheses
-        split_bounds <-
-          strsplit(bounds_string, "(\\[(?:[^[\\]]++|(?1))*\\])(*SKIP)(*F)|,",
-                   perl=TRUE)[[1]]
-        for (bound in c("lower", "upper")) {
-          named <- grep(paste0(bound, "[[:space:]]*="), split_bounds)
-          if (length(named) > 0) {
-            bounds[bound] <- split_bounds[named]
-            split_bounds <- split_bounds[-named]
-          }
-        }
-
-        ## remove any arguments that don't pertain to bounds
-        if (any(is.na(bounds))) {
-          if (length(grep("^truncated", dist)) > 0) {
-            named_other <- grep("(mean|std)", split_bounds)
-            if (length(named_other) > 0) {
-              split_bounds <- split_bounds[-named_other]
-            }
-            if (length(named_other) < 2) {
-              split_bounds <- split_bounds[-seq_len(2 - length(named_other))]
-            }
-          }
-        }
-
-        ## get bounds
-        for (split_bound in split_bounds) {
-          bounds[which(is.na(bounds))][1] <- split_bound
-        }
-
-        ## get lower and upper bound
-        bounds <- gsub("(lower|upper)[[:space:]]*=[[:space:]]*", "", bounds)
-        bounds <- bounds[!is.na(bounds)]
-
         ## evaluate bounds (if they are given as expressions)
         eval_bounds <- tryCatch(
         {
-          vapply(bounds, function(x) {as.character(eval(parse(text = x)))}, "")
+          bounds <-
+            vapply(bound_args, function(x) as.character(eval(parse(text = x[[2]]))), "")
+          names(bounds) <- vapply(bound_args, function(x) x[[1]], "")
+          bounds
         },
         error = function(cond)
         {
           ## preserve adapted dimensions
-          if (dimless_param != param) {
+          if (range$param != param) {
             orig_param_dims <- sub("^.*\\[(.*)\\]$", "\\1", dim_param)
             orig_param_dims <- unlist(strsplit(orig_param_dims, ","))
             new_param_dims <- sub("^.*\\[(.*)\\]$", "\\1", param)
             new_param_dims <- unlist(strsplit(new_param_dims, ","))
             names(new_param_dims) <- orig_param_dims
-            for (bound in names(bounds))
+            bounds <- c()
+            for (bound_id in seq_along(bound_args))
             {
-              orig_bound_dims <- sub("^.*\\[(.*)\\]$", "\\1", bounds[bound])
+              bound <- bound_args[[bound_id]][1]
+              value <- bound_args[[bound_id]][2]
+              orig_bound_dims <- sub("^.*\\[(.*)\\]$", "\\1", value)
               bound_dims <- unlist(strsplit(orig_bound_dims, ","))
               matching_dims <- which(bound_dims %in% orig_param_dims)
               if (length(matching_dims) > 0)
@@ -208,30 +146,30 @@ update_proposal <- function(model, truncate = TRUE, blocks=c("parameter", "initi
               bounds[bound] <-
                 sub(paste0("\\[", orig_bound_dims, "\\]"),
                     paste0("[",paste(bound_dims, collapse=","), "]"),
-                    bounds[bound])
+                    value)
             }
-            ret <- bounds
-            return(ret)
+            return(bounds)
           }
         })
-        bounds <- eval_bounds
 
         proposal_lines <-
           c(proposal_lines,
             paste0(param, " ~ truncated_gaussian(", "mean = ", mean, ", std = ", std,
-                   ifelse(length(bounds) > 0,
-                          paste0(", ", paste(names(bounds), "=", bounds,
-                                             sep = " ", collapse = ", "),
-                                 ")"),
-                          ")")))
+                   paste0(", ", paste(names(eval_bounds), "=", eval_bounds,
+                                      sep = " ", collapse = ", ")),
+                   ")")
+            )
       }
     }
 
+    dims <- get_dims(model)
+    block_to_state <- c(parameter="param", initial="state")
     var_type <- block_to_state[block]
     vars <- var_names(model, type=var_type, dim=FALSE)
     aux_inputs <- var_names(model, type="input", dim=FALSE, aux=TRUE)
     dim_vars <- var_names(model, type=var_type, dim=TRUE)
     dim_aux_vars <- var_names(model, type=var_type, dim=TRUE, aux=TRUE)
+    dimless_variable_names <- unique(vapply(ranges[[block]], function(x) x$param, ""))
     propose_parameters <- rev(dim_vars[vars %in% unique(dimless_variable_names)])
 
     if (length(propose_parameters) > 0) {
@@ -253,7 +191,7 @@ update_proposal <- function(model, truncate = TRUE, blocks=c("parameter", "initi
       }
       new_dim_names <- setdiff(cov_dim_name, names(dims))
       if (length(new_dim_names) > 0) {
-        new_dim_lines <- paste0("dim ", new_dim_names, "(", length(block_vars[[block]]), ")")
+        new_dim_lines <- paste0("dim ", new_dim_names, "(", length(block_vars), ")")
         model <- insert_lines(model, new_dim_lines, after=max(dim_lines))
       }
     }
