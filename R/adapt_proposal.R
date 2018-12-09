@@ -45,18 +45,15 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
   }
 
   adapt <- match.arg(adapt)
-  if (length(adapt) == 0) {
-    stop("'adapt' must be one 'size', 'shape' or 'both'.")
-  } else {
-    if (adapt == "both") adapt <- c("size", "shape")
-    size <- ("size" %in% adapt)
-    correlations <- ("shape" %in% adapt)
-    if (!is.null(given_size) && size != given_size) {
-      warning("'size' given but not in 'adapt'. Will not adapt size")
-    }
-    if (!is.null(given_correlations) && correlations != given_correlations) {
-      warning("'correlations' given but not in 'shape in 'adapt'. Will not adapt shape")
-    }
+
+  if (adapt == "both") adapt <- c("size", "shape")
+  size <- ("size" %in% adapt)
+  correlations <- ("shape" %in% adapt)
+  if (!is.null(given_size) && size != given_size) {
+    warning("'size' given but not in 'adapt'. Will not adapt size")
+  }
+  if (!is.null(given_correlations) && correlations != given_correlations) {
+    warning("'correlations' given but not in 'shape in 'adapt'. Will not adapt shape")
   }
 
   if (min == 0 && max == 1) return(x)
@@ -75,13 +72,9 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
     need_initial_trial_run <- TRUE
   }
 
-  blocks <- "parameter"
-  if ("with-transform-initial-to-param" %in% names(x$options)) {
-    blocks <- c(blocks, "initial")
-  }
   ## ensure all parameters are saved to output file
   model_with_proposal <-
-    update_proposal(x$model, truncate=truncate, blocks=blocks)
+    update_proposal(x$model, truncate=truncate, blocks=c("parameter", "initial"))
 
   ## write initial covariance matrix
   adapted <- x
