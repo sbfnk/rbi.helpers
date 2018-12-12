@@ -46,7 +46,7 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
 
   thin <- x$thin ## no thinning when adapting particles
 
-  test <- 2**(seq(floor(log(min, 2)), ceiling(log(max, 2))))
+  test <- union(min * 2**(seq(0, floor(log2(max/min)))), max)
 
   adapted <- x
 
