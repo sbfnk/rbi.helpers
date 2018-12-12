@@ -62,16 +62,6 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
 
   if (!quiet) message(date(), " Adapting the proposal distribution")
 
-  if (x$run_flag) {
-    ## check if output file exists and contains all parameters
-    params <- var_names(x$model, type="param")
-    missing_vars <- setdiff(params, bi_contents(x))
-    ## need an initial trial run if not all parameters are in the output file
-    need_initial_trial_run <- (length(missing_vars) > 0)
-  } else {
-    need_initial_trial_run <- TRUE
-  }
-
   ## ensure all parameters are saved to output file
   model_with_proposal <-
     update_proposal(x$model, truncate=truncate, blocks=c("parameter", "initial"))
@@ -83,10 +73,8 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt 
   adapted <-
     attach_data(adapted, file="input", adaptation_vars, append=TRUE, overwrite=TRUE)
 
-  if (need_initial_trial_run) {
-    if (!quiet) message(date(), " Initial trial run")
-    adapted <- rbi::sample(adapted, ...)
-  }
+  if (!quiet) message(date(), " Initial trial run")
+  adapted <- rbi::sample(adapted, ...)
 
   ## scale should be > 1 (it's a divider if acceptance rate is too
   ## small, multiplier if the acceptance Rate is too big)
