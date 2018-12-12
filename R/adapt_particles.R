@@ -69,7 +69,8 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
     } else {
       existing_cov_input <- list()
     }
-    adapted <- attach_data(adapted, file="input", zero_cov_vars)
+    adapted <-
+        attach_data(adapted, file="input", zero_cov_vars, append=TRUE, overwrite=TRUE)
   }
 
   adapted$thin <- 1
@@ -103,7 +104,9 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
     adapted$model <- x$model
     adapted$run_flag <- FALSE
   } else if (length(existing_cov_input) > 0) {
-    adapted <- attach_data(adapted, file="input", existing_cov_input)
+    adapted <-
+        attach_data(adapted, file="input", existing_cov_input,
+                    append = TRUE, overwrite = TRUE)
   }
 
  if (!quiet) message(date(), " Choosing ", test[id], " particles.")
