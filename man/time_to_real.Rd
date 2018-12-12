@@ -14,10 +14,10 @@ frames containing state trajectories (as returned by \code{bi_read})}
 time 0}
 
 \item{unit}{the unit of time that each time step corresponds to; this must bg
-a unit understood by \code(lubridate::period), optionally with a number in
+a unit understood by \code{lubridate::period}, optionally with a number in
 advance, e.g. "day" or "2 weeks" or "3 seconds"}
 
-\item{...}{any arguments for \code{bi_read}}
+\item{...}{any arguments for \code{bi_read} (e.g., \code{file})}
 }
 \value{
 a list of data frames as returned bi \code{bi_read}, but with real times

@@ -29,7 +29,7 @@ split_unit <- function(unit_string) {
 #' @param origin the time origin, i.e. the date or time corresponding to LibBi
 #'   time 0
 #' @param unit the unit of time that each time step corresponds to; this must bg
-#'   a unit understood by \code(lubridate::period), optionally with a number in
+#'   a unit understood by \code{lubridate::period}, optionally with a number in
 #'   advance, e.g. "day" or "2 weeks" or "3 seconds"
 #' @param ... any arguments for \code{bi_read} (e.g., \code{file})
 #' @return a list of data frames as returned bi \code{bi_read}, but with real times
@@ -68,12 +68,12 @@ time_to_real <- function(x, origin, unit, ...) {
 #' @param origin the time origin, i.e. the date or time corresponding to LibBi
 #'   time 0
 #' @param unit the unit of time that each time step corresponds to; this must bg
-#'   a unit understood by \code(lubridate::period), optionally with a number in
+#'   a unit understood by \code{lubridate::period}, optionally with a number in
 #'   advance, e.g. "day" or "2 weeks" or "3 seconds"
 #' @return a list of data frames that can be passed to libbi
 #' @importFrom lubridate as.interval period
 #' @export
-real_to_time <- function(x, origin, unit, ...) {
+real_to_time <- function(x, origin, unit) {
 
   if (is.list(x)) {
     vars <- x

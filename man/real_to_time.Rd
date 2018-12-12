@@ -4,7 +4,7 @@
 \alias{real_to_time}
 \title{Convert real times to LibBi times}
 \usage{
-real_to_time(x, origin, unit, ...)
+real_to_time(x, origin, unit)
 }
 \arguments{
 \item{x}{a data frames containing a "time" column, or a list containing such data frames}
@@ -13,7 +13,7 @@ real_to_time(x, origin, unit, ...)
 time 0}
 
 \item{unit}{the unit of time that each time step corresponds to; this must bg
-a unit understood by \code(lubridate::period), optionally with a number in
+a unit understood by \code{lubridate::period}, optionally with a number in
 advance, e.g. "day" or "2 weeks" or "3 seconds"}
 }
 \value{
