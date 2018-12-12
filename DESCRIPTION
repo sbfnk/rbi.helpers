@@ -5,7 +5,7 @@ Title: RBi Helper Functions
 Author: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
 Maintainer: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
 Depends: rbi, data.table
-Imports: ggplot2, lubridate, reshape2, Matrix
+Imports: lubridate, reshape2, Matrix
 Suggests: R.rsp, testthat, covr (>= 3.2.0),
 Description: Contains a collection of helper functions to use with rbi, the R
     interface to LibBi. It contains functions to adapt the proposal distribution and

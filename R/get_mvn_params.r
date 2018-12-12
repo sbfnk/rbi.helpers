@@ -10,7 +10,8 @@
 #' @param correlations logical; if TRUE, correlations are taken into account when constructing the parameters
 #' @param fix if this is set, all elements of the covariance matrix will be set to it
 #' @inheritParams update_proposal
-#' @importFrom data.table setnames melt data.table
+#' @importFrom data.table setnames data.table
+#' @importFrom reshape2 melt
 #' @importFrom stats cov sd
 #' @importFrom Matrix nearPD
 #' @return the updated bi model
@@ -148,7 +149,7 @@ get_mvn_params <- function(x, scale=1, correlations=TRUE, fix) {
       ## generate variables
       cov_input_name <- paste("__proposal", block, "cov", sep="_")
       dim_name <- paste("__dim", block, "cov", sep="_")
-      long_cov <- data.table::melt(A, varnames=paste(dim_name, 1:2, sep="."))
+      long_cov <- reshape2::melt(A, varnames=paste(dim_name, 1:2, sep="."))
       vars[[cov_input_name]] <- long_cov
     }
   }

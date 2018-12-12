@@ -11,7 +11,6 @@ DIC <- function(x, ...) UseMethod("DIC")
 ##' @param bootstrap number of bootstrap samples to take, 0 to just take data
 ##' @param ... any parameters to be passed to `bi_read` (e.g., `burn`)
 ##' @return DIC
-##' @import data.table
 ##' @importFrom stats var
 ##' @export
 ##' @examples

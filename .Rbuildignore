@@ -1,2 +1,6 @@
-^\.travis\.yml$
-todo
+^CRAN-RELEASE$
+cran-comments.md
+^revdep$
+.travis.yml
+^.*\.Rproj$
+^\.Rproj\.user$

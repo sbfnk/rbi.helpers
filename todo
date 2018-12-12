@@ -1,5 +1,0 @@
-in plot_libbi, if there's one dim (zs) and no demand for colour, use the dim
-better interaction with true dates, convret to times internally (as plot_libbi does already)
-chain: check if init is in (and perhaps set noutputs to something by default)
-output-every options, i.e. every 1 time step, also end_time as last observation?
-- bi_write could return not just dims but a time origin; needs a timestep option then; start-time, and time and output-every could be adjustd accordingly
