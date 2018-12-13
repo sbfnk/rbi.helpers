@@ -20,8 +20,8 @@ split_unit <- function(unit_string) {
   return(list(num=amount, unit=unit))
 }
 
-#' @rdname to_actual_dates
-#' @name to_actual_dates
+#' @rdname to_actual_times
+#' @name to_actual_times
 #' @title Convert LibBi times to actual times or dates
 #' @description This function converts from LibBi times (i.e., 0, 1, 2, ...) to actual times or dates
 #' @param x a \code{\link{libbi}} object which has been run, or a list of data
@@ -36,7 +36,7 @@ split_unit <- function(unit_string) {
 #' @importFrom lubridate period
 #' @importFrom rbi bi_read
 #' @export
-to_actual_dates <- function(x, origin, unit, ...) {
+to_actual_times <- function(x, origin, unit, ...) {
 
   if (("libbi" %in% class(x)) || (is.character(x))) {
     vars <- do.call(bi_read, list(x=x, ...))
@@ -75,12 +75,12 @@ to_actual_dates <- function(x, origin, unit, ...) {
 #' @export
 to_libbi_times <- function(x, origin, unit) {
 
-  if (is.list(x)) {
-    vars <- x
-    list_given <- TRUE
-  } else if (is.data.frame(x)) {
+  if (is.data.frame(x)) {
     vars <- list(df=x)
     list_given <- FALSE
+  } else if (is.list(x)) {
+    vars <- x
+    list_given <- TRUE
   } else {
     stop("'x' must be a data frame or a list of data frames.")
   }
@@ -92,7 +92,8 @@ to_libbi_times <- function(x, origin, unit) {
     ## check if data frame has a time variable
     if (is.data.frame(vars[[var]]) && "time" %in% colnames(vars[[var]])) {
       vars[[var]][["time"]] <-
-        as.interval(origin, vars[[var]][["time"]]) / do.call(period, time_step)
+        as.interval(vars[[var]][["time"]] - origin, origin) /
+        do.call(period, time_step)
     }
   }
 
