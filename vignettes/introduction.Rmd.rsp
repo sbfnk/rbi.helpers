@@ -27,11 +27,12 @@ pre code {
 ```{R, echo=FALSE}
 TRAVIS <- !identical(tolower(Sys.getenv("TRAVIS")), "true")
 knitr::opts_chunk$set(purl = TRAVIS)
+set.seed(13)
 ```
 
 [RBi.helpers](https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [RBi](https://github.com/libbi/RBi), an R interface to [LibBi](https://github.com/libbi/LibBi), a library for Bayesian Inference.
 
-### Latest Version: _0.3.0_  &nbsp; <small>(24 July 2017)</small>
+### Latest Version: _0.3.0_
 
 This vignette builds on the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html), applying the higher-level functions contained in **RBi.helpers** to the same model introduced there.
 For the lower-level functions to run **LibBi** and read the results, please refer to the documentation and vignette that comes with **RBi**.
@@ -44,15 +45,18 @@ The **RBi.helpers** package requires `R` (>= 3.2.0) as well as the packages:
 - `data.table`
 - `reshape2`
 - `lubridate`
-- `coda`
-- `ggplot2`
-- `scales`
+- `Matrix`
 
 Most functions also require a working installation of **LibBi**.
 Please see the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html) for how to get one via homebrew or linuxbrew.
 
-The package name of **RBi.helpers** is `rbi.helpers` (all lowercase).
-The current stable version can be installed using the `devtools` package:
+The easiest way to install the latest stable version of **RBi.helpers** is via CRAN. The package name is `rbi.helpers` (all lowercase):
+
+```{r eval=FALSE}
+install.packages('rbi.helpers')
+```
+
+Alternatively, the current development version can be installed using the `devtools` package
 
 ```{R eval=FALSE}
 # install.packages("devtools")
@@ -65,7 +69,6 @@ install_github("sbfnk/rbi.helpers")
 Use
 
 ```{R}
-library('rbi')
 library('rbi.helpers')
 ```
 to load the package.
@@ -77,33 +80,34 @@ These steps are reproduced from the [RBi vignette](https://CRAN.R-project.org/pa
 ```{R}
 model_file <- system.file(package="rbi", "SIR.bi") # get full file name from package
 SIRmodel <- bi_model(model_file) # load model
-SIRdata <- bi_generate_dataset(SIRmodel, end_time=16*7, noutputs=16, seed=12345678)
+set.seed(1001912)
+SIRdata <- bi_generate_dataset(SIRmodel, end_time=16*7, noutputs=16)
 ```
 
 # Adapt the number of particles
 
-In the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html), a [stochastic SIR model](https://raw.githubusercontent.com/libbi/RBi/master/inst/SIR.bi) is fitted to simulated data from the same model using particle Markov-chain Monte Carlo with 16 particles.
+In the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html), a [stochastic SIR model](https://raw.githubusercontent.com/libbi/RBi/master/inst/SIR.bi) is fitted to simulated data from the same model using particle Markov-chain Monte Carlo with 32 particles.
 Given a model and data, how do we know how many particles we need?
 This question does not have a simple answer, as the "optimal" number of particles may depend on the state of the Markov chain.
 A possible rule-of-thumb is to choose the number of particles such that the variance of the log-likelihood near the mode is approximately one.
 This suggests a [strategy](https://darrenjw.wordpress.com/2014/06/08/tuning-particle-mcmc-algorithms/) by which first and approximate location of the mode or mean of the posterior distribution is obtained in a trial run, before the numer of particles is adjusted by monitoring the variance of the log-likelihood while keeping the parameters fixed.
 **RBi.helpers** implements the second part of this strategy (adjusting the number of particles at a given location in parameter space) with the `adapt_particles` method.
-For the first part (finding the mode), a crude method is to take a fixed number of samples from the prior distribution and choose the one that maximises the posterior distribution.
+For the first part (finding the mode), a crude method is to take a fixed number of samples from the prior distribution and choose the one that maximises the posterior.
 In **RBi**, this can be achieved with
 
 ```{R eval=FALSE}
-bi_prior <- sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234)
+bi_prior <- sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=4, obs=SIRdata, seed=1234)
 ```
 
 ```{R echo=FALSE, eval=TRAVIS}
-bi_prior <- rbi::sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234)
+bi_prior <- rbi::sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=4, obs=SIRdata, seed=1234)
 ```
 
-By using `proposal="prior"` we set the prior distribution to be the proposal distribution.
+This runs particle MCMC with the prior distribution as proposal distribution (because `proposal="prior"`), in this case with 4 particles.
 In other words, when sampling from the posterior the proposals will be drawn independently from the prior distribution.
 Note that we set a seed to make the results reproducible.
 It is worth trying the commands with a different seed and seeing the difference to the results obtained below.
-The location in parameters of the sampler at the end of the 1000 samples will give an approximation of the mode of the posterior distribution.
+The location in parameters of the sampler at the end of the 1000 iterations will give an approximation of the mode of the posterior distribution.
 This can then be used to adjust the number of particles using
 
 ```{R, eval=TRAVIS}
@@ -139,27 +143,19 @@ bi_read(adapted, file="input")
 To compute the [Deviance Information Criterion](https://en.m.wikipedia.org/wiki/Deviance_information_criterion) (DIC), use `DIC`:
 
 ```{R, eval=TRAVIS}
+posterior <- sample(adapted)
 DIC(posterior)
 ```
 
 # Create inference chains
 
-In combination with the `magrittr` package, the it is possible to construct inference chains more elegantly. For example, to get posterior samples from adapted Metropolis-Hastings including sampled observations, we could simply write
+In combination with the `magrittr` package, the it is possible to construct inference chains more elegantly. For example, to get posterior samples from adapted Metropolis-Hastings including sampled observations, we could have written
 
 ```{R eval=FALSE}
 library('magrittr')
-posterior <- sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234) %>%
+posterior <- sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=4, obs=SIRdata, seed=1234) %>%
   adapt_particles %>%
   adapt_proposal(min=0.05, max=0.4) %>%
   sample(nsamples=5000) %>%
   sample_obs
-```
-
-```{R echo=FALSE, eval=TRAVIS}
-library('magrittr')
-posterior <- rbi::sample(proposal="prior", SIRmodel, nsamples=1000, end_time=16*7, nparticles=16, obs=SIRdata, seed=1234) %>%
-  adapt_particles %>%
-  adapt_proposal(min=0.05, max=0.4) %>%
-  rbi::sample(nsamples=5000, nparticles=16)
-  rbi::sample_obs
 ```
