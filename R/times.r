@@ -20,10 +20,10 @@ split_unit <- function(unit_string) {
   return(list(num=amount, unit=unit))
 }
 
-#' @rdname time_to_real
-#' @name time_to_real
-#' @title Convert LibBi times to real times
-#' @description This function converts from LibBi times (i.e., 0, 1, 2, ...) to real times (e.g., dates or times)
+#' @rdname to_actual_dates
+#' @name to_actual_dates
+#' @title Convert LibBi times to actual times or dates
+#' @description This function converts from LibBi times (i.e., 0, 1, 2, ...) to actual times or dates
 #' @param x a \code{\link{libbi}} object which has been run, or a list of data
 #'     frames containing state trajectories (as returned by \code{bi_read})
 #' @param origin the time origin, i.e. the date or time corresponding to LibBi
@@ -36,7 +36,7 @@ split_unit <- function(unit_string) {
 #' @importFrom lubridate period
 #' @importFrom rbi bi_read
 #' @export
-time_to_real <- function(x, origin, unit, ...) {
+to_actual_dates <- function(x, origin, unit, ...) {
 
   if (("libbi" %in% class(x)) || (is.character(x))) {
     vars <- do.call(bi_read, list(x=x, ...))
@@ -60,11 +60,11 @@ time_to_real <- function(x, origin, unit, ...) {
   return(vars)
 }
 
-#' @rdname real_to_time
-#' @name real_to_time
-#' @title Convert real times to LibBi times
+#' @rdname to_libbi_times
+#' @name to_libbi_times
+#' @title Convert actual times or dates to LibBi times
 #' @description This function converts from real times/dates to LibBi times
-#' @param x a data frames containing a "time" column, or a list containing such data frames
+#' @param x a data frame containing a "time" column, or a list containing such data frames
 #' @param origin the time origin, i.e. the date or time corresponding to LibBi
 #'   time 0
 #' @param unit the unit of time that each time step corresponds to; this must bg
@@ -73,7 +73,7 @@ time_to_real <- function(x, origin, unit, ...) {
 #' @return a list of data frames that can be passed to libbi
 #' @importFrom lubridate as.interval period
 #' @export
-real_to_time <- function(x, origin, unit) {
+to_libbi_times <- function(x, origin, unit) {
 
   if (is.list(x)) {
     vars <- x
