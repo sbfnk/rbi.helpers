@@ -6,7 +6,7 @@
 #' run and returns the square root of the covariance matrix, which
 #' can be used for proposal distributions
 #' @param x a \code{\link{libbi}} which has been run
-#' @param scale a factor by which to scale all elements of the covarience matrix
+#' @param scale a factor by which to scale all elements of the covariance matrix
 #' @param correlations logical; if TRUE, correlations are taken into account when constructing the parameters
 #' @param fix if this is set, all elements of the covariance matrix will be set to it
 #' @inheritParams update_proposal

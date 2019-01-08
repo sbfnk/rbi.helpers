@@ -2,7 +2,7 @@
 #' @name adapt_particles
 #' @title Adapt the number of particles
 #' @description This function takes the provided \code{\link{libbi}} and
-#'   runs MCMC at a single point (i.e., repeatedly proposing the same paramters),
+#'   runs MCMC at a single point (i.e., repeatedly proposing the same parameters),
 #'   adapting the number of particles distribution until the variance of the log-likelihood
 #'   crosses the value given as \code{target.variance} (1 by default).
 #' @param x a \code{\link{libbi}} object
