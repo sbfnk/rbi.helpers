@@ -151,17 +151,17 @@ This samples from the posterior distribution using the adapted number of particl
 
 # Convert between LibBi times and actual times or dates
 
-LibBi uses real-valued times. To convert these to time or date objects for use in R, use the `times_to_numeric` function:
+LibBi uses real-valued times. To convert these to time or date objects for use in R, use the `numeric_to_time` function:
 
 ```{R, eval=TRAVIS}
-res <- numeric_to_times(posterior, unit="day", origin=as.Date("2018-04-01"))
+res <- numeric_to_time(posterior, unit="day", origin=as.Date("2018-04-01"))
 head(res$Z)
 ```
 
-The function `times_to_numeric` does the converse, converting R times or dates into numeric values for use by LibBi:
+The function `time_to_numeric` does the converse, converting R times or dates into numeric values for use by LibBi:
 
 ```{R, eval=TRAVIS}
-orig <- times_to_numeric(res, unit="day", origin=as.Date("2018-04-01"))
+orig <- time_to_numeric(res, unit="day", origin=as.Date("2018-04-01"))
 head(orig$Z)
 ```
 

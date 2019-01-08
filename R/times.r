@@ -20,8 +20,8 @@ split_unit <- function(unit_string) {
   return(list(num=amount, unit=unit))
 }
 
-#' @rdname numeric_to_times
-#' @name numeric_to_times
+#' @rdname numeric_to_time
+#' @name numeric_to_time
 #' @title Convert numeric times to actual times or dates
 #' @description This function converts from numeric times (i.e., 0, 1, 2, ...) to actual times or dates
 #' @param x a \code{\link{libbi}} object which has been run, or a list of data
@@ -35,7 +35,7 @@ split_unit <- function(unit_string) {
 #' @importFrom lubridate period
 #' @importFrom rbi bi_read
 #' @export
-numeric_to_times <- function(x, origin, unit, ...) {
+numeric_to_time <- function(x, origin, unit, ...) {
 
   if (("libbi" %in% class(x)) || (is.character(x))) {
     vars <- do.call(bi_read, list(x=x, ...))
@@ -59,8 +59,8 @@ numeric_to_times <- function(x, origin, unit, ...) {
   return(vars)
 }
 
-#' @rdname times_to_numeric
-#' @name times_to_numeric
+#' @rdname time_to_numeric
+#' @name time_to_numeric
 #' @title Convert actual times or dates to numeric times
 #' @description This function converts from real times/dates to numeric times (0, 1, 2, ...)
 #' @param x a data frame containing a "time" column, or a list containing such data frames
@@ -71,7 +71,7 @@ numeric_to_times <- function(x, origin, unit, ...) {
 #' @return a list of data frames that can be passed to \code{libbi}
 #' @importFrom lubridate as.interval period
 #' @export
-times_to_numeric <- function(x, origin, unit) {
+time_to_numeric <- function(x, origin, unit) {
 
   if (is.data.frame(x)) {
     vars <- list(df=x)
