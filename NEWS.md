@@ -1,14 +1,12 @@
-# rbi.helpers 0.2.0.9999
+# rbi.helpers 0.3.0
 
 * new vignette: Introduction to rbi.helpers
-* improved plotting routines
-* look at `obs-file` in `libbi` object for observations in `plot_libbi`
+* removed bloated `plot` function; plotting is now covered by the RBi vignette
 * adaptive MCMC using the full empirical covariance
-* plot prior if samples are given
-* travis build pass
-* use GGally to plot correlations and pairs
+* speed up proposal and particle adaptations by avoiding recompiles
 * `quiet` option to `adapt_mcmc` and `adapt_particles`
-* various bug fixes
+* times operations to convert between numeric and R times/dates
+* innumerable bug fixes
 
 # rbi.helpers 0.2
 

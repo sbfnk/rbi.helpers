@@ -1,6 +1,6 @@
 ^CRAN-RELEASE$
 cran-comments.md
 ^revdep$
-.travis.yml
+^\.travis\.yml$
 ^.*\.Rproj$
 ^\.Rproj\.user$

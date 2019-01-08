@@ -52,6 +52,7 @@ bi <- attach_data(bi, "output", test_output)
 
 test_that("multivariate proposals can be generated", 
 {
+  skip_on_cran()
   updated_model <- update_proposal(model)
   bi$model <- updated_model
 
