@@ -28,7 +28,7 @@
 #' obs_states <- var_names(example_model, type="obs")
 #' max_time <- max(vapply(example_obs[obs_states], function(x) { max(x[["time"]])}, 0))
 #' # adapt to acceptance rate between 0.1 and 0.5
-#' \dontrun{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
+#' \donttest{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
 #'                                min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
 #' @export
 adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10, adapt = c("size", "shape", "both"), size = FALSE, correlations = TRUE, truncate = TRUE, quiet = FALSE, ...) {
