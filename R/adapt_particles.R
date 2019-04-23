@@ -79,7 +79,7 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
 
   found_good <- FALSE
   id <- 0
-  while (!found_good && id < length(test)) {
+  while (!found_good && (id + 1) < length(test)) {
     id <- id + 1
     adapted <- rbi::sample(adapted, nparticles=test[id], chain=TRUE, ...)
 
@@ -96,6 +96,7 @@ adapt_particles <- function(x, min = 1, max = 1024, target.variance = 1, quiet=F
       found_good <- TRUE
     }
   }
+  if (!found_good) id <- length(test)
 
   adapted$options[["nparticles"]] <- test[id]
   adapted$thin <- thin
