@@ -1,3 +1,7 @@
+# rbi.helpers 0.3.1
+
+* removed obsolete test from `adapt_particles`
+
 # rbi.helpers 0.3.0
 
 * new vignette: Introduction to rbi.helpers

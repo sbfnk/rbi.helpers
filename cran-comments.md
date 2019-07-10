@@ -1,10 +1,10 @@
 ## Test environments
-* local macOS install (10.14.1), R 3.5.2
-* local linux install (Ubuntu 18.04), R 3.5.2
+* local macOS install (10.14.5), R 3.6.1
+* local linux install (Ubuntu 18.04), R 3.6.1
 * macOS and Linux on travis-ci
 
 ## R CMD check results
-There were no ERRORs or WARNINGs. There was a NOTE about potential mis-spellings of LibBi and RBi. These are software packages and spelled correctly.
+There were no ERRORs, WARNINGs or NOTEs.
 
 ## Downstream dependencies
 0 packages with problems.
