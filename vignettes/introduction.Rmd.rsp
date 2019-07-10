@@ -147,8 +147,13 @@ bi_read(adapted, file="input")
 
 To compute the [Deviance Information Criterion](https://en.m.wikipedia.org/wiki/Deviance_information_criterion) (DIC), use `DIC`:
 
-```{R, eval=TRAVIS}
+```{R, eval=FALSE}
 posterior <- sample(adapted)
+DIC(posterior)
+```
+
+```{R echo=FALSE, eval=TRAVIS}
+posterior <- rbi::sample(adapted)
 DIC(posterior)
 ```
 
