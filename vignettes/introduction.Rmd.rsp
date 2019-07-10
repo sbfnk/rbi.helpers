@@ -32,7 +32,7 @@ set.seed(13)
 
 [RBi.helpers](https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [RBi](https://github.com/libbi/RBi), an R interface to [LibBi](https://github.com/libbi/LibBi), a library for Bayesian Inference.
 
-### Latest Version: _0.3.0_
+### Latest Version: _0.3.1_
 
 This vignette builds on the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html), applying the higher-level functions contained in **RBi.helpers** to the same model introduced there.
 For the lower-level functions to run **LibBi** and read the results, please refer to the documentation and vignette that comes with **RBi**.
@@ -68,9 +68,14 @@ install_github("sbfnk/rbi.helpers")
 
 Use
 
-```{R}
+```{R eval=FALSE}
 library('rbi.helpers')
 ```
+
+```{R echo=FALSE}
+suppressPackageStartupMessages(library('rbi.helpers'))
+```
+
 to load the package.
 
 # Loading the model and generating a synthetic dataset
