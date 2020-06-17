@@ -5,9 +5,19 @@
 \title{Adapt the proposal distribution of MCMC using the covariance
   of samples}
 \usage{
-adapt_proposal(x, min = 0, max = 1, scale = 2, max_iter = 10,
-  adapt = c("size", "shape", "both"), size = FALSE,
-  correlations = TRUE, truncate = TRUE, quiet = FALSE, ...)
+adapt_proposal(
+  x,
+  min = 0,
+  max = 1,
+  scale = 2,
+  max_iter = 10,
+  adapt = c("size", "shape", "both"),
+  size = FALSE,
+  correlations = TRUE,
+  truncate = TRUE,
+  quiet = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{\code{link{libbi}} object}

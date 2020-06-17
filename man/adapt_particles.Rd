@@ -4,8 +4,14 @@
 \alias{adapt_particles}
 \title{Adapt the number of particles}
 \usage{
-adapt_particles(x, min = 1, max = 1024, target.variance = 1,
-  quiet = FALSE, ...)
+adapt_particles(
+  x,
+  min = 1,
+  max = 1024,
+  target.variance = 1,
+  quiet = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{a \code{\link{libbi}} object}
@@ -33,7 +39,7 @@ This function takes the provided \code{\link{libbi}} and
 example_obs <- bi_read(system.file(package="rbi", "example_dataset.nc"))
 example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
 example_bi <- libbi(model = example_model, obs = example_obs)
-obs_states <- var_names(example_model, "obs")
+obs_states <- var_names(example_model, type = "obs")
 max_time <- max(vapply(example_obs[obs_states], function(x) { max(x[["time"]])}, 0))
 \donttest{adapted <- adapt_particles(example_bi, nsamples = 128, end_time = max_time)}
 }

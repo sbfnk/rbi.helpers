@@ -4,8 +4,7 @@
 \alias{update_proposal}
 \title{Construct a proposal from run results}
 \usage{
-update_proposal(model, truncate = TRUE, blocks = c("parameter",
-  "initial"))
+update_proposal(model, truncate = TRUE, blocks = c("parameter", "initial"))
 }
 \arguments{
 \item{model}{a \code{\link{bi_model}} object}

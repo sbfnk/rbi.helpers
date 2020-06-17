@@ -9,7 +9,6 @@
 #' @param scale a factor by which to scale all elements of the covariance matrix
 #' @param correlations logical; if TRUE, correlations are taken into account when constructing the parameters
 #' @param fix if this is set, all elements of the covariance matrix will be set to it
-#' @inheritParams update_proposal
 #' @importFrom data.table setnames data.table
 #' @importFrom reshape2 melt
 #' @importFrom stats cov sd
