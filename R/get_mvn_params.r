@@ -119,7 +119,7 @@ get_mvn_params <- function(x, scale = 1, correlations = TRUE, fix) {
           }
 
           if (is.null(mat_a)) {
-            mat_a <- diag(apply(wide, 2, sd))
+            mat_a <- as.matrix(diag(as.matrix(apply(wide, 2, sd))))
             rownames(mat_a) <- colnames(wide)
             colnames(mat_a) <- colnames(wide)
           }
