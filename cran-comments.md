@@ -1,7 +1,6 @@
 ## Test environments
-* local macOS install (10.14.5), R 4.0.0
-* local linux install (Ubuntu 18.04), R 4.0.0
-* macOS and Linux on travis-ci
+* local macOS install (12.6), R 4.2.1
+* local linux install (Ubuntu 20.04), R 4.2.1
 
 ## R CMD check results
 There were no ERRORs, WARNINGs or NOTEs.
@@ -14,4 +13,5 @@ A vignette is included, built locally using R.rsp as it depends on external soft
 
 ## Submission comments
 
-This was previously on CRAN but archived because so was a dependency (rbi). The dependency is no longer archived, and we're therefore asking to bring back this package.
+Updated to include missing dependency on 'markdown' for re-building the vignette.
+WARNINGs from CRAN incoming checks have been fixed.

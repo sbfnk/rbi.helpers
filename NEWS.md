@@ -1,3 +1,7 @@
+# rbi.helpers 0.3.3
+
+* adds a missing dependency for CRAN
+
 # rbi.helpers 0.3.2
 
 * version bump for CRAN resubmission

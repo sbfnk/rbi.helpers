@@ -1,14 +1,14 @@
 Package: rbi.helpers
-Version: 0.3.2
+Version: 0.3.3
 Title: 'RBi' Helper Functions
 Author: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
 Maintainer: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
 Depends: rbi (>= 0.10.0)
 Imports: data.table, lubridate, reshape2, Matrix
-Suggests: R.rsp, testthat, covr (>= 3.2.0), stringi
+Suggests: R.rsp, markdown, testthat, covr (>= 3.2.0), stringi
 Description: Contains a collection of helper functions to use with 'RBi', the R interface to 'LibBi', described in Murray et al. (2015) <doi:10.18637/jss.v067.i10>. It contains functions to adapt the proposal distribution and number of particles in particle Markov-Chain Monte Carlo, as well as calculating the Deviance Information Criterion (DIC) and converting between times in 'LibBi' results and R time/dates.
 License: GPL-3
-URL: http://libbi.org, https://github.com/sbfnk/RBi, https://github.com/sbfnk/RBi.helpers
+URL: https://libbi.org, https://github.com/sbfnk/RBi, https://github.com/sbfnk/RBi.helpers
 BugReports: https://github.com/sbfnk/RBi.helpers/issues
 SystemRequirements: libbi (>= 1.4.2)
 LazyLoad: no

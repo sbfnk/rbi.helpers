@@ -30,9 +30,9 @@ knitr::opts_chunk$set(purl = TRAVIS)
 set.seed(13)
 ```
 
-[RBi.helpers](https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [RBi](https://github.com/libbi/RBi), an R interface to [LibBi](https://github.com/libbi/LibBi), a library for Bayesian Inference.
+[RBi.helpers](https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [RBi](https://github.com/sbfnk/RBi), an R interface to [LibBi](https://github.com/lawmurray/LibBi), a library for Bayesian Inference.
 
-### Latest Version: _0.3.1_
+### Latest Version: _0.3.3_
 
 This vignette builds on the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html), applying the higher-level functions contained in **RBi.helpers** to the same model introduced there.
 For the lower-level functions to run **LibBi** and read the results, please refer to the documentation and vignette that comes with **RBi**.
@@ -91,7 +91,7 @@ SIRdata <- bi_generate_dataset(SIRmodel, end_time=16*7, noutputs=16)
 
 # Adapt the number of particles
 
-In the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html), a [stochastic SIR model](https://raw.githubusercontent.com/libbi/RBi/master/inst/SIR.bi) is fitted to simulated data from the same model using particle Markov-chain Monte Carlo with 32 particles.
+In the [RBi vignette](https://CRAN.R-project.org/package=rbi/vignettes/introduction.html), a [stochastic SIR model](https://raw.githubusercontent.com/sbfnk/RBi/master/inst/SIR.bi) is fitted to simulated data from the same model using particle Markov-chain Monte Carlo with 32 particles.
 Given a model and data, how do we know how many particles we need?
 This question does not have a simple answer, as the "optimal" number of particles may depend on the state of the Markov chain.
 A possible rule-of-thumb is to choose the number of particles such that the variance of the log-likelihood near the mode is approximately one.
