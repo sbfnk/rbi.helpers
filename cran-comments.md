@@ -13,4 +13,5 @@ There were no ERRORs, WARNINGs or NOTEs.
 A vignette is included, built locally using R.rsp as it depends on external software (LibBi) listed in the SystemRequirements.
 
 ## Submission comments
-This was previously on CRAN but archived because so was a dependency (rbi). The dependency is no longer archived, and we're therefore asking to please bring back this package.
+
+This was previously on CRAN but archived because so was a dependency (rbi). The dependency is no longer archived, and we're therefore asking to bring back this package.

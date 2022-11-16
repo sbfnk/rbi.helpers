@@ -1,3 +1,7 @@
+# rbi.helpers 0.3.2
+
+* version bump for CRAN resubmission
+
 # rbi.helpers 0.3.1
 
 * removed obsolete test from `adapt_particles`
