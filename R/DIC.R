@@ -1,11 +1,13 @@
 #' @export
-DIC <- function(x, ...) UseMethod("DIC")
+DIC <- function(x, ...) UseMethod("DIC") # nolint
 ##' @name DIC
 ##' @rdname DIC
 ##' @title Compute Deviance Information Criterion (DIC) for a libbi model
 ##'
 ##' @description
-##' Computes the DIC of a libbi object containing Monte-Carlo samples. The effective number of parameters is calculated following Gelman et al., Bayesian Data Analysis: Second Edition, 2004, p. 182.
+##' Computes the DIC of a libbi object containing Monte-Carlo samples. The
+##'   effective number of parameters is calculated following Gelman et al.,
+##'   Bayesian Data Analysis: Second Edition, 2004, p. 182.
 ##'
 ##' @param x a \code{libbi} object
 ##' @param bootstrap number of bootstrap samples to take, 0 to just take data
@@ -23,17 +25,15 @@ DIC <- function(x, ...) UseMethod("DIC")
 ##' )
 ##' DIC(example_bi)
 ##' @author Sebastian Funk
-DIC.libbi <- function(x, bootstrap = 0, ...)
-{
-    res <- bi_read(x, ...)
+DIC.libbi <- function(x, bootstrap = 0, ...) {
+  res <- bi_read(x, ...)
 
-    ## sample mean deviance
-    mean_D <- mean(-2 * res[["loglikelihood"]]$value)
+  ## sample mean deviance
+  mean_d <- mean(-2 * res[["loglikelihood"]]$value)
 
-    ## effective number of parameters
-    pd <- stats::var(-2 * res[["loglikelihood"]]$value) / 2
+  ## effective number of parameters
+  pd <- stats::var(-2 * res[["loglikelihood"]]$value) / 2
 
-    ## DIC
-    return(mean_D + pd)
+  ## DIC
+  return(mean_d + pd)
 }
-

@@ -19,18 +19,22 @@
 #' acceptance_rate(example_bi)
 #' @author Sebastian Funk
 acceptance_rate <- function(...) {
-
-  ## we use the same method as the rejectionRate function of the`coda` library (v. 0.10-7):
+  ## we use the same method as the rejectionRate function of the`coda` library
+  ## (v. 0.10-7):
   ## Martyn Plummer, Nicky Best, Kate Cowles and Karen Vines (2006). CODA:
   ## Convergence Diagnosis and Output Analysis for MCMC, R News, vol 6,
   ## 7-11
 
-  x <- rbi::get_traces(...)
+  x <- get_traces(...)
   if (nrow(x) > 1) {
-    accRate <- 1 - mean(apply(x[-nrow(x), , drop = FALSE] == x[-1,, drop = FALSE], 1, all))
+    acc_rate <- 1 -
+      mean(apply(x[-nrow(x), , drop = FALSE] == x[-1, , drop = FALSE], 1, all))
   } else {
-    stop("Cannot compute acceptance rate from just one sample. Try setting 'nsamples'")
+    stop(
+      "Cannot compute acceptance rate from just one sample. Try setting ",
+      "'nsamples'"
+    )
   }
 
-  return(accRate)
+  return(acc_rate)
 }
