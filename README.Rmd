@@ -8,6 +8,8 @@ output: github_document
 [![codecov](https://codecov.io/github/sbfnk/rbi.helpers/branch/master/graphs/badge.svg)](https://codecov.io/github/sbfnk/rbi.helpers) 
 ![GitHub contributors](https://img.shields.io/github/contributors/sbfnk/rbi.helpers)
  [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/rbi.helpers)](https://CRAN.R-project.org/package=rbi.helpers)
 <!-- badges: end -->
   
 [rbi.helpers](https://github.com/sbfnk/rbi.helpers) is collection of helper functions to use with [rbi](https://github.com/sbfnk/rbi), an R interface to [LibBi](https://github.com/lawmurray/LibBi), a library for Bayesian Inference.
