@@ -18,7 +18,9 @@
 DIC
 }
 \description{
-Computes the DIC of a libbi object containing Monte-Carlo samples. The effective number of parameters is calculated following Gelman et al., Bayesian Data Analysis: Second Edition, 2004, p. 182.
+Computes the DIC of a libbi object containing Monte-Carlo samples. The
+  effective number of parameters is calculated following Gelman et al.,
+  Bayesian Data Analysis: Second Edition, 2004, p. 182.
 }
 \examples{
 example_run <- rbi::bi_read(

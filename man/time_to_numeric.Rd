@@ -7,7 +7,8 @@
 time_to_numeric(x, origin, unit)
 }
 \arguments{
-\item{x}{a data frame containing a "time" column, or a list containing such data frames}
+\item{x}{a data frame containing a "time" column, or a list containing such
+data frames}
 
 \item{origin}{the time origin, i.e. the date or time corresponding to time 0}
 
@@ -19,5 +20,6 @@ advance, e.g. "day" or "2 weeks" or "3 seconds"}
 a list of data frames that can be passed to \code{libbi}
 }
 \description{
-This function converts from real times/dates to numeric times (0, 1, 2, ...)
+This function converts from real times/dates to numeric times
+  (0, 1, 2, ...)
 }

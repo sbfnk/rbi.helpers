@@ -11,9 +11,11 @@ get_mvn_params(x, scale = 1, correlations = TRUE, fix)
 
 \item{scale}{a factor by which to scale all elements of the covariance matrix}
 
-\item{correlations}{logical; if TRUE, correlations are taken into account when constructing the parameters}
+\item{correlations}{logical; if TRUE, correlations are taken into account
+when constructing the parameters}
 
-\item{fix}{if this is set, all elements of the covariance matrix will be set to it}
+\item{fix}{if this is set, all elements of the covariance matrix will be set
+to it}
 }
 \value{
 the updated bi model

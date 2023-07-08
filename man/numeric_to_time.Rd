@@ -19,8 +19,10 @@ advance, e.g. "day" or "2 weeks" or "3 seconds"}
 \item{...}{any arguments for \code{bi_read} (e.g., \code{file})}
 }
 \value{
-a list of data frames as returned by \code{bi_read}, but with real times
+a list of data frames as returned by \code{bi_read}, but with real
+  times
 }
 \description{
-This function converts from numeric times (i.e., 0, 1, 2, ...) to actual times or dates
+This function converts from numeric times (i.e., 0, 1, 2, ...)
+  to actual times or dates
 }
