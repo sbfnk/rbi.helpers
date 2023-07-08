@@ -1,9 +1,9 @@
 context("Testing functions for adapting")
 
 model <- system.file(package="rbi", "PZ.bi")
-example_output <- bi_read(system.file(package="rbi", "example_output.nc"))
-bi <- libbi(model, nparticles=1)
-bi <- attach_data(bi, "output", example_output)
+example_output <- rbi::bi_read(system.file(package="rbi", "example_output.nc"))
+bi <- rbi::libbi(model, nparticles=1)
+bi <- rbi::attach_data(bi, "output", example_output)
 obs <- list(P_obs=data.frame(time=0, value=1.485121))
 
 test_that("pMCMC adaptation works",
@@ -31,7 +31,7 @@ test_that("warnings are given",
 
 test_that("errors are reported",
 {
-    expect_error(acceptance_rate(extract_sample(bi, 0), model=model), "just one sample")
+    expect_error(acceptance_rate(rbi::extract_sample(bi, 0), model=model), "just one sample")
     expect_error(adapt_particles(bi, min=1, max=0), "greater")
     expect_error(adapt_proposal(bi, min=1, max=0), "max>min")
     expect_error(adapt_proposal(bi, adapt="test"), "one of")

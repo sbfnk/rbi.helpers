@@ -37,8 +37,8 @@ model test {
 }
 "
 
-model <- bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
-bi <- libbi(model, dims=list(a=c("first", "second")))
+model <- rbi::bi_model(lines = stringi::stri_split_lines(model_str)[[1]])
+bi <- rbi::libbi(model, dims=list(a=c("first", "second")))
 test_output <-
     Map(
         function(x) { if (is.data.frame(x)) x$value <- abs(rnorm(nrow(x))); x },
@@ -48,7 +48,7 @@ test_output <-
              close=0,
              loglikelihood=data.frame(np=0:1),
              logprior=data.frame(np=0:1)))
-bi <- attach_data(bi, "output", test_output)
+bi <- rbi::attach_data(bi, "output", test_output)
 
 test_that("multivariate proposals can be generated", 
 {
@@ -61,7 +61,7 @@ test_that("multivariate proposals can be generated",
 
   test_output2 <- test_output
   test_output2$m$value <- 1
-  bi2 <- attach_data(bi, "output", test_output2)
+  bi2 <- rbi::attach_data(bi, "output", test_output2)
 
   expect_gt(length(get_mvn_params(bi2)), 0)
 
