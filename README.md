@@ -1,23 +1,39 @@
-Helper functions for the RBi package
-=============
+Helper functions for the rbi package
+================
 
-[![Build Status](https://travis-ci.org/sbfnk/RBi.helpers.png?branch=master)](https://travis-ci.org/sbfnk/RBi.helpers) [![codecov](https://codecov.io/github/sbfnk/RBi/branch/master/graphs/badge.svg)](https://codecov.io/github/sbfnk/RBi) 
-  
-[RBi.helpers](https://github.com/sbfnk/RBi.helpers) is collection of helper functions to use with [RBi](https://github.com/sbfnk/RBi), an R interface to [LibBi](https://github.com/lawmurray/LibBi), a library for Bayesian Inference.
+<!-- badges: start -->
+
+![GitHub R package
+version](https://img.shields.io/github/r-package/v/sbfnk/rbi.helpers)
+[![codecov](https://codecov.io/github/sbfnk/rbi.helpers/branch/master/graphs/badge.svg)](https://codecov.io/github/sbfnk/rbi.helpers)
+![GitHub
+contributors](https://img.shields.io/github/contributors/sbfnk/rbi.helpers)
+[![License: GPL
+v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/rbi.helpers)](https://CRAN.R-project.org/package=rbi.helpers)
+<!-- badges: end -->
+
+[rbi.helpers](https://github.com/sbfnk/rbi.helpers) is collection of
+helper functions to use with [rbi](https://github.com/sbfnk/rbi), an R
+interface to [LibBi](https://github.com/lawmurray/LibBi), a library for
+Bayesian Inference.
 
 It contains:
-- `adapt_proposal`, to adapt the proposal distribution of a model according to the empirical standard deviations of accepted parameters
-- `adapt_particles`, to adapt the number of particles at a given point in parameter space.
+
+- `adapt_proposal`, to adapt the proposal distribution of a model
+  according to the empirical standard deviations of accepted parameters
+- `adapt_particles`, to adapt the number of particles at a given point
+  in parameter space.
 - `DIC`, to compute the DIC of a pMCMC run
 - `acceptance_rate`, to calculate the acceptance rate of a pMCMC run
 
-Installation
-=============
+# Installation
 
-The easiest way to install `rbi.helpers` is to use the `devtools` package:
+The easiest way to install `rbi.helpers` is to use the `remotes`
+package:
 
-```r
-# install.packages("devtools")
-library(devtools)
-install_github("sbfnk/rbi.helpers")
+``` r
+# install.packages("remotes")
+remotes::install_github("sbfnk/rbi.helpers")
 ```
