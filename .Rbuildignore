@@ -2,7 +2,6 @@
 cran-comments.md
 ^README\..?md$
 ^revdep$
-^\.travis\.yml$
 ^codecov\.yml$
 ^.*\.Rproj$
 ^\.Rproj\.user$
