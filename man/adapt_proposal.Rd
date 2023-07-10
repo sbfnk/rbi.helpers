@@ -72,9 +72,9 @@ max_time <- max(vapply(example_obs[obs_states], function(x) {
 }, 0))
 # adapt to acceptance rate between 0.1 and 0.5
 \donttest{
-adapted <- adapt_proposal(example_bi,
-  nsamples = 100, end_time = max_time,
-  min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE
-)
+  adapted <- adapt_proposal(example_bi,
+    nsamples = 100, end_time = max_time,
+    min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE
+  )
 }
 }
