@@ -14,14 +14,14 @@ reference:
   - title: "Analysis functions"
     desc: "Functions for analysing LibBi results."
     contents:
-    - acceptance rate
+    - acceptance_rate
     - DIC
 
-  - title: "Data conversion"
-    desc: "Functions for analysing LibBi results."
+  - title: "Date conversion"
+    desc: "Functions for converting between libbi times and dates."
     contents:
-    - acceptance rate
-    - DIC
+    - numeric_to_time
+    - time_to_numeric
 
 articles:
   - title: Introduction
