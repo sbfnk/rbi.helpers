@@ -16,7 +16,7 @@
 #' @param target.variance deprecated; use \code{target_variance} instead
 #' @param ... parameters for libbi$run
 #' @return a \code{\link{libbi}} with the desired proposal distribution
-#' @importFrom rbi bi_model bi_dim_len bi_read sample remove_lines attach_data
+#' @importFrom rbi bi_model bi_read sample remove_lines attach_data
 #'   installed_libbi_version bi_contents var_names
 #' @importFrom stats var
 #' @importFrom utils compareVersion
