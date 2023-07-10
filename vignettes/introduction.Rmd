@@ -33,7 +33,6 @@ install.packages("rbi.helpers")
 Alternatively, the current development version can be installed using the `remotes` package
 
 ```{r, eval = FALSE}
-# install.packages("remotes")
 remotes::install_github("sbfnk/rbi.helpers")
 ```
 
@@ -79,7 +78,7 @@ In **rbi**, this can be achieved with
 
 ```{r}
 bi_prior <- sample(
-  proposal = "prior", sir_model, nsamples = 1000, end_time = 16 * 7, 
+  proposal = "prior", sir_model, nsamples = 1000, end_time = 16 * 7,
   nparticles = 4, obs = sir_data, seed = 1234
 )
 ```
@@ -152,7 +151,7 @@ With the pipe operator available since R version 4.1, it is possible to construc
 
 ```{r}
 posterior <- sample(
-  proposal = "prior", sir_model, nsamples = 1000, 
+  proposal = "prior", sir_model, nsamples = 1000,
   end_time = 16 * 7, nparticles = 4, obs = sir_data, seed = 1234
 ) |>
   adapt_particles() |>
