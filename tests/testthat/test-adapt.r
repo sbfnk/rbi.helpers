@@ -10,13 +10,13 @@ obs <- list(P_obs = data.frame(time = 0, value = 1.485121))
 
 test_that("pMCMC adaptation works", {
   skip_on_cran()
-  capture.output(
+  suppressWarnings(capture.output(
     prop_adapted <-
       adapt_proposal(bi,
         obs = obs, nsamples = 100, min = 0.5, max = 0.53,
         adapt = "both", seed = 3
       )
-  )
+  ))
   prop_adapted2 <- adapt_proposal(
     prop_adapted, with = "transform-initial-to-param", min = 0.4, max = 0.5,
     adapt = "shape", seed = 5, scale = 0.5, quiet = TRUE
