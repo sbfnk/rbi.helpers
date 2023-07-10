@@ -5,6 +5,7 @@ Helper functions for the rbi package
 
 ![GitHub R package
 version](https://img.shields.io/github/r-package/v/sbfnk/rbi.helpers)
+[![R-CMD-check](https://github.com/sbfnk/rbi/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/sbfnk/rbi/actions/workflows/R-CMD-check.yaml)
 [![codecov](https://codecov.io/github/sbfnk/rbi.helpers/branch/master/graphs/badge.svg)](https://codecov.io/github/sbfnk/rbi.helpers)
 ![GitHub
 contributors](https://img.shields.io/github/contributors/sbfnk/rbi.helpers)
