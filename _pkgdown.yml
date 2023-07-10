@@ -1,0 +1,30 @@
+url: https://sbfnk.github.io/rbi
+
+template:
+  params:
+    bootswatch: cerulean
+
+reference:
+  - title: "Adaptation functions"
+    desc: "Functions for tuning the proposal distribution and partilce numbers."
+    contents:
+    - adapt_particles
+    - adapt_proposal
+
+  - title: "Analysis functions"
+    desc: "Functions for analysing LibBi results."
+    contents:
+    - acceptance_rate
+    - DIC
+
+  - title: "Date conversion"
+    desc: "Functions for converting between libbi times and dates."
+    contents:
+    - numeric_to_time
+    - time_to_numeric
+
+articles:
+  - title: Introduction
+    navbar: Package vignette
+    contents:
+      - introduction
