@@ -81,15 +81,15 @@ test_that("multivariate proposals can be generated with one parameter", {
   expect_gt(length(get_mvn_params(bi)), 0)
 
   test_output$p$value <- 1 ## no variation
-  expect_gt(length(get_mvn_params(bi2)), 0)
+  expect_gt(length(get_mvn_params(bi)), 0)
 })
 
 test_that("multivariate proposals can be generated if covariance is 0", {
 
-  test_output2 <- test_output
-  test_output2$m$value <- 1
-  test_output2$p$value <- 1
-  bi <- rbi::attach_data(bi, "output", test_output2)
+  test_output <- test_output
+  test_output$m$value <- 1
+  test_output$p$value <- 1
+  bi <- rbi::attach_data(bi, "output", test_output)
 
   expect_gt(length(get_mvn_params(bi)), 0)
 })
