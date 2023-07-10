@@ -9,7 +9,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-NOT_CRAN <- identical(tolower(Sys.getenv("NOT_CRAN")), "true")
+NOT_CRAN <- identical(tolower(Sys.getenv("NOT_CRAN")), "true") # nolint
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -27,7 +27,7 @@ For the lower-level functions to run **LibBi** and read the results, please refe
 The easiest way to install the latest stable version of **rbi.helpers** is via CRAN. The package name is `rbi.helpers` (all lowercase):
 
 ```{r, eval = FALSE}
-install.packages('rbi.helpers')
+install.packages("rbi.helpers")
 ```
 
 Alternatively, the current development version can be installed using the `remotes` package
@@ -45,13 +45,13 @@ Please see the [rbi vignette](https://CRAN.R-project.org/package = rbi/vignettes
 Use
 
 ```{r, eval = FALSE}
-library('rbi')
-library('rbi.helpers')
+library("rbi")
+library("rbi.helpers")
 ```
 
 ```{r, echo = FALSE}
-suppressPackageStartupMessages(library('rbi'))
-suppressPackageStartupMessages(library('rbi.helpers'))
+suppressPackageStartupMessages(library("rbi"))
+suppressPackageStartupMessages(library("rbi.helpers"))
 ```
 to load the package.
 
@@ -60,10 +60,10 @@ to load the package.
 These steps are reproduced from the [rbi vignette](https://CRAN.R-project.org/package = rbi/vignettes/introduction.html), where there is more information on the individual steps
 
 ```{r, eval = NOT_CRAN}
-model_file <- system.file(package = "rbi", "SIR.bi") # get full file name from package
-SIRmodel <- bi_model(model_file) # load model
+model_file <- system.file(package = "rbi", "SIR.bi") # file included in package
+sir_model <- bi_model(model_file) # load model
 set.seed(1001912)
-SIRdata <- bi_generate_dataset(SIRmodel, end_time = 16*7, noutputs = 16)
+sir_data <- bi_generate_dataset(sir_model, end_time = 16 * 7, noutputs = 16)
 ```
 
 # Adapt the number of particles
@@ -78,7 +78,10 @@ For the first part (finding the mode), a crude method is to take a fixed number 
 In **rbi**, this can be achieved with
 
 ```{r}
-bi_prior <- sample(proposal = "prior", SIRmodel, nsamples = 1000, end_time = 16*7, nparticles = 4, obs = SIRdata, seed = 1234)
+bi_prior <- sample(
+  proposal = "prior", sir_model, nsamples = 1000, end_time = 16 * 7, 
+  nparticles = 4, obs = sir_data, seed = 1234
+)
 ```
 
 This runs particle MCMC with the prior distribution as proposal distribution (because `proposal = "prior"`), in this case with 4 particles.
@@ -148,7 +151,10 @@ head(orig$Z)
 With the pipe operator available since R version 4.1, it is possible to construct inference chains more elegantly. For example, to get posterior samples from adapted Metropolis-Hastings including sampled observations, we could have written
 
 ```{r}
-posterior <- sample(proposal = "prior", SIRmodel, nsamples = 1000, end_time = 16 * 7, nparticles = 4, obs = SIRdata, seed = 1234) |>
+posterior <- sample(
+  proposal = "prior", sir_model, nsamples = 1000, 
+  end_time = 16 * 7, nparticles = 4, obs = sir_data, seed = 1234
+) |>
   adapt_particles() |>
   adapt_proposal(min = 0.05, max = 0.4) |>
   sample(nsamples = 5000) |>
