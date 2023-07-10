@@ -101,24 +101,33 @@ will be inverted.</p></dd>
 
 
 <dt>adapt</dt>
-<dd><p>what to adapt; if "size" (default), the width of independent proposals will be adapted; if "shape", proposals will be dependent (following a multivariate normal) taking into account empirical correlations; if "both", the size will be adapted
+<dd><p>what to adapt; if "size" (default), the width of independent
+  proposals will be adapted; if "shape", proposals will be dependent
+  (following a multivariate normal) taking into account empirical
+  correlations; if "both", the size will be adapted
 before the shape</p></dd>
 
 
 <dt>size</dt>
-<dd><p>(deprecated, use <code>{adapt}</code> instead) if TRUE (default: FALSE), the size of the (diagonal multivariate normal) proposal distribution will be adapted</p></dd>
+<dd><p>(deprecated, use <code>{adapt}</code> instead) if TRUE (default:
+FALSE), the size of the (diagonal multivariate normal) proposal
+distribution will be adapted</p></dd>
 
 
 <dt>correlations</dt>
-<dd><p>(deprecated, use <code>{adapt}</code> instead) if TRUE (default: FALSE), the shape of the (diagonal multivariate normal) proposal distribution will be adapted according to the empirical covariance</p></dd>
+<dd><p>(deprecated, use <code>{adapt}</code> instead) if TRUE
+(default: FALSE), the shape of the (diagonal multivariate normal) proposal
+distribution will be adapted according to the empirical covariance</p></dd>
 
 
 <dt>truncate</dt>
-<dd><p>if TRUE, the proposal distributions will be truncated according to the support of the prior distributions</p></dd>
+<dd><p>if TRUE, the proposal distributions will be truncated
+according to the support of the prior distributions</p></dd>
 
 
 <dt>quiet</dt>
-<dd><p>if set to TRUE, will not provide running output of particle numbers tested</p></dd>
+<dd><p>if set to TRUE, will not provide running output of particle
+numbers tested</p></dd>
 
 
 <dt>...</dt>
@@ -134,18 +143,24 @@ before the shape</p></dd>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">example_obs</span> <span class="op">&lt;-</span> <span class="fu">bi_read</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span>package<span class="op">=</span><span class="st">"rbi"</span>, <span class="st">"example_dataset.nc"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">example_model</span> <span class="op">&lt;-</span> <span class="fu">bi_model</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span>package<span class="op">=</span><span class="st">"rbi"</span>, <span class="st">"PZ.bi"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">example_bi</span> <span class="op">&lt;-</span> <span class="fu">libbi</span><span class="op">(</span>model <span class="op">=</span> <span class="va">example_model</span>, obs <span class="op">=</span> <span class="va">example_obs</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">obs_states</span> <span class="op">&lt;-</span> <span class="fu">var_names</span><span class="op">(</span><span class="va">example_model</span>, type<span class="op">=</span><span class="st">"obs"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">max_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">example_obs</span><span class="op">[</span><span class="va">obs_states</span><span class="op">]</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">x</span><span class="op">[[</span><span class="st">"time"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">}</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">example_obs</span> <span class="op">&lt;-</span> <span class="fu">rbi</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rbi/man/bi_read.html" class="external-link">bi_read</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span>package<span class="op">=</span><span class="st">"rbi"</span>, <span class="st">"example_dataset.nc"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">example_model</span> <span class="op">&lt;-</span> <span class="fu">rbi</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rbi/man/bi_model.html" class="external-link">bi_model</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span>package<span class="op">=</span><span class="st">"rbi"</span>, <span class="st">"PZ.bi"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">example_bi</span> <span class="op">&lt;-</span> <span class="fu">rbi</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rbi/man/libbi.html" class="external-link">libbi</a></span><span class="op">(</span>model <span class="op">=</span> <span class="va">example_model</span>, obs <span class="op">=</span> <span class="va">example_obs</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">obs_states</span> <span class="op">&lt;-</span> <span class="fu">rbi</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rbi/man/var_names.html" class="external-link">var_names</a></span><span class="op">(</span><span class="va">example_model</span>, type<span class="op">=</span><span class="st">"obs"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">max_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">example_obs</span><span class="op">[</span><span class="va">obs_states</span><span class="op">]</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">x</span><span class="op">[[</span><span class="st">"time"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># adapt to acceptance rate between 0.1 and 0.5</span></span></span>
-<span class="r-in"><span><span class="va">adapted</span> <span class="op">&lt;-</span> <span class="fu">adapt_proposal</span><span class="op">(</span><span class="va">example_bi</span>, nsamples <span class="op">=</span> <span class="fl">100</span>, end_time <span class="op">=</span> <span class="va">max_time</span>,</span></span>
-<span class="r-in"><span>                               min <span class="op">=</span> <span class="fl">0.1</span>, max <span class="op">=</span> <span class="fl">0.5</span>, nparticles <span class="op">=</span> <span class="fl">256</span>, correlations <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="va">adapted</span> <span class="op">&lt;-</span> <span class="fu">adapt_proposal</span><span class="op">(</span><span class="va">example_bi</span>,</span></span>
+<span class="r-in"><span>  nsamples <span class="op">=</span> <span class="fl">100</span>, end_time <span class="op">=</span> <span class="va">max_time</span>,</span></span>
+<span class="r-in"><span>  min <span class="op">=</span> <span class="fl">0.1</span>, max <span class="op">=</span> <span class="fl">0.5</span>, nparticles <span class="op">=</span> <span class="fl">256</span>, correlations <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'correlations' argument is deprecated; use 'adapt'</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'correlations' given but not in 'shape in 'adapt'. Will not adapt shape</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Mon Jul 10 07:56:28 2023 Adapting the proposal distribution</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Mon Jul 10 09:26:06 2023 Adapting the proposal distribution</span>
 <span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in locate_libbi(x$path_to_libbi):</span> Could not find libbi executable at '/libbi'</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </div>
