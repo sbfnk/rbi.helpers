@@ -149,8 +149,8 @@ With the pipe operator available since R version 4.1, it is possible to construc
 
 ```{r}
 posterior <- sample(proposal = "prior", SIRmodel, nsamples = 1000, end_time = 16 * 7, nparticles = 4, obs = SIRdata, seed = 1234) |>
-  adapt_particles |>
+  adapt_particles() |>
   adapt_proposal(min = 0.05, max = 0.4) |>
   sample(nsamples = 5000) |>
-  sample_obs
+  sample_obs()
 ```
