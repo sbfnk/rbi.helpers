@@ -9,3 +9,4 @@ vignettes/*.log
 vignettes/*.tex
 Rplots.pdf
 README.html
+.DS_store
