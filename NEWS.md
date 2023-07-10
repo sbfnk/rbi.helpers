@@ -1,3 +1,8 @@
+# rbi.helpers 0.4.0
+
+* add github actions for package checking and testing
+* fix adaptation when there is only one parameter
+
 # rbi.helpers 0.3.3
 
 * adds a missing dependency for CRAN
