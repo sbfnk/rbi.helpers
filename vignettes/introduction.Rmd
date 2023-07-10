@@ -1,5 +1,6 @@
 ---
-title: "introduction"
+title: Introduction to rbi.helpers
+author: Sebastian Funk
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{introduction}
@@ -52,7 +53,6 @@ library('rbi.helpers')
 suppressPackageStartupMessages(library('rbi'))
 suppressPackageStartupMessages(library('rbi.helpers'))
 ```
-
 to load the package.
 
 # Loading the model and generating a synthetic dataset
