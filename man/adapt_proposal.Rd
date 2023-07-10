@@ -31,16 +31,25 @@ will be inverted.}
 
 \item{max_iter}{maximum of iterations (default: 10)}
 
-\item{adapt}{what to adapt; if "size" (default), the width of independent proposals will be adapted; if "shape", proposals will be dependent (following a multivariate normal) taking into account empirical correlations; if "both", the size will be adapted
+\item{adapt}{what to adapt; if "size" (default), the width of independent
+  proposals will be adapted; if "shape", proposals will be dependent
+  (following a multivariate normal) taking into account empirical
+  correlations; if "both", the size will be adapted
 before the shape}
 
-\item{size}{(deprecated, use \code{{adapt}} instead) if TRUE (default: FALSE), the size of the (diagonal multivariate normal) proposal distribution will be adapted}
+\item{size}{(deprecated, use \code{{adapt}} instead) if TRUE (default:
+FALSE), the size of the (diagonal multivariate normal) proposal
+distribution will be adapted}
 
-\item{correlations}{(deprecated, use \code{{adapt}} instead) if TRUE (default: FALSE), the shape of the (diagonal multivariate normal) proposal distribution will be adapted according to the empirical covariance}
+\item{correlations}{(deprecated, use \code{{adapt}} instead) if TRUE
+(default: FALSE), the shape of the (diagonal multivariate normal) proposal
+distribution will be adapted according to the empirical covariance}
 
-\item{truncate}{if TRUE, the proposal distributions will be truncated according to the support of the prior distributions}
+\item{truncate}{if TRUE, the proposal distributions will be truncated
+according to the support of the prior distributions}
 
-\item{quiet}{if set to TRUE, will not provide running output of particle numbers tested}
+\item{quiet}{if set to TRUE, will not provide running output of particle
+numbers tested}
 
 \item{...}{parameters for \code{\link{sample}}}
 }
@@ -54,12 +63,18 @@ This function takes the provided \code{\link{libbi}} object and
   to adapt the proposal at each iteration
 }
 \examples{
-example_obs <- bi_read(system.file(package="rbi", "example_dataset.nc"))
-example_model <- bi_model(system.file(package="rbi", "PZ.bi"))
-example_bi <- libbi(model = example_model, obs = example_obs)
-obs_states <- var_names(example_model, type="obs")
-max_time <- max(vapply(example_obs[obs_states], function(x) { max(x[["time"]])}, 0))
+example_obs <- rbi::bi_read(system.file(package="rbi", "example_dataset.nc"))
+example_model <- rbi::bi_model(system.file(package="rbi", "PZ.bi"))
+example_bi <- rbi::libbi(model = example_model, obs = example_obs)
+obs_states <- rbi::var_names(example_model, type="obs")
+max_time <- max(vapply(example_obs[obs_states], function(x) {
+  max(x[["time"]])
+}, 0))
 # adapt to acceptance rate between 0.1 and 0.5
-\donttest{adapted <- adapt_proposal(example_bi, nsamples = 100, end_time = max_time,
-                               min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE)}
+\donttest{
+adapted <- adapt_proposal(example_bi,
+  nsamples = 100, end_time = max_time,
+  min = 0.1, max = 0.5, nparticles = 256, correlations = TRUE
+)
+}
 }

@@ -10,10 +10,12 @@ split_unit(unit_string)
 \item{unit_string}{the string to split}
 }
 \value{
-a list with two elements, "num" (the amount) and "unit", , for use with lubridate::period
+a list with two elements, "num" (the amount) and "unit", , for use
+  with lubridate::period
 }
 \description{
-Splits a unit string (e.g., "2 weeks") into the amount (2) and unit ("weeks")
+Splits a unit string (e.g., "2 weeks") into the amount (2) and unit
+("weeks")
 }
 \author{
 Sebastian Funk
