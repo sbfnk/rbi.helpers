@@ -1,36 +1,22 @@
-<%@meta language = "R-vignette" content = "--------------------------------
-  DIRECTIVES FOR R:
+---
+title: "introduction"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
 
-  %\VignetteIndexEntry{Introduction to rbi.helpers}
-  %\VignetteAuthor{Sebastian Funk}
-  %\VignetteKeyword{rbi.helpers}
-  %\VignetteKeyword{package}
-  %\VignetteKeyword{vignette}
-  %\VignetteTangle{FALSE}
-  %\VignetteEngine{R.rsp::rsp}
---------------------------------------------------------------------"%>
-
-<style>
-pre {
-  overflow-x: auto;
-}
-pre code {
-  word-wrap: normal;
-  white-space: pre;
-}
-</style>
-
-# <%@meta name = "title"%>
-
-<%@meta name = "author"%> on <%=format(as.Date(Sys.Date()), format = "%B %d, %Y")%>
-
-```{r, echo = FALSE}
-set.seed(13)
+```{r, include = FALSE}
+NOT_CRAN <- identical(tolower(Sys.getenv("NOT_CRAN")), "true")
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = NOT_CRAN
+)
 ```
 
 [rbi.helpers](https://github.com/sbfnk/rbi.helpers) is collection of helper functions to use with [rbi](https://github.com/sbfnk/rbi), an R interface to [LibBi](https://github.com/lawmurray/LibBi), a library for Bayesian Inference.
-
-### Latest Version: _`r packageVersion("rbi.helpers")`_
 
 This vignette builds on the [rbi vignette](https://CRAN.R-project.org/package = rbi/vignettes/introduction.html), applying the higher-level functions contained in **rbi.helpers** to the same model introduced there.
 For the lower-level functions to run **LibBi** and read the results, please refer to the documentation and vignette that comes with **rbi**.
@@ -58,10 +44,12 @@ Please see the [rbi vignette](https://CRAN.R-project.org/package = rbi/vignettes
 Use
 
 ```{r, eval = FALSE}
+library('rbi')
 library('rbi.helpers')
 ```
 
 ```{r, echo = FALSE}
+suppressPackageStartupMessages(library('rbi'))
 suppressPackageStartupMessages(library('rbi.helpers'))
 ```
 
@@ -71,7 +59,7 @@ to load the package.
 
 These steps are reproduced from the [rbi vignette](https://CRAN.R-project.org/package = rbi/vignettes/introduction.html), where there is more information on the individual steps
 
-```{r}
+```{r, eval = NOT_CRAN}
 model_file <- system.file(package = "rbi", "SIR.bi") # get full file name from package
 SIRmodel <- bi_model(model_file) # load model
 set.seed(1001912)
@@ -89,12 +77,8 @@ This suggests a [strategy](https://darrenjw.wordpress.com/2014/06/08/tuning-part
 For the first part (finding the mode), a crude method is to take a fixed number of samples from the prior distribution and choose the one that maximises the posterior.
 In **rbi**, this can be achieved with
 
-```{r, eval = FALSE}
+```{r}
 bi_prior <- sample(proposal = "prior", SIRmodel, nsamples = 1000, end_time = 16*7, nparticles = 4, obs = SIRdata, seed = 1234)
-```
-
-```{r, echo = FALSE}
-bi_prior <- rbi::sample(proposal = "prior", SIRmodel, nsamples = 1000, end_time = 16*7, nparticles = 4, obs = SIRdata, seed = 1234)
 ```
 
 This runs particle MCMC with the prior distribution as proposal distribution (because `proposal = "prior"`), in this case with 4 particles.
@@ -136,13 +120,8 @@ bi_read(adapted, file = "input")
 
 To compute the [Deviance Information Criterion](https://en.m.wikipedia.org/wiki/Deviance_information_criterion) (DIC), use `DIC`:
 
-```{r, eval = FALSE}
+```{r}
 posterior <- sample(adapted)
-DIC(posterior)
-```
-
-```{r, echo = FALSE}
-posterior <- rbi::sample(adapted)
 DIC(posterior)
 ```
 
@@ -168,7 +147,7 @@ head(orig$Z)
 
 With the pipe operator available since R version 4.1, it is possible to construct inference chains more elegantly. For example, to get posterior samples from adapted Metropolis-Hastings including sampled observations, we could have written
 
-```{r, eval = FALSE}
+```{r}
 posterior <- sample(proposal = "prior", SIRmodel, nsamples = 1000, end_time = 16 * 7, nparticles = 4, obs = SIRdata, seed = 1234) |>
   adapt_particles |>
   adapt_proposal(min = 0.05, max = 0.4) |>

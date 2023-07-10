@@ -10,11 +10,12 @@ Imports:
   reshape2,
   Matrix
 Suggests:
-  R.rsp,
-  markdown,
-  testthat,
-  covr (>= 3.2.0),
-  stringi
+    markdown,
+    testthat,
+    covr (>= 3.2.0),
+    stringi,
+    knitr,
+    rmarkdown
 Description: Contains a collection of helper functions to use with 'rbi', the R
   interface to 'LibBi', described in
   Murray et al. (2015) <doi:10.18637/jss.v067.i10>. It contains functions to
@@ -29,6 +30,6 @@ BugReports: https://github.com/sbfnk/rbi.helpers/issues
 SystemRequirements: libbi (>= 1.4.2)
 LazyLoad: no
 RoxygenNote: 7.2.3
-VignetteBuilder: R.rsp
 NeedsCompilation: no
 Encoding: UTF-8
+VignetteBuilder: knitr
