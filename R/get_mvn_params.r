@@ -119,12 +119,16 @@ get_mvn_params <- function(x, scale = 1, correlations = TRUE, fix) {
           }
 
           if (is.null(mat_a)) {
-            mat_a <- diag(apply(wide, 2, sd))
+            diag_a <- diag(
+              matrix(apply(wide, 2, sd), ncol = ncol(wide), nrow = ncol(wide))
+            )
+            mat_a <- diag(diag_a, ncol = ncol(wide), nrow = ncol(wide))
             rownames(mat_a) <- colnames(wide)
             colnames(mat_a) <- colnames(wide)
+          } else {
+            diag_a <- diag(mat_a)
           }
 
-          diag_a <- diag(mat_a)
           for (i in seq_along(diag_a)) {
             if (diag_a[i] == 0) {
               mat_a[i, i] <- abs(mean(wide[, i, with = FALSE][[1]])) / 10
