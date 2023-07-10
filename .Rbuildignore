@@ -7,3 +7,4 @@ cran-comments.md
 ^\.Rproj\.user$
 ^CRAN-SUBMISSION$
 ^.github$
+^\.lintr$
