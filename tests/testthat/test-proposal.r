@@ -63,16 +63,22 @@ test_output <- Map(
   )
 )
 bi <- rbi::attach_data(bi, "output", test_output)
-updated_model <- update_proposal(model)
-bi$model <- updated_model
-
 test_that("multivariate proposals can be generated with multiple parameters", {
+  skip_on_cran()
+
+  updated_model <- update_proposal(model)
+  bi$model <- updated_model
 
   expect_gt(length(get_mvn_params(bi)), 0)
   expect_gt(length(get_mvn_params(bi, fix = 0)), 0)
 })
 
 test_that("multivariate proposals can be generated with one parameter", {
+
+  skip_on_cran()
+
+  updated_model <- update_proposal(model)
+  bi$model <- updated_model
 
   bi$model <- rbi::fix(bi$model, m = 0)
   test_output$m <- NULL
@@ -86,7 +92,11 @@ test_that("multivariate proposals can be generated with one parameter", {
 
 test_that("multivariate proposals can be generated if covariance is 0", {
 
-  test_output <- test_output
+  skip_on_cran()
+
+  updated_model <- update_proposal(model)
+  bi$model <- updated_model
+
   test_output$m$value <- 1
   test_output$p$value <- 1
   bi <- rbi::attach_data(bi, "output", test_output)
