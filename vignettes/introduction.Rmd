@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 
 [rbi.helpers](https://github.com/sbfnk/rbi.helpers) is collection of helper functions to use with [rbi](https://github.com/sbfnk/rbi), an R interface to [LibBi](https://github.com/lawmurray/LibBi), a library for Bayesian Inference.
 
-This vignette builds on the [rbi vignette](https://CRAN.R-project.org/package = rbi/vignettes/introduction.html), applying the higher-level functions contained in **rbi.helpers** to the same model introduced there.
+This vignette builds on the [rbi vignette](https://sbfnk.github.io/rbi/articles/introduction.html), applying the higher-level functions contained in **rbi.helpers** to the same model introduced there.
 For the lower-level functions to run **LibBi** and read the results, please refer to the documentation and vignette that comes with **rbi**.
 
 # Installation
@@ -37,7 +37,7 @@ remotes::install_github("sbfnk/rbi.helpers")
 ```
 
 Most functions in the **rbi.helpers** package require a working installation of **LibBi**.
-Please see the [rbi vignette](https://CRAN.R-project.org/package = rbi/vignettes/introduction.html) for how to get one via homebrew or linuxbrew.
+Please see the [rbi vignette](https://sbfnk.github.io/rbi/articles/introduction.html) for how to get one via homebrew or linuxbrew.
 
 # Loading the package
 
@@ -56,7 +56,7 @@ to load the package.
 
 # Loading the model and generating a synthetic dataset
 
-These steps are reproduced from the [rbi vignette](https://CRAN.R-project.org/package = rbi/vignettes/introduction.html), where there is more information on the individual steps
+These steps are reproduced from the [rbi vignette](https://sbfnk.github.io/rbi/articles/introduction.html), where there is more information on the individual steps
 
 ```{r, eval = NOT_CRAN}
 model_file <- system.file(package = "rbi", "SIR.bi") # file included in package
@@ -67,7 +67,7 @@ sir_data <- bi_generate_dataset(sir_model, end_time = 16 * 7, noutputs = 16)
 
 # Adapt the number of particles
 
-In the [rbi vignette](https://CRAN.R-project.org/package = rbi/vignettes/introduction.html), a [stochastic SIR model](https://raw.githubusercontent.com/sbfnk/rbi/master/inst/SIR.bi) is fitted to simulated data from the same model using particle Markov-chain Monte Carlo with 32 particles.
+In the [rbi vignette](https://sbfnk.github.io/rbi/articles/introduction.html), a [stochastic SIR model](https://raw.githubusercontent.com/sbfnk/rbi/master/inst/SIR.bi) is fitted to simulated data from the same model using particle Markov-chain Monte Carlo with 32 particles.
 Given a model and data, how do we know how many particles we need?
 This question does not have a simple answer, as the "optimal" number of particles may depend on the state of the Markov chain.
 A possible rule-of-thumb is to choose the number of particles such that the variance of the log-likelihood near the mode is approximately one.
