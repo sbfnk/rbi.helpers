@@ -26,6 +26,6 @@ reference:
 
 articles:
   - title: Introduction
-    navbar: Package vignette
+    navbar: ~
     contents:
-      - introduction
+      - rbi.helpers
