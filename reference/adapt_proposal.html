@@ -152,18 +152,12 @@ numbers tested</p></dd>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">x</span><span class="op">[[</span><span class="st">"time"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># adapt to acceptance rate between 0.1 and 0.5</span></span></span>
-<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="va">adapted</span> <span class="op">&lt;-</span> <span class="fu">adapt_proposal</span><span class="op">(</span><span class="va">example_bi</span>,</span></span>
 <span class="r-in"><span>    nsamples <span class="op">=</span> <span class="fl">100</span>, end_time <span class="op">=</span> <span class="va">max_time</span>,</span></span>
 <span class="r-in"><span>    min <span class="op">=</span> <span class="fl">0.1</span>, max <span class="op">=</span> <span class="fl">0.5</span>, nparticles <span class="op">=</span> <span class="fl">256</span>, correlations <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'correlations' argument is deprecated; use 'adapt'</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>'correlations' given but not in 'shape in 'adapt'. Will not adapt shape</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Wed Jul 26 14:16:40 2023 Adapting the proposal distribution</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Wed Jul 26 14:16:40 2023 Initial trial run</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Wed Jul 26 14:17:22 2023 Acceptance rate 0.0404040404040404, adapting size with scale 1</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Wed Jul 26 14:17:40 2023 Acceptance rate: 0.323232323232323</span>
-<span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
