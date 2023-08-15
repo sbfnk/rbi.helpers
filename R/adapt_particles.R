@@ -28,7 +28,7 @@
 #' max_time <- max(vapply(example_obs[obs_states], function(x) {
 #'   max(x[["time"]])
 #' }, 0))
-#' \donttest{
+#' \dontrun{
 #'   adapted <- adapt_particles(example_bi, nsamples = 128, end_time = max_time)
 #' }
 #' @export
