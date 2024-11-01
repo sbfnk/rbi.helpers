@@ -1,51 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://sbfnk.github.io/rbi/404.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/articles/rbi.helpers.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/index.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/reference/DIC.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/reference/acceptance_rate.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/reference/adapt_particles.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/reference/adapt_proposal.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/reference/get_mvn_params.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/reference/numeric_to_time.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/reference/split_unit.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/reference/time_to_numeric.html</loc>
-  </url>
-  <url>
-    <loc>https://sbfnk.github.io/rbi/reference/update_proposal.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://sbfnk.github.io/rbi/404.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/articles/index.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/articles/rbi.helpers.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/authors.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/index.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/news/index.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/reference/DIC.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/reference/acceptance_rate.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/reference/adapt_particles.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/reference/adapt_proposal.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/reference/get_mvn_params.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/reference/index.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/reference/numeric_to_time.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/reference/split_unit.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/reference/time_to_numeric.html</loc></url>
+<url><loc>https://sbfnk.github.io/rbi/reference/update_proposal.html</loc></url>
 </urlset>
+
