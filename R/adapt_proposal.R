@@ -2,7 +2,7 @@
 #' @name adapt_proposal
 #' @title Adapt the proposal distribution of MCMC using the covariance
 #'   of samples
-#' @description This function takes the provided \code{\link{libbi}} object and
+#' @description This function takes the provided [rbi::libbi()] object and
 #'   runs MCMC, adapting the proposal distribution until the desired
 #'   acceptance rate is achieved. If a scale is given, it will be used
 #'   to adapt the proposal at each iteration
@@ -27,8 +27,8 @@
 #'   according to the support of the prior distributions
 #' @param quiet if set to TRUE, will not provide running output of particle
 #'   numbers tested
-#' @param ... parameters for \code{\link{sample}}
-#' @return a \code{\link{libbi}} with the desired proposal distribution
+#' @param ... parameters for [rbi::sample()]
+#' @return a [rbi::libbi()] with the desired proposal distribution
 #' @importFrom rbi get_traces sample enable_outputs get_dims
 #'   attach_data
 #' @examples

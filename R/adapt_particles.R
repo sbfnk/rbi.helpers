@@ -1,12 +1,12 @@
 #' @rdname adapt_particles
 #' @name adapt_particles
 #' @title Adapt the number of particles
-#' @description This function takes the provided \code{\link{libbi}} and runs
+#' @description This function takes the provided [rbi::libbi()] and runs
 #'   MCMC at a single point (i.e., repeatedly proposing the same parameters),
 #'   adapting the number of particles distribution until the variance of the
 #'   log-likelihood crosses the value given as \code{target.variance} (1 by
 #'   default).
-#' @param x a \code{\link{libbi}} object
+#' @param x a [rbi::libbi()] object
 #' @param min minimum number of particles
 #' @param max maximum number of particles
 #' @param target_variance target log-likelihood variance; once this is crossed,
@@ -15,7 +15,7 @@
 #'   numbers tested
 #' @param target.variance deprecated; use \code{target_variance} instead
 #' @param ... parameters for libbi$run
-#' @return a \code{\link{libbi}} with the desired proposal distribution
+#' @return a [rbi::libbi()] with the desired proposal distribution
 #' @importFrom rbi bi_model bi_read sample remove_lines attach_data
 #'   installed_libbi_version bi_contents var_names
 #' @importFrom stats var

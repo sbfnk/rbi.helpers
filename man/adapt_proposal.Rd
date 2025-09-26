@@ -51,13 +51,13 @@ according to the support of the prior distributions}
 \item{quiet}{if set to TRUE, will not provide running output of particle
 numbers tested}
 
-\item{...}{parameters for \code{\link{sample}}}
+\item{...}{parameters for [rbi::sample()]}
 }
 \value{
-a \code{\link{libbi}} with the desired proposal distribution
+a [rbi::libbi()] with the desired proposal distribution
 }
 \description{
-This function takes the provided \code{\link{libbi}} object and
+This function takes the provided [rbi::libbi()] object and
   runs MCMC, adapting the proposal distribution until the desired
   acceptance rate is achieved. If a scale is given, it will be used
   to adapt the proposal at each iteration

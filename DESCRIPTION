@@ -1,8 +1,13 @@
 Package: rbi.helpers
-Version: 0.4.0
+Version: 0.4.0.9000
 Title: 'rbi' Helper Functions
-Author: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
-Maintainer: Sebastian Funk <sebastian.funk@lshtm.ac.uk>
+Authors@R: c(person(
+    given = "Sebastian",
+    family = "Funk",
+    role = c("aut", "cre"),
+    email = "sebastian.funk@lshtm.ac.uk",
+    comment = c(ORCID = "0000-0002-2842-3406")
+  ))
 Imports:
   rbi (>= 0.10.0),
   data.table,
@@ -10,12 +15,12 @@ Imports:
   reshape2,
   Matrix
 Suggests:
-    markdown,
-    testthat,
-    covr (>= 3.2.0),
-    stringi,
-    knitr,
-    rmarkdown
+  markdown,
+  testthat,
+  covr (>= 3.2.0),
+  stringi,
+  knitr,
+  rmarkdown
 Description: Contains a collection of helper functions to use with 'rbi', the R
   interface to 'LibBi', described in
   Murray et al. (2015) <doi:10.18637/jss.v067.i10>. It contains functions to
@@ -29,7 +34,7 @@ URL: https://libbi.org, https://github.com/sbfnk/rbi,
 BugReports: https://github.com/sbfnk/rbi.helpers/issues
 SystemRequirements: libbi (>= 1.4.2)
 LazyLoad: no
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 NeedsCompilation: no
 Encoding: UTF-8
 VignetteBuilder: knitr

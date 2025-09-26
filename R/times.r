@@ -27,7 +27,7 @@ split_unit <- function(unit_string) {
 #' @title Convert numeric times to actual times or dates
 #' @description This function converts from numeric times (i.e., 0, 1, 2, ...)
 #'   to actual times or dates
-#' @param x a \code{\link{libbi}} object which has been run, or a list of data
+#' @param x a [rbi::libbi()] object which has been run, or a list of data
 #'     frames containing state trajectories (as returned by \code{bi_read})
 #' @param origin the time origin, i.e. the date or time corresponding to time 0
 #' @param unit the unit of time that each time step corresponds to; this must be

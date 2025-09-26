@@ -15,7 +15,7 @@ adapt_particles(
 )
 }
 \arguments{
-\item{x}{a \code{\link{libbi}} object}
+\item{x}{a [rbi::libbi()] object}
 
 \item{min}{minimum number of particles}
 
@@ -32,10 +32,10 @@ numbers tested}
 \item{...}{parameters for libbi$run}
 }
 \value{
-a \code{\link{libbi}} with the desired proposal distribution
+a [rbi::libbi()] with the desired proposal distribution
 }
 \description{
-This function takes the provided \code{\link{libbi}} and runs
+This function takes the provided [rbi::libbi()] and runs
   MCMC at a single point (i.e., repeatedly proposing the same parameters),
   adapting the number of particles distribution until the variance of the
   log-likelihood crosses the value given as \code{target.variance} (1 by

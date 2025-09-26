@@ -2,9 +2,9 @@
 #' @name acceptance_rate
 #' @title Compute acceptance rate
 #' @description
-#' This function takes the provided \code{\link{libbi}} object which has been
+#' This function takes the provided [rbi::libbi()] object which has been
 #' run, or a bi file, and returns a the acceptance rate
-#' @param ... parameters to \code{\link{get_traces}} (especially 'x')
+#' @param ... parameters to [rbi::get_traces()] (especially 'x')
 #' @return acceptance rate
 #' @importFrom rbi get_traces
 #' @export
