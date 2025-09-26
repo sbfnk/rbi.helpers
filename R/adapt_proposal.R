@@ -119,7 +119,7 @@ adapt_proposal <- function(x, min = 0, max = 1, scale = 2, max_iter = 10,
     while ((round == 2 && !shape_adapted) ||
              (min(acc_rate) < min || max(acc_rate) > max ||
                 !is.finite(acc_rate)) &&
-             iter <= max_iter) {
+               iter <= max_iter) {
       if (is.finite(acc_rate)) {
         if (!quiet) {
           message(
