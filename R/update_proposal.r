@@ -159,7 +159,7 @@ update_proposal <- function(model, truncate = TRUE,
                 paste0("[", paste(bound_dims, collapse = ","), "]"), value
               )
             }
-            return(bounds)
+            bounds
           }
         })
 
