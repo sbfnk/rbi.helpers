@@ -1,5 +1,7 @@
 # rbi.helpers (development version)
 
+* fix documentation links leading to CRAN check failures
+
 # rbi.helpers 0.4.0
 
 * add github actions for package checking and testing
