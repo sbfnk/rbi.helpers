@@ -36,5 +36,5 @@ acceptance_rate <- function(...) {
     )
   }
 
-  return(acc_rate)
+  acc_rate
 }

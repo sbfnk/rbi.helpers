@@ -19,7 +19,7 @@ split_unit <- function(unit_string) {
     amount <- 1
     unit <- unit_string
   }
-  return(list(num = amount, unit = unit))
+  list(num = amount, unit = unit)
 }
 
 #' @rdname numeric_to_time
@@ -61,7 +61,7 @@ numeric_to_time <- function(x, origin, unit, ...) {
     }
   }
 
-  return(vars)
+  vars
 }
 
 #' @rdname time_to_numeric
@@ -97,7 +97,7 @@ time_to_numeric <- function(x, origin, unit) {
     if (is.data.frame(vars[[var]]) && "time" %in% colnames(vars[[var]])) {
       vars[[var]][["time"]] <-
         as.interval(vars[[var]][["time"]] - origin, origin) /
-          do.call(period, time_step)
+        do.call(period, time_step)
     }
   }
 
@@ -105,5 +105,5 @@ time_to_numeric <- function(x, origin, unit) {
     vars <- vars$df
   }
 
-  return(vars)
+  vars
 }
