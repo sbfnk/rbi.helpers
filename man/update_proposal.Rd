@@ -7,7 +7,7 @@
 update_proposal(model, truncate = TRUE, blocks = c("parameter", "initial"))
 }
 \arguments{
-\item{model}{a \code{\link{bi_model}} object}
+\item{model}{a [rbi::bi_model()] object}
 
 \item{truncate}{truncate the multivariate normal proposals according to the
 used priors, e.g. truncating a parameter with beta prior at 0 and 1}
@@ -18,7 +18,7 @@ used priors, e.g. truncating a parameter with beta prior at 0 and 1}
 the updated bi model
 }
 \description{
-This function takes the provided \code{\link{bi_model}} and adds a generic
+This function takes the provided [rbi::bi_model()] and adds a generic
 Gaussian proposal distribution.
 }
 \keyword{internal}

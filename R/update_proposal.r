@@ -2,9 +2,9 @@
 #' @name update_proposal
 #' @title Construct a proposal from run results
 #' @description
-#' This function takes the provided \code{\link{bi_model}} and adds a generic
+#' This function takes the provided [rbi::bi_model()] and adds a generic
 #' Gaussian proposal distribution.
-#' @param model a \code{\link{bi_model}} object
+#' @param model a [rbi::bi_model()] object
 #' @param truncate truncate the multivariate normal proposals according to the
 #'   used priors, e.g. truncating a parameter with beta prior at 0 and 1
 #' @param blocks blocks to use (out of "parameter" and "initial")

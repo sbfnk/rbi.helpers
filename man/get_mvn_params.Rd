@@ -7,7 +7,7 @@
 get_mvn_params(x, scale = 1, correlations = TRUE, fix)
 }
 \arguments{
-\item{x}{a \code{\link{libbi}} which has been run}
+\item{x}{a [rbi::libbi()] which has been run}
 
 \item{scale}{a factor by which to scale all elements of the covariance matrix}
 
@@ -21,7 +21,7 @@ to it}
 the updated bi model
 }
 \description{
-This function takes the provided \code{\link{libbi}} which has been
+This function takes the provided [rbi::libbi()] which has been
 run and returns the square root of the covariance matrix, which
 can be used for proposal distributions
 }

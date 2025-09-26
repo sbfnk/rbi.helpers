@@ -2,10 +2,10 @@
 #' @name get_mvn_params
 #' @title Construct a covariance matrix
 #' @description
-#' This function takes the provided \code{\link{libbi}} which has been
+#' This function takes the provided [rbi::libbi()] which has been
 #' run and returns the square root of the covariance matrix, which
 #' can be used for proposal distributions
-#' @param x a \code{\link{libbi}} which has been run
+#' @param x a [rbi::libbi()] which has been run
 #' @param scale a factor by which to scale all elements of the covariance matrix
 #' @param correlations logical; if TRUE, correlations are taken into account
 #'   when constructing the parameters

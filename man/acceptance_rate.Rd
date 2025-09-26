@@ -7,13 +7,13 @@
 acceptance_rate(...)
 }
 \arguments{
-\item{...}{parameters to \code{\link{get_traces}} (especially 'x')}
+\item{...}{parameters to [rbi::get_traces()] (especially 'x')}
 }
 \value{
 acceptance rate
 }
 \description{
-This function takes the provided \code{\link{libbi}} object which has been
+This function takes the provided [rbi::libbi()] object which has been
 run, or a bi file, and returns a the acceptance rate
 }
 \examples{

@@ -7,7 +7,7 @@
 numeric_to_time(x, origin, unit, ...)
 }
 \arguments{
-\item{x}{a \code{\link{libbi}} object which has been run, or a list of data
+\item{x}{a [rbi::libbi()] object which has been run, or a list of data
 frames containing state trajectories (as returned by \code{bi_read})}
 
 \item{origin}{the time origin, i.e. the date or time corresponding to time 0}
