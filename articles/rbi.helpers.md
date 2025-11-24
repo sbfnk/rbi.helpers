@@ -104,13 +104,13 @@ particles using
 
 ``` r
 adapted <- adapt_particles(bi_prior)
-#> Mon Nov 10 09:12:29 2025 Adapting the number of particles
-#> Mon Nov 10 09:12:45 2025 4 particles, loglikelihod variance: 9.5863402696008
-#> Mon Nov 10 09:12:49 2025 8 particles, loglikelihod variance: 3.77192932450897
-#> Mon Nov 10 09:12:53 2025 16 particles, loglikelihod variance: 2.24273655866084
-#> Mon Nov 10 09:12:57 2025 32 particles, loglikelihod variance: 1.30179246083847
-#> Mon Nov 10 09:13:05 2025 64 particles, loglikelihod variance: 0.651044197683024
-#> Mon Nov 10 09:13:05 2025 Choosing 64 particles.
+#> Mon Nov 24 09:20:39 2025 Adapting the number of particles
+#> Mon Nov 24 09:20:54 2025 4 particles, loglikelihod variance: 9.5863402696008
+#> Mon Nov 24 09:20:57 2025 8 particles, loglikelihod variance: 3.77192932450897
+#> Mon Nov 24 09:21:03 2025 16 particles, loglikelihod variance: 2.24273655866084
+#> Mon Nov 24 09:21:08 2025 32 particles, loglikelihod variance: 1.30179246083847
+#> Mon Nov 24 09:21:16 2025 64 particles, loglikelihod variance: 0.651044197683024
+#> Mon Nov 24 09:21:16 2025 Choosing 64 particles.
 ```
 
 This will take the last sample of the output file contained in the
@@ -140,9 +140,9 @@ for an acceptance rate between 0.05 and 0.4, we can run:
 
 ``` r
 adapted <- adapt_proposal(adapted, min = 0.05, max = 0.4)
-#> Mon Nov 10 09:13:05 2025 Adapting the proposal distribution
-#> Mon Nov 10 09:13:05 2025 Initial trial run
-#> Mon Nov 10 09:13:26 2025 Acceptance rate: 0.283283283283283
+#> Mon Nov 24 09:21:16 2025 Adapting the proposal distribution
+#> Mon Nov 24 09:21:16 2025 Initial trial run
+#> Mon Nov 24 09:21:36 2025 Acceptance rate: 0.283283283283283
 ```
 
 The covariance matrices for parameters and initial conditions are stored
@@ -221,15 +221,15 @@ posterior <- sample(
   adapt_proposal(min = 0.05, max = 0.4) |>
   sample(nsamples = 5000) |>
   sample_obs()
-#> Mon Nov 10 09:13:47 2025 Adapting the proposal distribution
-#> Mon Nov 10 09:14:15 2025 Adapting the number of particles
-#> Mon Nov 10 09:14:32 2025 4 particles, loglikelihod variance: 4.98864430510319
-#> Mon Nov 10 09:14:35 2025 8 particles, loglikelihod variance: 2.50334348358283
-#> Mon Nov 10 09:14:41 2025 16 particles, loglikelihod variance: 2.278740962349
-#> Mon Nov 10 09:14:46 2025 32 particles, loglikelihod variance: 2.06221670510984
-#> Mon Nov 10 09:14:53 2025 64 particles, loglikelihod variance: 1.02667431640938
-#> Mon Nov 10 09:15:05 2025 128 particles, loglikelihod variance: 0.399685704417314
-#> Mon Nov 10 09:15:05 2025 Choosing 128 particles.
-#> Mon Nov 10 09:15:06 2025 Initial trial run
-#> Mon Nov 10 09:15:32 2025 Acceptance rate: 0.388388388388388
+#> Mon Nov 24 09:21:58 2025 Adapting the proposal distribution
+#> Mon Nov 24 09:22:25 2025 Adapting the number of particles
+#> Mon Nov 24 09:22:41 2025 4 particles, loglikelihod variance: 4.98864430510319
+#> Mon Nov 24 09:22:46 2025 8 particles, loglikelihod variance: 2.50334348358283
+#> Mon Nov 24 09:22:51 2025 16 particles, loglikelihod variance: 2.278740962349
+#> Mon Nov 24 09:22:57 2025 32 particles, loglikelihod variance: 2.06221670510984
+#> Mon Nov 24 09:23:05 2025 64 particles, loglikelihod variance: 1.02667431640938
+#> Mon Nov 24 09:23:18 2025 128 particles, loglikelihod variance: 0.399685704417314
+#> Mon Nov 24 09:23:18 2025 Choosing 128 particles.
+#> Mon Nov 24 09:23:18 2025 Initial trial run
+#> Mon Nov 24 09:23:44 2025 Acceptance rate: 0.388388388388388
 ```

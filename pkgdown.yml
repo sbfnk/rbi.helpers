@@ -3,7 +3,7 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   rbi.helpers: rbi.helpers.html
-last_built: 2025-11-10T09:11Z
+last_built: 2025-11-24T09:19Z
 urls:
   reference: https://sbfnk.github.io/rbi/reference
   article: https://sbfnk.github.io/rbi/articles
