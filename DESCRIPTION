@@ -1,5 +1,5 @@
 Package: rbi.helpers
-Version: 0.4.1
+Version: 0.4.1.9000
 Title: 'rbi' Helper Functions
 Authors@R: c(person(
     given = "Sebastian",
