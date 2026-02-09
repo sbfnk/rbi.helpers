@@ -1,4 +1,4 @@
-# rbi.helpers (development version)
+# rbi.helpers 0.4.1
 
 * fix documentation links leading to CRAN check failures
 
