@@ -11,12 +11,12 @@ Source:
 [`DESCRIPTION`](https://github.com/sbfnk/rbi.helpers/blob/main/DESCRIPTION)
 
 Funk S (2026). *rbi.helpers: 'rbi' Helper Functions*. R package version
-0.4.1, <https://libbi.org>.
+0.4.1.9000, <https://libbi.org>.
 
     @Manual{,
       title = {rbi.helpers: 'rbi' Helper Functions},
       author = {Sebastian Funk},
       year = {2026},
-      note = {R package version 0.4.1},
+      note = {R package version 0.4.1.9000},
       url = {https://libbi.org},
     }
