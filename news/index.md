@@ -1,6 +1,8 @@
 # Changelog
 
-## rbi.helpers (development version)
+## rbi.helpers 0.4.1
+
+CRAN release: 2025-09-26
 
 - fix documentation links leading to CRAN check failures
 
