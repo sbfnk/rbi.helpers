@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Introduction to rbi.helpers • rbi.helpers</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Introduction to rbi.helpers">
 </head>
@@ -49,8 +49,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Introduction to rbi.helpers</h1>
+      <img src="../logo.svg" class="logo" alt=""><h1>Introduction to rbi.helpers</h1>
                         <h4 data-toc-skip class="author">Sebastian
 Funk</h4>
             
@@ -149,13 +148,13 @@ posterior distribution. This can then be used to adjust the number of
 particles using</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">adapted</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/adapt_particles.html">adapt_particles</a></span><span class="op">(</span><span class="va">bi_prior</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:11:35 2026 Adapting the number of particles</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:11:50 2026 4 particles, loglikelihod variance: 9.5863402696008</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:11:54 2026 8 particles, loglikelihod variance: 3.77192932450897</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:11:59 2026 16 particles, loglikelihod variance: 2.24273655866084</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:12:04 2026 32 particles, loglikelihod variance: 1.30179246083847</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:12:12 2026 64 particles, loglikelihod variance: 0.651044197683024</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:12:12 2026 Choosing 64 particles.</span></span></code></pre></div>
+<span><span class="co">#&gt; Mon Aug 24 14:28:03 2026 Adapting the number of particles</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:28:20 2026 4 particles, loglikelihod variance: 9.5863402696008</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:28:25 2026 8 particles, loglikelihod variance: 3.77192932450897</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:28:30 2026 16 particles, loglikelihod variance: 2.24273655866084</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:28:36 2026 32 particles, loglikelihod variance: 1.30179246083847</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:28:44 2026 64 particles, loglikelihod variance: 0.651044197683024</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:28:44 2026 Choosing 64 particles.</span></span></code></pre></div>
 <p>This will take the last sample of the output file contained in the
 <code>libbi</code> object <code>bi_prior</code>, and use it to adjust
 the number of particles by starting with 1 particle (or a given
@@ -183,9 +182,9 @@ proposal distribution for an acceptance rate between 0.05 and 0.4, we
 can run:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">adapted</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/adapt_proposal.html">adapt_proposal</a></span><span class="op">(</span><span class="va">adapted</span>, min <span class="op">=</span> <span class="fl">0.05</span>, max <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:12:12 2026 Adapting the proposal distribution</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:12:12 2026 Initial trial run</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:12:31 2026 Acceptance rate: 0.283283283283283</span></span></code></pre></div>
+<span><span class="co">#&gt; Mon Aug 24 14:28:44 2026 Adapting the proposal distribution</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:28:44 2026 Initial trial run</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:29:06 2026 Acceptance rate: 0.283283283283283</span></span></code></pre></div>
 <p>The covariance matrices for parameters and initial conditions are
 stored in the input file contained in the <code>libbi</code> object
 <code>adapted</code></p>
@@ -254,17 +253,17 @@ observations, we could have written</p>
 <span>  <span class="fu"><a href="../reference/adapt_proposal.html">adapt_proposal</a></span><span class="op">(</span>min <span class="op">=</span> <span class="fl">0.05</span>, max <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/rbi/man/sample.html" class="external-link">sample</a></span><span class="op">(</span>nsamples <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/rbi/man/sample_obs.html" class="external-link">sample_obs</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:12:52 2026 Adapting the proposal distribution</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:13:18 2026 Adapting the number of particles</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:13:33 2026 4 particles, loglikelihod variance: 4.98864430510319</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:13:37 2026 8 particles, loglikelihod variance: 2.50334348358283</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:13:41 2026 16 particles, loglikelihod variance: 2.278740962349</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:13:46 2026 32 particles, loglikelihod variance: 2.06221670510984</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:13:54 2026 64 particles, loglikelihod variance: 1.02667431640938</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:14:05 2026 128 particles, loglikelihod variance: 0.399685704417314</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:14:05 2026 Choosing 128 particles.</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:14:06 2026 Initial trial run</span></span>
-<span><span class="co">#&gt; Mon Feb  9 12:14:30 2026 Acceptance rate: 0.388388388388388</span></span></code></pre></div>
+<span><span class="co">#&gt; Mon Aug 24 14:29:27 2026 Adapting the proposal distribution</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:29:56 2026 Adapting the number of particles</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:30:12 2026 4 particles, loglikelihod variance: 4.98864430510319</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:30:16 2026 8 particles, loglikelihod variance: 2.50334348358283</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:30:21 2026 16 particles, loglikelihod variance: 2.278740962349</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:30:26 2026 32 particles, loglikelihod variance: 2.06221670510984</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:30:34 2026 64 particles, loglikelihod variance: 1.02667431640938</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:30:46 2026 128 particles, loglikelihod variance: 0.399685704417314</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:30:46 2026 Choosing 128 particles.</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:30:46 2026 Initial trial run</span></span>
+<span><span class="co">#&gt; Mon Aug 24 14:31:12 2026 Acceptance rate: 0.388388388388388</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -277,7 +276,7 @@ observations, we could have written</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

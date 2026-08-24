@@ -7,12 +7,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>rbi Helper Functions • rbi.helpers</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="rbi Helper Functions">
 <meta name="description" content="Contains a collection of helper functions to use with rbi, the R interface to LibBi, described in Murray et al. (2015) &lt;doi:10.18637/jss.v067.i10&gt;. It contains functions to adapt the proposal distribution and number of particles in particle Markov-Chain Monte Carlo, as well as calculating the Deviance Information Criterion (DIC) and converting between times in LibBi results and R time/dates.">
 <meta property="og:description" content="Contains a collection of helper functions to use with rbi, the R interface to LibBi, described in Murray et al. (2015) &lt;doi:10.18637/jss.v067.i10&gt;. It contains functions to adapt the proposal distribution and number of particles in particle Markov-Chain Monte Carlo, as well as calculating the Deviance Information Criterion (DIC) and converting between times in LibBi results and R time/dates.">
+<meta property="og:image" content="https://sbfnk.github.io/rbi/logo.svg">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -46,9 +47,7 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="helper-functions-for-the-rbi-package">Helper functions for the rbi package<a class="anchor" aria-label="anchor" href="#helper-functions-for-the-rbi-package"></a>
-</h1></div>
+  <main id="main" class="col-md-9"><p>Helper functions for the rbi package <a href="https://sbfnk.github.io/rbi.helpers/"><img src="reference/figures/logo.png" align="right" height="139" alt="rbi.helpers website"></a> ================</p>
 <!-- badges: start -->
 
 <p><a href="https://github.com/sbfnk/rbi.helpers" class="external-link">rbi.helpers</a> is collection of helper functions to use with <a href="https://github.com/sbfnk/rbi" class="external-link">rbi</a>, an R interface to <a href="https://github.com/lawmurray/LibBi" class="external-link">LibBi</a>, a library for Bayesian Inference.</p>
@@ -63,10 +62,11 @@
 <li>
 <code>acceptance_rate</code>, to calculate the acceptance rate of a pMCMC run</li>
 </ul>
-</div>
 <div class="section level1">
-<h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+<div class="page-header">
+<img src="logo.svg" class="logo" alt=""><h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h1>
+</div>
 <p>The easiest way to install <code>rbi.helpers</code> is to use the <code>remotes</code> package:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
@@ -123,7 +123,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>
