@@ -1,4 +1,5 @@
 Helper functions for the rbi package
+<a href="https://sbfnk.github.io/rbi.helpers/"><img src="man/figures/logo.png" align="right" height="139" alt="rbi.helpers website" /></a>
 ================
 
 <!-- badges: start -->
